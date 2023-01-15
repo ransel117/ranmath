@@ -1,25 +1,25 @@
 /* MIT License
- *
- * Copyright (c) 2022 Ransel117
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+*
+* Copyright (c) 2022 Ransel117
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 #ifndef RANMATH_H
 #define RANMATH_H
 
@@ -61,13 +61,16 @@ typedef f32 vec4[3];
 #define RM_MAKE_RAD    1.74532925E-2F
 #define RM_MAKE_DEG    5.72957795E1F
 
-/* PS: the s and v functions requires dest to be initialized, such as rm_vec2_adds or rm_vec2_divv. 
- * The others do not need dest to be initialized.
- */
+/* PS: the s and v functions requires dest to be initialized, such as rm_vec2_adds or rm_vec2_divv.
+* The others do not need dest to be initialized.
+*/
 
 /* Declarations */
-RANMATH_INLINE f32 rm_pow2f(f32 x);
+/* Integer */
 RANMATH_INLINE i32 rm_pow2i(i32 x);
+
+/* Floating point */
+RANMATH_INLINE f32 rm_pow2f(f32 x);
 RANMATH_INLINE f32 rm_powf(f32  x, f32 p);
 RANMATH_INLINE f32 rm_sqrtf(f32 x);
 RANMATH_INLINE f32 rm_cosf(f32  a);
@@ -171,8 +174,13 @@ RANMATH_INLINE void rm_vec2_rotate_point_deg(const vec2 v, const vec2 point, con
 
 
 /* Definitions */
-RANMATH_INLINE f32 rm_pow2f(f32 x) { return x * x; }
+/* Integer */
 RANMATH_INLINE i32 rm_pow2i(i32 x) { return x* x; }
+RANMATH_INLINE i32 rm_absi(i32  x) { return x < 0 ? -x : x; }
+RANMATH_INLINE i32 rm_maxi(i32 a, i32 b) { return a > b ? a : b; }
+RANMATH_INLINE i32 rm_mini(i32 a, i32 b) { return a < b ? a : b; }
+/* Floating point */
+RANMATH_INLINE f32 rm_pow2f(f32 x) { return x * x; }
 RANMATH_INLINE f32 rm_powf(f32  x, f32 p) { return powf(x, p); } /* TODO: implement own pow */
 RANMATH_INLINE f32 rm_sqrtf(f32 x) { return sqrtf(x); } /* TODO: implement own sqrt */
 RANMATH_INLINE f32 rm_cosf(f32 a) { return cosf(a); }   /* TODO: implement own cos and inverse */
@@ -186,13 +194,13 @@ RANMATH_INLINE f32 rm_asinf_deg(f32 a) { return RM_MAKE_DEG * rm_asinf(a); }
 RANMATH_INLINE f32 rm_absf(f32 x) { return x < 0.0F ? -x : x; }
 RANMATH_INLINE f32 rm_maxf(f32 a, f32 b) {
     return a > b ? a : b;
-    
+
     /* Alt implementation */
     //return (a > b) * a + (b > a) * b;
 }
 RANMATH_INLINE f32 rm_minf(f32 a, f32 b) {
     return a < b ? a : b;
-    
+
     /* Alt implementation */
     //return (a < b) * a + (b < a) * b;
 }
@@ -488,7 +496,7 @@ RANMATH_INLINE f32 rm_vec2_distance2(const vec2 a, const vec2 b) { return rm_pow
 RANMATH_INLINE f32 rm_vec2_distance(const vec2 a, const vec2 b) { return rm_sqrtf(rm_vec2_distance2(a, b)); }
 RANMATH_INLINE f32 rm_vec2_angle(const vec2 a, const vec2 b) {
     f32 dot  = rm_vec2_dot(a, b) / (rm_vec2_norm(a) * rm_vec2_norm(b));
-    
+
     return (dot > 1.0F) ? 0.0F : (dot < -1.0F) ? RM_PI : rm_acosf(dot);
     /* Alt implementation */
     // bool lessn1 = dot < -1.0F;
@@ -496,9 +504,8 @@ RANMATH_INLINE f32 rm_vec2_angle(const vec2 a, const vec2 b) {
 }
 RANMATH_INLINE f32 rm_vec2_angle_deg(const vec2 a, const vec2 b) {
     f32 dot  = rm_vec2_dot(a, b) / (rm_vec2_norm(a) * rm_vec2_norm(b));
-    
+
     return (dot > 1.0F) ? 0.0F : (dot < -1.0F) ? 180.0F : rm_acosf_deg(dot);
-    
     /* Alt implementation */
     // bool lessn1 = dot < -1.0F;
     // return lessn1 * 180.0F + (dot < 1.0F && !lessn1) * rm_acosf_deg(dot);
@@ -506,7 +513,7 @@ RANMATH_INLINE f32 rm_vec2_angle_deg(const vec2 a, const vec2 b) {
 RANMATH_INLINE void rm_vec2_rotate_origin(const vec2 v, const f32 a, vec2 dest) {
     f32 c = rm_cosf(a);
     f32 s = rm_sinf(a);
-    
+
     dest[0] = v[0] * c - v[1] * s;
     dest[1] = v[0] * s + v[1] * c;
 }
@@ -515,14 +522,14 @@ RANMATH_INLINE void rm_vec2_rotate_point(const vec2 v, const vec2 point, const f
     f32 s = rm_sinf(a);
     f32 ndotx = v[0] - point[0];
     f32 ndoty = v[1] - point[1];
-    
+
     dest[0] = ndotx * c - ndoty * s + point[0];
     dest[1] = ndotx * s + ndoty * c + point[1];
 }
 RANMATH_INLINE void rm_vec2_rotate_origin_deg(const vec2 v, const f32 a, vec2 dest) {
     f32 c = rm_cosf_deg(a);
     f32 s = rm_sinf_deg(a);
-    
+
     dest[0] = v[0] * c - v[1] * s;
     dest[1] = v[0] * s + v[1] * c;
 }
@@ -531,7 +538,7 @@ RANMATH_INLINE void rm_vec2_rotate_point_deg(const vec2 v, const vec2 point, con
     f32 s = rm_sinf_deg(a);
     f32 ndotx = v[0] - point[0];
     f32 ndoty = v[1] - point[1];
-    
+
     dest[0] = ndotx * c - ndoty * s + point[0];
     dest[1] = ndotx * s + ndoty * c + point[1];
 }
