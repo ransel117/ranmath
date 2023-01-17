@@ -8,7 +8,13 @@ Aiming to be a single header library if i don't get a headache while writing thi
 ***ONLY VEC2 EXISTS RIGHT NOW***
 
 ## How to use
-Include the header file in your project
+Include ranmath.h in your project
+
+```#include "ranmath.h"```
+
+and compile it with ranmath.c eg:
+
+```CFILES=ranmath.c ...```
 
 ## TODO
 - Add vec3, vec4
