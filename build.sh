@@ -2,7 +2,7 @@
 
 CC="cc"
 EXEC="main"
-CFILES="main.c"
+CFILES="ranmath.c main.c"
 CFLAGS="-Wall -Wpedantic -ggdb -std=c99"
 CLIBS="-lm"
 
