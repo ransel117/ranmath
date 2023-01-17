@@ -12,7 +12,7 @@ Include ranmath.h in your project
 
 ```#include "ranmath.h"```
 
-and compile it with ranmath.c
+and compile it with ranmath.c eg:
 
 ```CFILES=ranmath.c ...```
 
