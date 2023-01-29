@@ -1,23 +1,23 @@
 #ifndef RANMATH_H
 #define RANMATH_H
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 #define RANMATH_INLINE static inline
 
 /* ---------------- TYPES ---------------- */
-typedef _Bool bool;
-#define true  1
-#define false 0
-
-typedef unsigned char  u8;
-typedef unsigned short u16;
-typedef unsigned int   u32;
-typedef unsigned long  u64;
-typedef signed char    i8;
-typedef signed short   i16;
-typedef signed int     i32;
-typedef signed long    i64;
-typedef float          f32;
-typedef double         f64;
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+typedef float    f32;
+typedef double   f64;
 
 /* Debating whether to use structs or arrays */
 typedef struct {
@@ -59,6 +59,9 @@ typedef struct {
 #define RM_MAKE_RAD    0.0174532925199432957692369076848861271344287188854172545609719144
 
 /* ---------------- FUNCTIONS ---------------- */
+RANMATH_INLINE i32 rm_facti(i32);
+RANMATH_INLINE i64 rm_factl(i64);
+
 RANMATH_INLINE i32 rm_powi(i32, i32);
 RANMATH_INLINE i64 rm_powl(i64, i64);
 
@@ -99,6 +102,12 @@ RANMATH_INLINE f64 rm_tand(f64);
 RANMATH_INLINE f32 rm_cotf(f32);
 RANMATH_INLINE f64 rm_cotd(f64);
 
+RANMATH_INLINE f32 rm_secf(f32);
+RANMATH_INLINE f64 rm_secd(f64);
+
+RANMATH_INLINE f32 rm_cscf(f32);
+RANMATH_INLINE f64 rm_cscd(f64);
+
 RANMATH_INLINE f32 rm_rad2degf(f32);
 RANMATH_INLINE f64 rm_rad2degd(f64);
 
@@ -108,6 +117,28 @@ RANMATH_INLINE f64 rm_deg2radd(f64);
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
+
+RANMATH_INLINE i32 rm_facti(i32 x) {
+    if (x < 0) return -1;
+    i32 i;
+    i32 d = 1;
+    for (i = 1; i <= x; ++i) {
+        d *= i;
+    }
+
+    return d;
+}
+
+RANMATH_INLINE i64 rm_factl(i64 x) {
+    i64 i;
+    i64 d = 1;
+
+    for (i = 1; i <= x; ++i) {
+        d *= i;
+    }
+
+    return d;
+}
 
 RANMATH_INLINE i32 rm_powi(i32 x, i32 p) {
     if (x == 0 || x == 1) return x;
@@ -306,6 +337,20 @@ RANMATH_INLINE f32 rm_cotf(f32 x) {
 }
 RANMATH_INLINE f64 rm_cotd(f64 x) {
     return rm_cosd(x) / rm_sind(x);
+}
+
+RANMATH_INLINE f32 rm_secf(f32 x) {
+    return 1 / rm_cosf(x);
+}
+RANMATH_INLINE f64 rm_secd(f64 x) {
+    return 1 / rm_cosd(x);
+}
+
+RANMATH_INLINE f32 rm_cscf(f32 x) {
+    return 1 / rm_sinf(x);
+}
+RANMATH_INLINE f64 rm_cscd(f64 x) {
+    return 1 / rm_sind(x);
 }
 
 RANMATH_INLINE f32 rm_rad2degf(f32 x) {
