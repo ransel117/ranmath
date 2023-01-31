@@ -58,7 +58,7 @@ typedef struct {
 #define RM_MAKE_DEG    57.295779513082320876798154814105170332405472466564321549160243861
 #define RM_MAKE_RAD    0.0174532925199432957692369076848861271344287188854172545609719144
 
-/* ---------------- FUNCTIONS ---------------- */
+/* ----------------- METHODS ----------------- */
 RANMATH_INLINE i32 rm_facti(i32);
 RANMATH_INLINE i64 rm_factl(i64);
 
@@ -81,6 +81,24 @@ RANMATH_INLINE i64 rm_absl(i64);
 RANMATH_INLINE f32 rm_absf(f32);
 RANMATH_INLINE f64 rm_absd(f64);
 
+RANMATH_INLINE i32 rm_mini(i32, i32);
+RANMATH_INLINE i64 rm_minl(i64, i64);
+RANMATH_INLINE f32 rm_minf(f32, f32);
+RANMATH_INLINE f64 rm_mind(f64, f64);
+
+RANMATH_INLINE i32 rm_mini(i32, i32);
+RANMATH_INLINE i64 rm_minl(i64, i64);
+RANMATH_INLINE f32 rm_maxf(f32, f32);
+RANMATH_INLINE f64 rm_maxd(f64, f64);
+
+RANMATH_INLINE i32 rm_clampi(i32, i32, i32);
+RANMATH_INLINE i64 rm_clampl(i64, i64, i64);
+RANMATH_INLINE f32 rm_clampf(f32, f32, f32);
+RANMATH_INLINE f64 rm_clampd(f64, f64, f64);
+
+RANMATH_INLINE f32 rm_truncf(f32);
+RANMATH_INLINE f64 rm_truncd(f64);
+
 RANMATH_INLINE f32 rm_floorf(f32);
 RANMATH_INLINE f64 rm_floord(f64);
 
@@ -89,6 +107,9 @@ RANMATH_INLINE f64 rm_ceild(f64);
 
 RANMATH_INLINE f32 rm_roundf(f32);
 RANMATH_INLINE f64 rm_roundd(f64);
+
+RANMATH_INLINE f32 rm_wrapf(f32, f32, f32);
+RANMATH_INLINE f64 rm_wrapd(f64, f64, f64);
 
 RANMATH_INLINE f32 rm_cosf(f32);
 RANMATH_INLINE f64 rm_cosd(f64);
@@ -117,7 +138,14 @@ RANMATH_INLINE f64 rm_deg2radd(f64);
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
+/* ----------------- MACROS ------------------ */
+#define RANMATH_ABS(x) ((x < 0) ? -x : x)
+#define RANMATH_MIN(a, b) ((a < b) ? a : b)
+#define RANMATH_MAX(a, b) ((a > b) ? a : b)
+#define RANMATH_CLAMP(val, min, max) (RANMATH_MIN(RANMATH_MAX(val, min), max))
+#define RANMATH_POW2(x) (x * x)
 
+/* ----------------- METHODS ----------------- */
 RANMATH_INLINE i32 rm_facti(i32 x) {
     if (x < 0) return -1;
     i32 i;
@@ -130,9 +158,9 @@ RANMATH_INLINE i32 rm_facti(i32 x) {
 }
 
 RANMATH_INLINE i64 rm_factl(i64 x) {
+    if (x < 0) return -1;
     i64 i;
     i64 d = 1;
-
     for (i = 1; i <= x; ++i) {
         d *= i;
     }
@@ -168,16 +196,16 @@ RANMATH_INLINE i64 rm_powl(i64 x, i64 p) {
 }
 
 RANMATH_INLINE i32 rm_pow2i(i32 x) {
-    return x * x;
+    return RANMATH_POW2(x);
 }
 RANMATH_INLINE i64 rm_pow2l(i64 x) {
-    return x * x;
+    return RANMATH_POW2(x);
 }
 RANMATH_INLINE f32 rm_pow2f(f32 x) {
-    return x * x;
+    return RANMATH_POW2(x);
 }
 RANMATH_INLINE f64 rm_pow2d(f64 x) {
-    return x * x;
+    return RANMATH_POW2(x);
 }
 
 RANMATH_INLINE f32 rm_rsqrtf(f32 x) {
@@ -187,9 +215,9 @@ RANMATH_INLINE f32 rm_rsqrtf(f32 x) {
 
     c.i = 0x5F375A86 - (c.i >> 1);
 
-    c.f *= 1.5 - (xh * c.f * c.f);
-    c.f *= 1.5 - (xh * c.f * c.f);
-    c.f *= 1.5 - (xh * c.f * c.f);
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
 
     return c.f;
 }
@@ -200,10 +228,10 @@ RANMATH_INLINE f64 rm_rsqrtd(f64 x) {
 
     c.i = 0x5FE6EB50C7B537A9 - (c.i >> 1);
 
-    c.f *= 1.5 - (xh * c.f * c.f);
-    c.f *= 1.5 - (xh * c.f * c.f);
-    c.f *= 1.5 - (xh * c.f * c.f);
-    c.f *= 1.5 - (xh * c.f * c.f);
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
 
     return c.f;
 }
@@ -216,16 +244,69 @@ RANMATH_INLINE f64 rm_sqrtd(f64 x) {
 }
 
 RANMATH_INLINE i32 rm_absi(i32 x) {
-    return (x < 0) ? -x : x;
+    return RANMATH_ABS(x);
 }
 RANMATH_INLINE i64 rm_absl(i64 x) {
-    return (x < 0) ? -x : x;
+    return RANMATH_ABS(x);
 }
 RANMATH_INLINE f32 rm_absf(f32 x) {
-    return (x < 0) ? -x : x;
+    return RANMATH_ABS(x);
 }
 RANMATH_INLINE f64 rm_absd(f64 x) {
-    return (x < 0) ? -x : x;
+    return RANMATH_ABS(x);
+}
+
+RANMATH_INLINE i32 rm_mini(i32 a, i32 b) {
+    return RANMATH_MIN(a, b);
+}
+RANMATH_INLINE i64 rm_minl(i64 a, i64 b) {
+    return RANMATH_MIN(a, b);
+}
+RANMATH_INLINE f32 rm_minf(f32 a, f32 b) {
+    return RANMATH_MIN(a, b);
+}
+RANMATH_INLINE f64 rm_mind(f64 a, f64 b) {
+    return RANMATH_MIN(a, b);
+}
+
+RANMATH_INLINE i32 rm_maxi(i32 a, i32 b) {
+    return RANMATH_MAX(a, b);
+}
+RANMATH_INLINE i64 rm_maxl(i64 a, i64 b) {
+    return RANMATH_MAX(a,b);
+}
+RANMATH_INLINE f32 rm_maxf(f32 a, f32 b) {
+    return RANMATH_MAX(a, b);
+}
+RANMATH_INLINE f64 rm_maxd(f64 a, f64 b) {
+    return RANMATH_MAX(a, b);
+}
+
+RANMATH_INLINE i32 rm_clampi(i32 val, i32 minval, i32 maxval) {
+    return RANMATH_CLAMP(val, minval, maxval);
+}
+RANMATH_INLINE i64 rm_clampl(i64 val, i64 minval, i64 maxval) {
+    return RANMATH_CLAMP(val, minval, maxval);
+}
+RANMATH_INLINE f32 rm_clampf(f32 val, f32 minval, f32 maxval) {
+    return RANMATH_CLAMP(val, minval, maxval);
+}
+RANMATH_INLINE f64 rm_clampd(f64 val, f64 minval, f64 maxval) {
+    return RANMATH_CLAMP(val, minval, maxval);
+}
+
+RANMATH_INLINE f32 rm_truncf(f32 x) {
+    return (i32)x;
+}
+RANMATH_INLINE f64 rm_truncd(f64 x) {
+    return (i64)x;
+}
+
+RANMATH_INLINE f32 rm_modf(f32 a, f32 b) {
+    return a - rm_truncf(a / b) * b;
+}
+RANMATH_INLINE f64 rm_modd(f64 a, f64 b) {
+    return a - rm_truncd(a / b) * b;
 }
 
 RANMATH_INLINE f32 rm_floorf(f32 x) {
@@ -289,24 +370,33 @@ RANMATH_INLINE f64 rm_roundd(f64 x) {
     return (c1) ? ((c2) ? rm_ceild(x) : rm_floord(x)) : ((c2) ? rm_floord(x) : rm_ceild(x));
 }
 
+RANMATH_INLINE f32 rm_wrapf(f32 val, f32 minval, f32 maxval) {
+    f32 retval = rm_modf(val, maxval);
+    return (retval < minval) ? retval + maxval : retval;
+}
+RANMATH_INLINE f64 rm_wrapd(f64 val, f64 minval, f64 maxval) {
+    f64 retval = rm_modd(val, maxval);
+    return (retval < minval) ? retval + maxval : retval;
+}
+
 RANMATH_INLINE f32 rm_cosf(f32 x) {
-    const f32 i = RM_PI_2 - rm_absf((x - RM_2PI * rm_floorf(x * RM_1_2PI)) - RM_PI);
-    const f64 i2 = i * i;
-    const f64 i4 = i2 * i2;
-    const f64 a = -0.132995644812022330410032839099700470577487194965079816065230286;
-    const f64 b = 0.0032172781382535624048708288689972016965839213439467243797038973;
-    const f64 c = 0.0336709157304375144254000370104015622020879871979042486728981326;
-    const f64 d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+    const f32 i = RM_PI_2 - rm_absf(rm_wrapf(x, -RM_2PI, RM_2PI) - RM_PI);
+    const f32 i2 = rm_pow2f(i);
+    const f32 i4 = rm_pow2f(i2);
+    const f32 a = -0.132995644812022330410032839099700470577487194965079816065230286;
+    const f32 b = 0.0032172781382535624048708288689972016965839213439467243797038973;
+    const f32 c = 0.0336709157304375144254000370104015622020879871979042486728981326;
+    const f32 d = 0.0004962828018660570906955733487210649504998482691550479603258607;
 
-    const f64 val = 1 + a * i2 + b * i4;
-    const f64 val2 = 1 / (1 + c * i2 + d * i4);
+    const f32 val = 1 + a * i2 + b * i4;
+    const f32 val2 = 1 / (1 + c * i2 + d * i4);
 
-    return (f32)-i * val * val2;
+    return -i * val * val2;
 }
 RANMATH_INLINE f64 rm_cosd(f64 x) {
-    const f64 i = RM_PI_2 - rm_absd((x - RM_2PI * rm_floord(x * RM_1_2PI)) - RM_PI);
-    const f64 i2 = i * i;
-    const f64 i4 = i2 * i2;
+    const f64 i = RM_PI_2 - rm_absd(rm_wrapd(x, -RM_2PI, RM_2PI) - RM_PI);
+    const f64 i2 = rm_pow2d(i);
+    const f64 i4 = rm_pow2d(i2);
     const f64 a = -0.132995644812022330410032839099700470577487194965079816065230286;
     const f64 b = 0.0032172781382535624048708288689972016965839213439467243797038973;
     const f64 c = 0.0336709157304375144254000370104015622020879871979042486728981326;
