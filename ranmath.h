@@ -61,79 +61,79 @@ typedef struct {
 /* ----------------- METHODS ----------------- */
 RANMATH_INLINE i32 rm_facti(i32);
 RANMATH_INLINE i64 rm_factl(i64);
-
 RANMATH_INLINE i32 rm_powi(i32, i32);
 RANMATH_INLINE i64 rm_powl(i64, i64);
-
 RANMATH_INLINE i32 rm_pow2i(i32);
 RANMATH_INLINE i64 rm_pow2l(i64);
 RANMATH_INLINE f32 rm_pow2f(f32);
 RANMATH_INLINE f64 rm_pow2d(f64);
-
 RANMATH_INLINE f32 rm_rsqrtf(f32);
 RANMATH_INLINE f64 rm_rsqrtd(f64);
-
 RANMATH_INLINE f32 rm_sqrtf(f32);
 RANMATH_INLINE f64 rm_sqrtd(f64);
-
 RANMATH_INLINE i32 rm_absi(i32);
 RANMATH_INLINE i64 rm_absl(i64);
 RANMATH_INLINE f32 rm_absf(f32);
 RANMATH_INLINE f64 rm_absd(f64);
-
 RANMATH_INLINE i32 rm_mini(i32, i32);
 RANMATH_INLINE i64 rm_minl(i64, i64);
 RANMATH_INLINE f32 rm_minf(f32, f32);
 RANMATH_INLINE f64 rm_mind(f64, f64);
-
 RANMATH_INLINE i32 rm_mini(i32, i32);
 RANMATH_INLINE i64 rm_minl(i64, i64);
 RANMATH_INLINE f32 rm_maxf(f32, f32);
 RANMATH_INLINE f64 rm_maxd(f64, f64);
-
 RANMATH_INLINE i32 rm_clampi(i32, i32, i32);
 RANMATH_INLINE i64 rm_clampl(i64, i64, i64);
 RANMATH_INLINE f32 rm_clampf(f32, f32, f32);
 RANMATH_INLINE f64 rm_clampd(f64, f64, f64);
-
 RANMATH_INLINE f32 rm_truncf(f32);
 RANMATH_INLINE f64 rm_truncd(f64);
-
 RANMATH_INLINE f32 rm_floorf(f32);
 RANMATH_INLINE f64 rm_floord(f64);
-
 RANMATH_INLINE f32 rm_ceilf(f32);
 RANMATH_INLINE f64 rm_ceild(f64);
-
 RANMATH_INLINE f32 rm_roundf(f32);
 RANMATH_INLINE f64 rm_roundd(f64);
-
 RANMATH_INLINE f32 rm_wrapf(f32, f32, f32);
 RANMATH_INLINE f64 rm_wrapd(f64, f64, f64);
-
 RANMATH_INLINE f32 rm_cosf(f32);
 RANMATH_INLINE f64 rm_cosd(f64);
-
 RANMATH_INLINE f32 rm_sinf(f32);
 RANMATH_INLINE f64 rm_sind(f64);
-
 RANMATH_INLINE f32 rm_tanf(f32);
 RANMATH_INLINE f64 rm_tand(f64);
-
 RANMATH_INLINE f32 rm_cotf(f32);
 RANMATH_INLINE f64 rm_cotd(f64);
-
 RANMATH_INLINE f32 rm_secf(f32);
 RANMATH_INLINE f64 rm_secd(f64);
-
 RANMATH_INLINE f32 rm_cscf(f32);
 RANMATH_INLINE f64 rm_cscd(f64);
-
 RANMATH_INLINE f32 rm_rad2degf(f32);
 RANMATH_INLINE f64 rm_rad2degd(f64);
-
 RANMATH_INLINE f32 rm_deg2radf(f32);
 RANMATH_INLINE f64 rm_deg2radd(f64);
+
+/* For ease of use right now, will get removed later... */
+#define RANMATH_DEFINE_VEC(n)                               \
+RANMATH_INLINE vec##n rm_vec##n##_copy(vec##n);             \
+RANMATH_INLINE vec##n rm_vec##n##_abs(vec##n);              \
+RANMATH_INLINE f32    rm_vec##n##_max(vec##n);              \
+RANMATH_INLINE f32    rm_vec##n##_min(vec##n);              \
+RANMATH_INLINE vec##n rm_vec##n##_maxv(vec##n, vec##n);     \
+RANMATH_INLINE vec##n rm_vec##n##_minv(vec##n, vec##n);     \
+RANMATH_INLINE f32    rm_vec##n##_hadd(vec##n);             \
+RANMATH_INLINE vec##n rm_vec##n##_zero(void);               \
+RANMATH_INLINE vec##n rm_vec##n##_one(void);                \
+RANMATH_INLINE vec2   rm_vec##n##_set(f32, f32);            \
+RANMATH_INLINE f32    rm_vec##n##_dot(vec##n, vec##n);      \
+RANMATH_INLINE f32    rm_vec##n##_cross(vec##n, vec##n);    \
+RANMATH_INLINE f32    rm_vec##n##_norm2(vec##n);            \
+RANMATH_INLINE f32    rm_vec##n##_norm(vec##n);             \
+RANMATH_INLINE f32    rm_vec##n##_norm_one(vec##n);         \
+RANMATH_INLINE f32    rm_vec##n##_norm_inf(vec##n);         \
+
+RANMATH_DEFINE_VEC(2)
 
 #endif /* RANMATH_H */
 
@@ -156,7 +156,6 @@ RANMATH_INLINE i32 rm_facti(i32 x) {
 
     return d;
 }
-
 RANMATH_INLINE i64 rm_factl(i64 x) {
     if (x < 0) return -1;
     i64 i;
@@ -167,7 +166,6 @@ RANMATH_INLINE i64 rm_factl(i64 x) {
 
     return d;
 }
-
 RANMATH_INLINE i32 rm_powi(i32 x, i32 p) {
     if (x == 0 || x == 1) return x;
     if (p == 0) return 1;
@@ -194,7 +192,6 @@ RANMATH_INLINE i64 rm_powl(i64 x, i64 p) {
 
     return val;
 }
-
 RANMATH_INLINE i32 rm_pow2i(i32 x) {
     return RANMATH_POW2(x);
 }
@@ -207,7 +204,6 @@ RANMATH_INLINE f32 rm_pow2f(f32 x) {
 RANMATH_INLINE f64 rm_pow2d(f64 x) {
     return RANMATH_POW2(x);
 }
-
 RANMATH_INLINE f32 rm_rsqrtf(f32 x) {
     union { f32 f; u32 i; } c = {x};
 
@@ -235,14 +231,12 @@ RANMATH_INLINE f64 rm_rsqrtd(f64 x) {
 
     return c.f;
 }
-
 RANMATH_INLINE f32 rm_sqrtf(f32 x) {
     return x * rm_rsqrtf(x);
 }
 RANMATH_INLINE f64 rm_sqrtd(f64 x) {
     return x * rm_rsqrtd(x);
 }
-
 RANMATH_INLINE i32 rm_absi(i32 x) {
     return RANMATH_ABS(x);
 }
@@ -255,7 +249,6 @@ RANMATH_INLINE f32 rm_absf(f32 x) {
 RANMATH_INLINE f64 rm_absd(f64 x) {
     return RANMATH_ABS(x);
 }
-
 RANMATH_INLINE i32 rm_mini(i32 a, i32 b) {
     return RANMATH_MIN(a, b);
 }
@@ -268,7 +261,6 @@ RANMATH_INLINE f32 rm_minf(f32 a, f32 b) {
 RANMATH_INLINE f64 rm_mind(f64 a, f64 b) {
     return RANMATH_MIN(a, b);
 }
-
 RANMATH_INLINE i32 rm_maxi(i32 a, i32 b) {
     return RANMATH_MAX(a, b);
 }
@@ -281,7 +273,6 @@ RANMATH_INLINE f32 rm_maxf(f32 a, f32 b) {
 RANMATH_INLINE f64 rm_maxd(f64 a, f64 b) {
     return RANMATH_MAX(a, b);
 }
-
 RANMATH_INLINE i32 rm_clampi(i32 val, i32 minval, i32 maxval) {
     return RANMATH_CLAMP(val, minval, maxval);
 }
@@ -294,21 +285,18 @@ RANMATH_INLINE f32 rm_clampf(f32 val, f32 minval, f32 maxval) {
 RANMATH_INLINE f64 rm_clampd(f64 val, f64 minval, f64 maxval) {
     return RANMATH_CLAMP(val, minval, maxval);
 }
-
 RANMATH_INLINE f32 rm_truncf(f32 x) {
     return (i32)x;
 }
 RANMATH_INLINE f64 rm_truncd(f64 x) {
     return (i64)x;
 }
-
 RANMATH_INLINE f32 rm_modf(f32 a, f32 b) {
     return a - rm_truncf(a / b) * b;
 }
 RANMATH_INLINE f64 rm_modd(f64 a, f64 b) {
     return a - rm_truncd(a / b) * b;
 }
-
 RANMATH_INLINE f32 rm_floorf(f32 x) {
     if (x == 0) return x;
     i32 inx = (i32)x -1;
@@ -319,7 +307,6 @@ RANMATH_INLINE f64 rm_floord(f64 x) {
     i64 inx = (i64)x -1;
     return (x < 0) ? (inx == 0 ? -0.0 : inx) : (i64)x;
 }
-
 RANMATH_INLINE f32 rm_ceilf(f32 x) {
     if (x == 0) return x;
     i32 ix  = (i32)x;
@@ -330,7 +317,6 @@ RANMATH_INLINE f64 rm_ceild(f64 x) {
     i64 ix  = (i64)x;
     return (x < 0) ? (ix == 0 ? -0.0 : ix) : (i64)x + 1;
 }
-
 RANMATH_INLINE f32 rm_roundf(f32 x) {
     bool c1 = (rm_absf(x) - rm_absi((i32)x)) < 0.5;
     bool c2 = x < 0;
@@ -369,7 +355,6 @@ RANMATH_INLINE f64 rm_roundd(f64 x) {
 
     return (c1) ? ((c2) ? rm_ceild(x) : rm_floord(x)) : ((c2) ? rm_floord(x) : rm_ceild(x));
 }
-
 RANMATH_INLINE f32 rm_wrapf(f32 val, f32 minval, f32 maxval) {
     f32 retval = rm_modf(val, maxval);
     return (retval < minval) ? retval + maxval : retval;
@@ -378,7 +363,6 @@ RANMATH_INLINE f64 rm_wrapd(f64 val, f64 minval, f64 maxval) {
     f64 retval = rm_modd(val, maxval);
     return (retval < minval) ? retval + maxval : retval;
 }
-
 RANMATH_INLINE f32 rm_cosf(f32 x) {
     const f32 i = RM_PI_2 - rm_absf(rm_wrapf(x, -RM_2PI, RM_2PI) - RM_PI);
     const f32 i2 = rm_pow2f(i);
@@ -407,54 +391,101 @@ RANMATH_INLINE f64 rm_cosd(f64 x) {
 
     return -i * val * val2;
 }
-
 RANMATH_INLINE f32 rm_sinf(f32 x) {
     return -rm_cosf(x + RM_PI_2);
 }
 RANMATH_INLINE f64 rm_sind(f64 x) {
     return -rm_cosd(x + RM_PI_2);
 }
-
 RANMATH_INLINE f32 rm_tanf(f32 x) {
     return rm_sinf(x) / rm_cosf(x);
 }
 RANMATH_INLINE f64 rm_tand(f64 x) {
     return rm_sind(x) / rm_cosd(x);
 }
-
 RANMATH_INLINE f32 rm_cotf(f32 x) {
     return rm_cosf(x) / rm_sinf(x);
 }
 RANMATH_INLINE f64 rm_cotd(f64 x) {
     return rm_cosd(x) / rm_sind(x);
 }
-
 RANMATH_INLINE f32 rm_secf(f32 x) {
     return 1 / rm_cosf(x);
 }
 RANMATH_INLINE f64 rm_secd(f64 x) {
     return 1 / rm_cosd(x);
 }
-
 RANMATH_INLINE f32 rm_cscf(f32 x) {
     return 1 / rm_sinf(x);
 }
 RANMATH_INLINE f64 rm_cscd(f64 x) {
     return 1 / rm_sind(x);
 }
-
 RANMATH_INLINE f32 rm_rad2degf(f32 x) {
     return RM_MAKE_DEG * x;
 }
 RANMATH_INLINE f64 rm_rad2degd(f64 x) {
     return RM_MAKE_DEG * x;
 }
-
 RANMATH_INLINE f32 rm_deg2radf(f32 x) {
     return RM_MAKE_RAD * x;
 }
 RANMATH_INLINE f64 rm_deg2radd(f64 x) {
     return RM_MAKE_RAD * x;
 }
+
+
+RANMATH_INLINE vec2 rm_vec2_copy(vec2 v) {
+    return v;
+}
+RANMATH_INLINE vec2 rm_vec2_abs(vec2 v) {
+    return (vec2){rm_absf(v.x), rm_absf(v.y)};
+}
+RANMATH_INLINE f32 rm_vec2_max(vec2 v) {
+    return rm_maxf(v.x, v.y);
+}
+RANMATH_INLINE f32 rm_vec2_min(vec2 v) {
+    return rm_minf(v.x, v.y);
+}
+RANMATH_INLINE vec2 rm_vec2_maxv(vec2 a, vec2 b) {
+    return (vec2){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y)};
+}
+RANMATH_INLINE vec2 rm_vec2_minv(vec2 a, vec2 b) {
+    return (vec2){rm_minf(a.x, b.x), rm_minf(a.y, b.y)};
+}
+RANMATH_INLINE f32 rm_vec2_hadd(vec2 v) {
+    return v.x + v.y;
+}
+RANMATH_INLINE vec2 rm_vec2_zero(void) {
+    return (vec2){0, 0};
+}
+RANMATH_INLINE vec2 rm_vec2_one(void) {
+    return (vec2){1, 1};
+}
+RANMATH_INLINE vec2 rm_vec2_set(f32 x, f32 y) {
+    return (vec2){x, y};
+}
+RANMATH_INLINE f32 rm_vec2_dot(vec2 a, vec2 b) {
+    return a.x * b.x + a.y * b.y;
+}
+RANMATH_INLINE f32 rm_vec2_cross(vec2 a, vec2 b) {
+    return a.x * b.y - b.x * a.y;
+}
+RANMATH_INLINE f32 rm_vec2_norm2(vec2 v) {
+    return rm_vec2_dot(v, v);
+}
+RANMATH_INLINE f32 rm_vec2_norm(vec2 v) {
+    return rm_sqrtf(rm_vec2_norm2(v));
+}
+RANMATH_INLINE f32 rm_vec2_norm_one(vec2 v) {
+    return rm_vec2_hadd(rm_vec2_abs(v));
+}
+RANMATH_INLINE f32 rm_vec2_norm_inf(vec2 v) {
+    return rm_vec2_max(rm_vec2_abs(v));
+}
+
+
+
+
 
 #endif /* RANMATH_IMPLEMENTATION */
