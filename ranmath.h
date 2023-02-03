@@ -5,6 +5,15 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#if defined(__SSE2__) || defined(__SSE__)
+#include <emmintrin.h>
+#define RAN_SSE_ENABLE 1
+#endif /* Check for sse2 */
+#if defined(__GNUC__)
+#define RM_ALIGN(x) __attribute((aligned(x)))
+#else
+#define RM_ALIGN(x) __declspec(align(x))
+#endif
 #define RANMATH_INLINE static inline
 
 /* ---------------- TYPES ---------------- */
@@ -29,7 +38,7 @@ typedef struct {
     f32 y;
     f32 z;
 } vec3;
-typedef struct {
+typedef RM_ALIGN(16) struct {
     f32 x;
     f32 y;
     f32 z;
@@ -222,6 +231,25 @@ RANMATH_INLINE vec4 rm_vec4_center(vec4, vec4);
 
 #ifdef RANMATH_IMPLEMENTATION
 /* ----------------- MACROS ------------------ */
+#if RAN_SSE_ENABLE
+#define rmm_load(v) _mm_load_ps((f32*)&v)
+#define rmm_store(v, a) _mm_store_ps((f32*)&v, a)
+#define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
+#define rmm_set1(x) _mm_set_ps1(x)
+RANMATH_INLINE f32 rmm_hadd(__m128 x) {
+    return x[0] + x[1] + x[2] + x[3];
+}
+RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
+    /* [a0+a2 c0+c2 a1+a3 c1+c3 */
+    __m128 s1 = _mm_add_ps(_mm_unpacklo_ps(a,c),_mm_unpackhi_ps(a,c));
+    /* [b0+b2 d0+d2 b1+b3 d1+d3 */
+    __m128 s2 = _mm_add_ps(_mm_unpacklo_ps(b,d),_mm_unpackhi_ps(b,d));
+    /* [a0+a2 b0+b2 c0+c2 d0+d2]+
+    [a1+a3 b1+b3 c1+c3 d1+d3] */
+    return _mm_add_ps(_mm_unpacklo_ps(s1,s2),_mm_unpackhi_ps(s1,s2));
+}
+#endif /* RAN_SSE_ENABLE */
+
 #define RANMATH_ABS(x) ((x < 0) ? -x : x)
 #define RANMATH_MIN(a, b) ((a < b) ? a : b)
 #define RANMATH_MAX(a, b) ((a > b) ? a : b)
@@ -767,7 +795,17 @@ RANMATH_INLINE vec3 rm_vec4_copy3(vec4 v) {
     return (vec3){v.x, v.y, v.z};
 }
 RANMATH_INLINE vec4 rm_vec4_abs(vec4 v) {
+    #if RAN_SSE_ENABLE
+    const __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
+    __m128 x0;
+    vec4 dest;
+    x0 = rmm_load(v);
+    x0 = _mm_and_ps(mask, x0);
+    rmm_store(dest, x0);
+    return dest;
+    #else
     return (vec4){rm_absf(v.x), rm_absf(v.y), rm_absf(v.z), rm_absf(v.w)};
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE f32 rm_vec4_max(vec4 v) {
     return rm_maxf(rm_maxf(rm_maxf(v.x, v.y), v.z), v.w);
@@ -776,35 +814,84 @@ RANMATH_INLINE f32 rm_vec4_min(vec4 v) {
     return rm_minf(rm_minf(rm_minf(v.x, v.y), v.z), v.w);
 }
 RANMATH_INLINE vec4 rm_vec4_maxv(vec4 a, vec4 b) {
+    #if RAN_SSE_ENABLE
+    __m128 x0,x1;
+    vec4 dest;
+    x0 = rmm_load(a);
+    x1 = rmm_load(b);
+    rmm_store(dest, _mm_max_ps(x0, x1));
+    return dest;
+    #else
     return (vec4){
         rm_maxf(a.x, b.x),
         rm_maxf(a.y, b.y),
         rm_maxf(a.z, b.z),
         rm_maxf(a.w, b.w)
     };
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_minv(vec4 a, vec4 b) {
+    #if RAN_SSE_ENABLE
+    __m128 x0,x1;
+    vec4 dest;
+    x0 = rmm_load(a);
+    x1 = rmm_load(b);
+    rmm_store(dest, _mm_min_ps(x0, x1));
+    return dest;
+    #else
     return (vec4){
         rm_minf(a.x, b.x),
         rm_minf(a.y, b.y),
         rm_minf(a.z, b.z),
         rm_minf(a.w, b.w)
     };
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE f32 rm_vec4_hadd(vec4 v) {
+    #if RAN_SSE_ENABLE
+    return rmm_hadd(rmm_load(v));
+    #else
     return v.x + v.y + v.z + v.w;
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_zero(void) {
+    #if RAN_SSE_ENABLE
+    vec4 dest;
+    rmm_store(dest, rmm_set1(0));
+    return dest;
+    #else
     return (vec4){0, 0, 0, 0};
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_one(void) {
+    #if RAN_SSE_ENABLE
+    vec4 dest;
+    rmm_store(dest, rmm_set1(1));
+    return dest;
+    #else
     return (vec4){1, 1, 1, 1};
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_set(f32 x, f32 y, f32 z, f32 w) {
+    #if RAN_SSE_ENABLE
+    vec4 dest;
+    rmm_store(dest, rmm_set(x, y, z, w));
+    return dest;
+    #else
     return (vec4){x, y, z, w};
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4(vec3 v, f32 last) {
+    #if RAN_SSE_ENABLE
+    __m128 x0;
+    vec4 dest;
+    x0 = rmm_load(v);
+    x0[3] = last;
+    rmm_store(dest, x0);
+    return dest;
+    #else
     return (vec4){v.x, v.y, v.z, last};
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE f32 rm_vec4_dot(vec4 a, vec4 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
@@ -850,29 +937,63 @@ RANMATH_INLINE vec4 rm_vec4_divs(vec4 v, f32 s) {
     return (vec4){v.x / s, v.y / s, v.z / s, v.w / s};
 }
 RANMATH_INLINE vec4 rm_vec4_negate(vec4 v) {
+    #if RAN_SSE_ENABLE
+
+    return dest;
+    #else
     return (vec4){-v.x, -v.y, -v.z, -v.w};
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_normalize(vec4 v) {
     f32 norm = rm_vec4_norm(v);
     return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1 / norm);
 }
 RANMATH_INLINE f32 rm_vec4_distance2(vec4 a, vec4 b) {
+    #if RAN_SSE_ENABLE
+    __m128 x0, x1, x2;
+    x0 = rmm_load(a);
+    x1 = rmm_load(b);
+    x2 = _mm_mul_ps(x0, x1);
+    x2 = _mm_mul_ps(x2, x2);
+    return rmm_hadd(x2);
+    #else
     return rm_pow2f(a.x - b.x) + rm_pow2f(a.y - b.y)
     + rm_pow2f(a.z - b.z) + rm_pow2f(a.w - b.w);
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE f32 rm_vec4_distance(vec4 a, vec4 b) {
     return rm_sqrtf(rm_vec4_distance2(a, b));
 }
 RANMATH_INLINE vec4 rm_vec4_clamp(vec4 v, f32 minval, f32 maxval) {
+    #if RAN_SSE_ENABLE
+    __m128 x0, x1, x2;
+    vec4 dest;
+    x0 = rmm_load(v);
+    x1 = rmm_set1(minval);
+    x2 = rmm_set1(maxval);
+    rmm_store(dest, _mm_min_ps(_mm_max_ps(x0, x1), x2));
+    return dest;
+    #else
     return (vec4){
         rm_clampf(v.x, minval, maxval),
         rm_clampf(v.y, minval, maxval),
         rm_clampf(v.z, minval, maxval),
         rm_clampf(v.w, minval, maxval)
     };
+    #endif /* RAN_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_center(vec4 a, vec4 b) {
+    #if RAN_SSE_ENABLE
+    vec4 dest;
+    __m128 x0, x1, x2;
+    x0 = rmm_load(a);
+    x1 = rmm_load(b);
+    x2 = rmm_set1(0.5);
+    rmm_store(dest, _mm_mul_ps(_mm_sub_ps(x0, x1), x2));
+    return dest;
+    #else
     return rm_vec4_scale(rm_vec4_add(a, b), 0.5);
+    #endif /* RAN_SSE_ENABLE */
 }
 
 
