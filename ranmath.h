@@ -5,11 +5,13 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#if (defined(__SSE2__) || defined(__SSE__)) && !defined(RM_SSE_ENABLE)
+#if !defined(RM_SSE_ENABLE)
+#if defined(__SSE2__) || defined(__SSE__)
 #define RM_SSE_ENABLE 1
 #else
 #define RM_SSE_ENABLE 0
 #endif /* Check for sse2 */
+#endif /* Check if already defined */
 
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
