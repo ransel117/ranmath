@@ -5,14 +5,15 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#if defined(__SSE2__) || defined(__SSE__)
-#include <emmintrin.h>
-
-#ifndef RM_SSE_ENABLE
+#if (defined(__SSE2__) || defined(__SSE__)) && !defined(RM_SSE_ENABLE)
 #define RM_SSE_ENABLE 1
-#endif /* Check if already defined */
-
+#else
+#define RM_SSE_ENABLE 0
 #endif /* Check for sse2 */
+
+#if RM_SSE_ENABLE
+#include <emmintrin.h>
+#endif /* RM_SSE_ENABLE */
 
 #if defined(__GNUC__)
 #define RM_ALIGN(x) __attribute((aligned(x)))
@@ -34,7 +35,6 @@ typedef int64_t  i64;
 typedef float    f32;
 typedef double   f64;
 
-/* Debating whether to use structs or arrays */
 typedef struct {
     f32 x;
     f32 y;
