@@ -283,7 +283,9 @@ RANMATH_INLINE vec3 rm_mat4_mulv3(mat4, vec3, f32);
 RANMATH_INLINE f32  rm_mat4_trace(mat4);
 RANMATH_INLINE f32  rm_mat4_trace3(mat4);
 RANMATH_INLINE mat4 rm_mat4_transpose(mat4);
+RANMATH_INLINE mat4 rm_mat4_translate(f32, f32, f32);
 RANMATH_INLINE mat4 rm_mat4_scale(mat4, f32);
+RANMATH_INLINE mat4 rm_mat4_scale_aniso(mat4, f32, f32, f32);
 RANMATH_INLINE f32  rm_mat4_det(mat4);
 RANMATH_INLINE mat4 rm_mat4_inv(mat4);
 RANMATH_INLINE void rm_mat4_swap_col(mat4, i32, i32);
@@ -320,7 +322,8 @@ RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define RANMATH_CLAMP(val, min, max) (RANMATH_MIN(RANMATH_MAX(val, min), max))
 #define RANMATH_POW2(x) (x * x)
 
-#define rm_cvt_vec_f32ptr(v) ((f32*)&v)
+#define rm_cvt_struct_f32ptr(v) ((f32*)&v)
+
 #define RM_MAT2_IDENTITY (mat2){    \
     {1, 0},                         \
     {0, 1},                         \
@@ -1348,12 +1351,29 @@ RANMATH_INLINE mat4 rm_mat4_transpose(mat4 m) {
 
     return (mat4){c1, c2, c3, c4};
 }
+RANMATH_INLINE mat4 rm_mat4_translate(f32 x, f32 y, f32 z) {
+    mat4 m = rm_mat4_identity();
+
+    m.c4.x = x;
+    m.c4.y = y;
+    m.c4.z = z;
+
+    return m;
+}
 RANMATH_INLINE mat4 rm_mat4_scale(mat4 m, f32 s) {
     return (mat4){
         rm_vec4_scale(m.c1, s),
         rm_vec4_scale(m.c2, s),
         rm_vec4_scale(m.c3, s),
         rm_vec4_scale(m.c4, s)
+    };
+}
+RANMATH_INLINE mat4 rm_mat4_scale_aniso(mat4 m, f32 x, f32 y, f32 z) {
+    return (mat4){
+        rm_vec4_scale(m.c1, x),
+        rm_vec4_scale(m.c2, y),
+        rm_vec4_scale(m.c3, z),
+        rm_vec4_copy(m.c4)
     };
 }
 RANMATH_INLINE f32  rm_mat4_det(mat4 m) {
