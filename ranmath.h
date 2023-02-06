@@ -291,6 +291,7 @@ RANMATH_INLINE mat4 rm_mat4_inv(mat4);
 RANMATH_INLINE void rm_mat4_swap_col(mat4, i32, i32);
 RANMATH_INLINE void rm_mat4_swap_row(mat4, i32, i32);
 RANMATH_INLINE f32  rm_mat4_rmc(vec4, mat4, vec4);
+RANMATH_INLINE mat4 rm_mat4_ortho(f32, f32, f32, f32, f32, f32);
 
 
 #endif /* RANMATH_H */
@@ -1390,6 +1391,21 @@ RANMATH_INLINE void rm_mat4_swap_row(mat4 m, i32 row1, i32 row2) {
 }
 RANMATH_INLINE f32  rm_mat4_rmc(vec4 r, mat4 m, vec4 c) {
 
+}
+RANMATH_INLINE mat4 rm_mat4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+    f32 rl, tb, fn;
+    vec4 c1, c2, c3, c4;
+
+    rl = r - l;
+    tb = t - b;
+    fn = f - n;
+
+    c1 = (vec4){2 / (rl), 0, 0, 0};
+    c2 = (vec4){0, 2 / (tb), 0, 0};
+    c3 = (vec4){0, 0, -2 / (fn), 0};
+    c4 = (vec4){-(r + l) / (rl), -(t + b) / (tb), -(f + n) / (fn), 1};
+
+    return (mat4) {c1, c2, c3, c4};
 }
 
 #endif /* RANMATH_IMPLEMENTATION */
