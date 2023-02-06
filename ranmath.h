@@ -7,13 +7,19 @@
 
 #if defined(__SSE2__) || defined(__SSE__)
 #include <emmintrin.h>
+
+#ifndef RM_SSE_ENABLE
 #define RM_SSE_ENABLE 1
+#endif /* Check if already defined */
+
 #endif /* Check for sse2 */
+
 #if defined(__GNUC__)
 #define RM_ALIGN(x) __attribute((aligned(x)))
 #else
 #define RM_ALIGN(x) __declspec(align(x))
 #endif
+
 #define RANMATH_INLINE static inline
 
 /* ---------------- TYPES ---------------- */
