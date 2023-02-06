@@ -5,6 +5,8 @@ Code might or might not be stolen from other sources which i may or may have not
 
 Aiming to be a single header stb-style library
 
+## OBS most of the matrix functions does not work/are not implemented yet
+
 ## How to use
 Include ranmath.h in your project:
 
