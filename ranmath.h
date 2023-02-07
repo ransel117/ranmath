@@ -18,9 +18,9 @@
 #endif /* RM_SSE_ENABLE */
 
 #if defined(__GNUC__)
-#define RM_ALIGN(x) __attribute((aligned(x)))
+#define RANMATH_ALIGN(x) __attribute((aligned(x)))
 #else
-#define RM_ALIGN(x) __declspec(align(x))
+#define RANMATH_ALIGN(x) __declspec((align(x)))
 #endif
 
 #define RANMATH_INLINE static inline
@@ -37,7 +37,7 @@ typedef int64_t  i64;
 typedef float    f32;
 typedef double   f64;
 
-typedef struct {
+typedef RANMATH_ALIGN(8) struct {
     f32 x;
     f32 y;
 } vec2;
@@ -46,22 +46,22 @@ typedef struct {
     f32 y;
     f32 z;
 } vec3;
-typedef RM_ALIGN(16) struct {
+typedef RANMATH_ALIGN(16) struct {
     f32 x;
     f32 y;
     f32 z;
     f32 w;
 } vec4;
-typedef RM_ALIGN(16) struct {
+typedef RANMATH_ALIGN(16) struct {
     vec2 c1;
     vec2 c2;
 } mat2;
-typedef RM_ALIGN(16) struct {
+typedef RANMATH_ALIGN(16) struct {
     vec3 c1;
     vec3 c2;
     vec3 c3;
 } mat3;
-typedef RM_ALIGN(16) struct {
+typedef RANMATH_ALIGN(16) struct {
     vec4 c1;
     vec4 c2;
     vec4 c3;
@@ -91,6 +91,16 @@ typedef RM_ALIGN(16) struct {
 #define RM_MAKE_RAD    0.0174532925199432957692369076848861271344287188854172545609719144
 
 /* ----------------- METHODS ----------------- */
+#define RM_VEC_CVT(v) ((f32*)&v)
+
+#define RM_VEC2_CVT union {vec2 m; RANMATH_ALIGN(8) f32 gl[2];}
+#define RM_VEC3_CVT union {vec3 m; f32 gl[3];}
+#define RM_VEC4_CVT union {vec4 m; RANMATH_ALIGN(16) f32 gl[4];}
+
+#define RM_MAT2_CVT union {mat2 m; RANMATH_ALIGN(16) f32 gl[2][2];}
+#define RM_MAT3_CVT union {mat3 m; RANMATH_ALIGN(16) f32 gl[3][3];}
+#define RM_MAT4_CVT union {mat4 m; RANMATH_ALIGN(16) f32 gl[4][4];}
+
 RANMATH_INLINE i32 rm_facti(i32);
 RANMATH_INLINE i64 rm_factl(i64);
 RANMATH_INLINE i32 rm_powi(i32, i32);
@@ -259,8 +269,8 @@ RANMATH_INLINE f32  rm_mat2_trace(mat2);
 RANMATH_INLINE mat2 rm_mat2_scale(mat2, f32);
 RANMATH_INLINE f32  rm_mat2_det(mat2);
 RANMATH_INLINE mat2 rm_mat2_inv(mat2);
-RANMATH_INLINE void rm_mat2_swap_col(mat2, i32, i32);
-RANMATH_INLINE void rm_mat2_swap_row(mat2, i32, i32);
+RANMATH_INLINE void rm_mat2_swap_col(mat2, u32, u32);
+RANMATH_INLINE void rm_mat2_swap_row(mat2, u32, u32);
 RANMATH_INLINE f32  rm_mat2_rmc(vec2, mat2, vec2);
 
 RANMATH_INLINE mat3 rm_mat3_copy(mat3);
@@ -274,8 +284,8 @@ RANMATH_INLINE f32  rm_mat3_trace(mat3);
 RANMATH_INLINE mat3 rm_mat3_scale(mat3, f32);
 RANMATH_INLINE f32  rm_mat3_det(mat3);
 RANMATH_INLINE mat3 rm_mat3_inv(mat3);
-RANMATH_INLINE void rm_mat3_swap_col(mat3, i32, i32);
-RANMATH_INLINE void rm_mat3_swap_row(mat3, i32, i32);
+RANMATH_INLINE void rm_mat3_swap_col(mat3, u32, u32);
+RANMATH_INLINE void rm_mat3_swap_row(mat3, u32, u32);
 RANMATH_INLINE f32  rm_mat3_rmc(vec3, mat3, vec3);
 
 RANMATH_INLINE mat4 rm_mat4_copy(mat4);
@@ -296,8 +306,8 @@ RANMATH_INLINE mat4 rm_mat4_scale(mat4, f32);
 RANMATH_INLINE mat4 rm_mat4_scale_aniso(mat4, f32, f32, f32);
 RANMATH_INLINE f32  rm_mat4_det(mat4);
 RANMATH_INLINE mat4 rm_mat4_inv(mat4);
-RANMATH_INLINE void rm_mat4_swap_col(mat4, i32, i32);
-RANMATH_INLINE void rm_mat4_swap_row(mat4, i32, i32);
+RANMATH_INLINE void rm_mat4_swap_col(mat4, u32, u32);
+RANMATH_INLINE void rm_mat4_swap_row(mat4, u32, u32);
 RANMATH_INLINE f32  rm_mat4_rmc(vec4, mat4, vec4);
 RANMATH_INLINE mat4 rm_mat4_ortho(f32, f32, f32, f32, f32, f32);
 
@@ -305,10 +315,9 @@ RANMATH_INLINE mat4 rm_mat4_ortho(f32, f32, f32, f32, f32, f32);
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
-/* ----------------- MACROS ------------------ */
 #if RM_SSE_ENABLE
-#define rmm_load(v) _mm_load_ps((f32*)&v)
-#define rmm_store(v, a) _mm_store_ps((f32*)&v, a)
+#define rmm_load(v) _mm_load_ps(RM_VEC_CVT(v))
+#define rmm_store(v, a) _mm_store_ps(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
 #define rmm_set1(x) _mm_set_ps1(x)
 RANMATH_INLINE f32 rmm_hadd(__m128 x) {
@@ -330,8 +339,6 @@ RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define RANMATH_MAX(a, b) ((a > b) ? a : b)
 #define RANMATH_CLAMP(val, min, max) (RANMATH_MIN(RANMATH_MAX(val, min), max))
 #define RANMATH_POW2(x) (x * x)
-
-#define rm_cvt_struct_f32ptr(v) ((f32*)&v)
 
 #define RM_MAT2_IDENTITY (mat2){    \
     {1, 0},                         \
@@ -1196,20 +1203,101 @@ RANMATH_INLINE mat2 rm_mat2_copy(mat2 m) {
 RANMATH_INLINE mat2 rm_mat2_identity(void) {
     return RM_MAT2_IDENTITY;
 }
-RANMATH_INLINE void rm_mat2_identity_array(mat2 *m, size_t count) { }
+RANMATH_INLINE void rm_mat2_identity_array(mat2 *m, size_t count) {
+    mat2 t = RM_MAT2_IDENTITY;
+    size_t i;
+
+    for (i = 0; i < count; i++) {
+        m[i] = rm_mat2_copy(t);
+    }
+}
 RANMATH_INLINE mat2 rm_mat2_zero(void) {
     return RM_MAT2_ZERO;
 }
-RANMATH_INLINE mat2 rm_mat2_mul(mat2 a, mat2 b) { }
-RANMATH_INLINE mat2 rm_mat2_transpose(mat2 m) { }
-RANMATH_INLINE vec2 rm_mat2_mulv(mat2 m, vec2 v) { }
-RANMATH_INLINE f32  rm_mat2_trace(mat2 m) { }
-RANMATH_INLINE mat2 rm_mat2_scale(mat2 m, f32 s) { }
-RANMATH_INLINE f32  rm_mat2_det(mat2 m) { }
-RANMATH_INLINE mat2 rm_mat2_inv(mat2 m) { }
-RANMATH_INLINE void rm_mat2_swap_col(mat2 m, i32 col1, i32 col2) { }
-RANMATH_INLINE void rm_mat2_swap_row(mat2 m, i32 row1, i32 row2) { }
-RANMATH_INLINE f32  rm_mat2_rmc(vec2 r, mat2 m, vec2 c) { }
+RANMATH_INLINE mat2 rm_mat2_mul(mat2 a, mat2 b) {
+    vec2 c1, c2;
+
+    c1 = (vec2){
+        a.c1.x * b.c1.x + a.c2.x * b.c1.y,
+        a.c1.y * b.c1.x + a.c2.y * b.c1.y
+    };
+    c2 = (vec2){
+        a.c1.x * b.c2.x + a.c2.x * b.c2.y,
+        a.c1.y * b.c2.x + a.c2.y * b.c2.y
+    };
+
+    return (mat2){c1, c2};
+}
+RANMATH_INLINE vec2 rm_mat2_mulv(mat2 m, vec2 v) {
+    return (vec2){
+        m.c1.x * v.x + m.c2.x * v.y,
+        m.c1.y * v.x + m.c2.y * v.y
+    };
+}
+RANMATH_INLINE mat2 rm_mat2_transpose(mat2 m) {
+    return (mat2){
+        {m.c1.x, m.c2.x},
+        {m.c1.y, m.c2.y}
+    };
+}
+RANMATH_INLINE f32 rm_mat2_trace(mat2 m) {
+    return m.c1.x + m.c2.y;
+}
+RANMATH_INLINE mat2 rm_mat2_scale(mat2 m, f32 s) {
+    return (mat2){
+        rm_vec2_scale(m.c1, s),
+        rm_vec2_scale(m.c2, s)
+    };
+}
+RANMATH_INLINE f32 rm_mat2_det(mat2 m) {
+    return m.c1.x * m.c2.y - m.c1.y * m.c2.x;
+}
+RANMATH_INLINE mat2 rm_mat2_inv(mat2 m) {
+    f32 det;
+    det = (f32)1 / rm_mat2_det(m);
+
+    return (mat2){
+        {m.c2.y * det, -m.c1.y * det},
+        {-m.c2.x * det, m.c1.x * det}
+    };
+}
+RANMATH_INLINE void rm_mat2_swap_col(mat2 m, u32 col1, u32 col2) {
+    RM_MAT2_CVT c;
+    f32 a, b;
+
+    c.m = rm_mat2_copy(m);
+
+    a = c.gl[col1][0];
+    b = c.gl[col1][1];
+
+    c.gl[col1][0] = c.gl[col2][0];
+    c.gl[col1][1] = c.gl[col2][1];
+
+    c.gl[col2][0] = a;
+    c.gl[col2][1] = b;
+
+    m = rm_mat2_copy(c.m);
+}
+RANMATH_INLINE void rm_mat2_swap_row(mat2 m, u32 row1, u32 row2) {
+    RM_MAT2_CVT c;
+    f32 a, b;
+
+    c.m = rm_mat2_copy(m);
+
+    a = c.gl[0][row1];
+    b = c.gl[1][row1];
+
+    c.gl[0][row1] = c.gl[0][row2];
+    c.gl[1][row1] = c.gl[1][row2];
+
+    c.gl[0][row2] = a;
+    c.gl[1][row2] = b;
+
+    m = rm_mat2_copy(c.m);
+}
+RANMATH_INLINE f32 rm_mat2_rmc(vec2 r, mat2 m, vec2 c) {
+    return rm_vec2_dot(r, rm_mat2_mulv(m, c));
+}
 
 RANMATH_INLINE mat3 rm_mat3_copy(mat3 m) {
     return m;
@@ -1217,20 +1305,148 @@ RANMATH_INLINE mat3 rm_mat3_copy(mat3 m) {
 RANMATH_INLINE mat3 rm_mat3_identity(void) {
     return RM_MAT3_IDENTITY;
 }
-RANMATH_INLINE void rm_mat3_identity_array(mat3 *m, size_t count) { }
+RANMATH_INLINE void rm_mat3_identity_array(mat3 *m, size_t count) {
+    mat3 t = RM_MAT3_IDENTITY;
+    size_t i;
+
+    for (i = 0; i < count; i++) {
+        m[i] = rm_mat3_copy(t);
+    }
+}
 RANMATH_INLINE mat3 rm_mat3_zero(void) {
     return RM_MAT3_ZERO;
 }
-RANMATH_INLINE mat3 rm_mat3_mul(mat3 a, mat3 b) { }
-RANMATH_INLINE mat3 rm_mat3_transpose(mat3 m) { }
-RANMATH_INLINE vec3 rm_mat3_mulv(mat3 m, vec3 v) { }
-RANMATH_INLINE f32  rm_mat3_trace(mat3 m) { }
-RANMATH_INLINE mat3 rm_mat3_scale(mat3 m, f32 s) { }
-RANMATH_INLINE f32  rm_mat3_det(mat3 m) { }
-RANMATH_INLINE mat3 rm_mat3_inv(mat3 m) { }
-RANMATH_INLINE void rm_mat3_swap_col(mat3 m, i32 col1, i32 col2) { }
-RANMATH_INLINE void rm_mat3_swap_row(mat3 m, i32 row1, i32 row2) { }
-RANMATH_INLINE f32  rm_mat3_rmc(vec3 r, mat3 m, vec3 c) { }
+RANMATH_INLINE mat3 rm_mat3_mul(mat3 a, mat3 b) {
+    vec3 c1, c2, c3;
+
+    c1 = (vec3){
+        a.c1.x * b.c1.x + a.c2.x * b.c1.y + a.c3.x * b.c1.z,
+        a.c1.y * b.c1.x + a.c2.y * b.c1.y + a.c3.y * b.c1.z,
+        a.c1.z * b.c1.x + a.c2.z * b.c1.y + a.c3.z * b.c1.z
+    };
+    c2 = (vec3){
+        a.c1.x * b.c2.x + a.c2.x * b.c2.y + a.c3.x * b.c2.z,
+        a.c1.y * b.c2.x + a.c2.y * b.c2.y + a.c3.y * b.c2.z,
+        a.c1.z * b.c2.x + a.c2.z * b.c2.y + a.c3.z * b.c2.z
+    };
+    c3 = (vec3){
+        a.c1.x * b.c3.x + a.c2.x * b.c3.y + a.c3.x * b.c3.z,
+        a.c1.y * b.c3.x + a.c2.y * b.c3.y + a.c3.y * b.c3.z,
+        a.c1.z * b.c3.x + a.c2.z * b.c3.y + a.c3.z * b.c3.z
+    };
+
+    return (mat3){c1, c2, c3};
+}
+RANMATH_INLINE vec3 rm_mat3_mulv(mat3 m, vec3 v) {
+    vec3 dest;
+
+    dest.x = m.c1.x * v.x + m.c2.x * v.y + m.c3.x * v.z;
+    dest.y = m.c1.y * v.x + m.c2.y * v.y + m.c3.y * v.z;
+    dest.z = m.c1.z * v.x + m.c2.z * v.y + m.c3.z * v.z;
+
+    return dest;
+}
+RANMATH_INLINE mat3 rm_mat3_transpose(mat3 m) {
+    vec3 c1, c2, c3;
+    c1 = (vec3){
+        m.c1.x,
+        m.c2.x,
+        m.c3.x
+    };
+    c2 = (vec3){
+        m.c1.y,
+        m.c2.y,
+        m.c3.y
+    };
+    c3 = (vec3){
+        m.c1.z,
+        m.c2.z,
+        m.c3.z
+    };
+
+    return (mat3){c1, c2, c3};
+}
+RANMATH_INLINE f32 rm_mat3_trace(mat3 m) {
+    return m.c1.x + m.c2.y + m.c3.z;
+}
+RANMATH_INLINE mat3 rm_mat3_scale(mat3 m, f32 s) {
+    return (mat3){
+        rm_vec3_scale(m.c1, s),
+        rm_vec3_scale(m.c2, s),
+        rm_vec3_scale(m.c3, s)
+    };
+}
+RANMATH_INLINE f32 rm_mat3_det(mat3 m) {
+    f32 t[3];
+    t[0] = m.c1.x * (m.c2.y * m.c3.z - m.c2.z * m.c3.y);
+    t[1] = m.c2.x * (m.c1.y * m.c3.z - m.c1.z * m.c3.y);
+    t[2] = m.c3.x * (m.c1.y * m.c2.z - m.c1.z * m.c2.y);
+
+    return t[0] - t[1] + t[2];
+}
+RANMATH_INLINE mat3 rm_mat3_inv(mat3 m) {
+    float det;
+    mat3 dest;
+
+    dest.c1.x = m.c2.y * m.c3.z - m.c2.z * m.c3.y;
+    dest.c1.y = -(m.c1.y * m.c3.z - m.c3.y * m.c1.z);
+    dest.c1.z = m.c1.y * m.c2.z - m.c2.y * m.c1.z;
+
+    dest.c2.x = -(m.c2.x * m.c3.z - m.c3.x * m.c2.z);
+    dest.c2.y = m.c1.x * m.c3.z - m.c1.z * m.c3.x;
+    dest.c2.z = -(m.c1.x * m.c2.z - m.c2.x * m.c1.z);
+
+    dest.c3.x = m.c2.x * m.c3.y - m.c3.x * m.c2.y;
+    dest.c3.y = -(m.c1.x * m.c3.y - m.c3.x * m.c1.y);
+    dest.c3.z = m.c1.x * m.c2.y - m.c1.y * m.c2.x;
+
+    det = (f32)1 / (m.c1.x * dest.c1.x + m.c1.y * dest.c2.x + m.c1.z * dest.c3.x);
+
+    return rm_mat3_scale(dest, det);
+}
+RANMATH_INLINE void rm_mat3_swap_col(mat3 m, u32 col1, u32 col2) {
+    RM_MAT3_CVT c;
+    vec3 tmp;
+
+    c.m = rm_mat3_copy(m);
+
+    tmp.x = c.gl[col1][0];
+    tmp.y = c.gl[col1][1];
+    tmp.z = c.gl[col1][2];
+
+    c.gl[col1][0] = c.gl[col2][0];
+    c.gl[col1][1] = c.gl[col2][1];
+    c.gl[col1][2] = c.gl[col2][2];
+
+    c.gl[col2][0] = tmp.x;
+    c.gl[col2][1] = tmp.y;
+    c.gl[col2][2] = tmp.z;
+
+    m = rm_mat3_copy(c.m);
+}
+RANMATH_INLINE void rm_mat3_swap_row(mat3 m, u32 row1, u32 row2) {
+    RM_MAT3_CVT c;
+    vec3 tmp;
+
+    c.m = rm_mat3_copy(m);
+
+    tmp.x = c.gl[0][row1];
+    tmp.y = c.gl[1][row1];
+    tmp.z = c.gl[2][row1];
+
+    c.gl[0][row1] = c.gl[0][row2];
+    c.gl[1][row1] = c.gl[1][row2];
+    c.gl[2][row1] = c.gl[2][row2];
+
+    c.gl[0][row2] = tmp.x;
+    c.gl[1][row2] = tmp.y;
+    c.gl[2][row2] = tmp.z;
+
+    m = rm_mat3_copy(c.m);
+}
+RANMATH_INLINE f32 rm_mat3_rmc(vec3 r, mat3 m, vec3 c) {
+    return rm_vec3_dot(r, rm_mat3_mulv(m, c));
+}
 
 RANMATH_INLINE mat4 rm_mat4_copy(mat4 m) {
     return m;
@@ -1289,14 +1505,12 @@ RANMATH_INLINE mat4 rm_mat4_mul(mat4 a, mat4 b) {
         a.c1.z * b.c2.x + a.c2.z * b.c2.y + a.c3.z * b.c2.z + a.c4.z * b.c2.w,
         a.c1.w * b.c2.x + a.c2.w * b.c2.y + a.c3.w * b.c2.z + a.c4.w * b.c2.w
     };
-
     c3 = (vec4){
         a.c1.x * b.c3.x + a.c2.x * b.c3.y + a.c3.x * b.c3.z + a.c4.x * b.c3.w,
         a.c1.y * b.c3.x + a.c2.y * b.c3.y + a.c3.y * b.c3.z + a.c4.y * b.c3.w,
         a.c1.z * b.c3.x + a.c2.z * b.c3.y + a.c3.z * b.c3.z + a.c4.z * b.c3.w,
         a.c1.w * b.c3.x + a.c2.w * b.c3.y + a.c3.w * b.c3.z + a.c4.w * b.c3.w
     };
-
     c4 = (vec4){
         a.c1.x * b.c4.x + a.c2.x * b.c4.y + a.c3.x * b.c4.z + a.c4.x * b.c4.w,
         a.c1.y * b.c4.x + a.c2.y * b.c4.y + a.c3.y * b.c4.z + a.c4.y * b.c4.w,
@@ -1307,24 +1521,24 @@ RANMATH_INLINE mat4 rm_mat4_mul(mat4 a, mat4 b) {
     return (mat4){c1, c2, c3, c4};
 }
 RANMATH_INLINE vec4 rm_mat4_mulv(mat4 m, vec4 v) {
-    f32 x, y, z, w;
+    vec4 dest;
 
-    x = m.c1.x * v.x + m.c2.x * v.y + m.c3.x * v.z + m.c4.x * v.w;
-    y = m.c1.y * v.x + m.c2.y * v.y + m.c3.y * v.z + m.c4.y * v.w;
-    z = m.c1.z * v.x + m.c2.z * v.y + m.c3.z * v.z + m.c4.z * v.w;
-    w = m.c1.w * v.x + m.c2.w * v.y + m.c3.w * v.z + m.c4.w * v.w;
+    dest.x = m.c1.x * v.x + m.c2.x * v.y + m.c3.x * v.z + m.c4.x * v.w;
+    dest.y = m.c1.y * v.x + m.c2.y * v.y + m.c3.y * v.z + m.c4.y * v.w;
+    dest.z = m.c1.z * v.x + m.c2.z * v.y + m.c3.z * v.z + m.c4.z * v.w;
+    dest.w = m.c1.w * v.x + m.c2.w * v.y + m.c3.w * v.z + m.c4.w * v.w;
 
-    return (vec4){x, y, z, w};
+    return dest;
 }
 RANMATH_INLINE vec3 rm_mat4_mulv3(mat4 m, vec3 v, f32 last) {
     vec4 res = rm_vec4(v, last);
     res = rm_mat4_mulv(m, res);
     return rm_vec4_copy3(res);
 }
-RANMATH_INLINE f32  rm_mat4_trace(mat4 m) {
+RANMATH_INLINE f32 rm_mat4_trace(mat4 m) {
     return m.c1.x + m.c2.y + m.c3.z + m.c4.w;
 }
-RANMATH_INLINE f32  rm_mat4_trace3(mat4 m) {
+RANMATH_INLINE f32 rm_mat4_trace3(mat4 m) {
     return m.c1.x + m.c2.y + m.c3.z;
 }
 RANMATH_INLINE mat4 rm_mat4_transpose(mat4 m) {
@@ -1336,21 +1550,18 @@ RANMATH_INLINE mat4 rm_mat4_transpose(mat4 m) {
         m.c3.x,
         m.c4.x
     };
-
     c2 = (vec4){
         m.c1.y,
         m.c2.y,
         m.c3.y,
         m.c4.y
     };
-
     c3 = (vec4){
         m.c1.z,
         m.c2.z,
         m.c3.z,
         m.c4.z
     };
-
     c4 = (vec4){
         m.c1.w,
         m.c2.w,
@@ -1385,20 +1596,124 @@ RANMATH_INLINE mat4 rm_mat4_scale_aniso(mat4 m, f32 x, f32 y, f32 z) {
         rm_vec4_copy(m.c4)
     };
 }
-RANMATH_INLINE f32  rm_mat4_det(mat4 m) {
+RANMATH_INLINE f32 rm_mat4_det(mat4 m) {
+    f32 t[6];
+    f32 v[4];
 
+    t[0] = m.c3.z * m.c4.w - m.c4.z * m.c3.w;
+    t[1] = m.c3.y * m.c4.w - m.c4.y * m.c3.w;
+    t[2] = m.c3.y * m.c4.z - m.c4.y * m.c3.z;
+    t[3] = m.c3.x * m.c4.w - m.c4.x * m.c3.w;
+    t[4] = m.c3.x * m.c4.z - m.c4.x * m.c3.z;
+    t[5] = m.c3.x * m.c4.y - m.c4.x * m.c3.y;
+
+    v[0] = m.c1.x * (m.c2.y * t[0] - m.c2.z * t[1] + m.c2.w * t[2]);
+    v[1] = m.c1.y * (m.c2.x * t[0] - m.c2.z * t[3] + m.c2.w * t[4]);
+    v[2] = m.c1.z * (m.c2.x * t[1] - m.c2.y * t[3] + m.c2.w * t[5]);
+    v[3] = m.c1.w * (m.c2.x * t[2] - m.c2.y * t[4] + m.c2.z * t[5]);
+
+    return v[0] - v[1] + v[2] - v[3];
 }
 RANMATH_INLINE mat4 rm_mat4_inv(mat4 m) {
+    mat4 dest;
+    f32 t[6];
+    f32 det;
 
+    t[0] = m.c3.z * m.c4.w - m.c4.z * m.c3.w;
+    t[1] = m.c3.y * m.c4.w - m.c4.y * m.c3.w;
+    t[2] = m.c3.y * m.c4.z - m.c4.y * m.c3.z;
+    t[3] = m.c3.x * m.c4.w - m.c4.x * m.c3.w;
+    t[4] = m.c3.x * m.c4.z - m.c4.x * m.c3.z;
+    t[5] = m.c3.x * m.c4.y - m.c4.x * m.c3.y;
+
+    dest.c1.x = m.c2.y * t[0] - m.c2.z * t[1] + m.c2.w * t[2];
+    dest.c2.x = -(m.c2.x * t[0] - m.c2.z * t[3] + m.c2.w * t[4]);
+    dest.c3.x = m.c2.x * t[1] - m.c2.y * t[3] + m.c2.w * t[5];
+    dest.c4.x = -(m.c2.x * t[2] - m.c2.y * t[4] + m.c2.z * t[5]);
+
+    dest.c1.y = -(m.c1.y * t[0] - m.c1.z * t[1] + m.c1.w * t[2]);
+    dest.c2.y = m.c1.x * t[0] - m.c1.z * t[3] + m.c1.w * t[4];
+    dest.c3.y = -(m.c1.x * t[1] - m.c1.y * t[3] + m.c1.w * t[5]);
+    dest.c4.y = m.c1.x * t[2] - m.c1.y * t[4] + m.c1.z * t[5];
+
+    t[0] = m.c2.z * m.c4.w - m.c4.z * m.c2.w;
+    t[1] = m.c2.y * m.c4.w - m.c4.y * m.c2.w;
+    t[2] = m.c2.y * m.c4.z - m.c4.y * m.c2.z;
+    t[3] = m.c2.x * m.c4.w - m.c4.x * m.c2.w;
+    t[4] = m.c2.x * m.c4.z - m.c4.x * m.c2.z;
+    t[5] = m.c2.x * m.c4.y - m.c4.x * m.c2.y;
+
+    dest.c1.z = m.c1.y * t[0] - m.c1.z * t[1] + m.c1.w * t[2];
+    dest.c2.z = -(m.c1.x * t[0] - m.c1.z * t[3] + m.c1.w * t[4]);
+    dest.c3.z = m.c1.x * t[1] - m.c1.y * t[3] + m.c1.w * t[5];
+    dest.c4.z = -(m.c1.x * t[2] - m.c1.y * t[4] + m.c1.z * t[5]);
+
+    t[0] = m.c2.z * m.c3.w - m.c3.z * m.c2.w;
+    t[1] = m.c2.y * m.c3.w - m.c3.y * m.c2.w;
+    t[2] = m.c2.y * m.c3.z - m.c3.y * m.c2.z;
+    t[3] = m.c2.x * m.c3.w - m.c3.x * m.c2.w;
+    t[4] = m.c2.x * m.c3.z - m.c3.x * m.c2.z;
+    t[5] = m.c2.x * m.c3.y - m.c3.x * m.c2.y;
+
+    dest.c1.w = -(m.c1.y * t[0] - m.c1.z * t[1] + m.c1.w * t[2]);
+    dest.c2.w = m.c1.x * t[0] - m.c1.z * t[3] + m.c1.w * t[4];
+    dest.c3.w = -(m.c1.x * t[1] - m.c1.y * t[3] + m.c1.w * t[5]);
+    dest.c4.w = m.c1.x * t[2] - m.c1.y * t[4] + m.c1.z * t[5];
+
+    t[0] = m.c1.x * dest.c1.x;
+    t[1] = m.c1.y * dest.c2.x;
+    t[2] = m.c1.z * dest.c3.x;
+    t[3] = m.c1.w * dest.c4.x;
+
+    det = (f32)1 / (t[0] + t[1] + t[2] + t[3]);
+
+    return rm_mat4_scale(dest, det);
 }
-RANMATH_INLINE void rm_mat4_swap_col(mat4 m, i32 col1, i32 col2) {
+RANMATH_INLINE void rm_mat4_swap_col(mat4 m, u32 col1, u32 col2) {
+    RM_MAT4_CVT c;
+    vec4 tmp;
 
+    c.m = rm_mat4_copy(m);
+
+    tmp = (vec4){c.gl[col1][0], c.gl[col1][1], c.gl[col1][2], c.gl[col1][3]};
+
+    c.gl[col1][0] = c.gl[col2][0];
+    c.gl[col1][1] = c.gl[col2][1];
+    c.gl[col1][2] = c.gl[col2][2];
+    c.gl[col1][3] = c.gl[col2][3];
+
+    c.gl[col2][0] = tmp.x;
+    c.gl[col2][1] = tmp.y;
+    c.gl[col2][2] = tmp.z;
+    c.gl[col2][3] = tmp.w;
+
+    m = rm_mat4_copy(c.m);
 }
-RANMATH_INLINE void rm_mat4_swap_row(mat4 m, i32 row1, i32 row2) {
+RANMATH_INLINE void rm_mat4_swap_row(mat4 m, u32 row1, u32 row2) {
+    RM_MAT4_CVT c;
+    vec4 tmp;
 
+    c.m = rm_mat4_copy(m);
+
+    tmp.x = c.gl[0][row1];
+    tmp.y = c.gl[1][row1];
+    tmp.z = c.gl[2][row1];
+    tmp.w = c.gl[3][row1];
+
+    c.gl[0][row1] = c.gl[0][row2];
+    c.gl[1][row1] = c.gl[1][row2];
+    c.gl[2][row1] = c.gl[2][row2];
+    c.gl[3][row1] = c.gl[3][row2];
+
+    c.gl[0][row2] = tmp.x;
+    c.gl[1][row2] = tmp.y;
+    c.gl[2][row2] = tmp.z;
+    c.gl[3][row2] = tmp.w;
+
+    m = rm_mat4_copy(c.m);
 }
-RANMATH_INLINE f32  rm_mat4_rmc(vec4 r, mat4 m, vec4 c) {
-
+RANMATH_INLINE f32 rm_mat4_rmc(vec4 r, mat4 m, vec4 c) {
+    return rm_vec4_dot(r, rm_mat4_mulv(m, c));
 }
 RANMATH_INLINE mat4 rm_mat4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     f32 rl, tb, fn;
