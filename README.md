@@ -1,11 +1,9 @@
 # ranmath
-Math library by me, most likely opengl compatible
+Math library by me
 
 Code might or might not be stolen from other sources which i may or may have not forgotten the name of...
 
 Aiming to be a single header stb-style library
-
-## OBS most of the matrix functions does not work/are not implemented yet
 
 ## How to use
 Include ranmath.h in your project:
@@ -19,8 +17,5 @@ Just try to make sure it fits in with the current codebase structure which may o
 
 ## TODO
 - Add own definitions of basic functions
-- Add vec2, vec3, vec4 stuff
-- Add rotate, distance etc...
-- Add mat2, mat3, mat4
 - Add other stuff
 - Optimize
