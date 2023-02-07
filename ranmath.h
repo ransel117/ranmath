@@ -93,9 +93,9 @@ typedef RANMATH_ALIGN(16) struct {
 /* ----------------- METHODS ----------------- */
 #define RM_VEC_CVT(v) ((f32*)&v)
 
-#define RM_VEC2_CVT union {vec2 m; RANMATH_ALIGN(8) f32 gl[2];}
-#define RM_VEC3_CVT union {vec3 m; f32 gl[3];}
-#define RM_VEC4_CVT union {vec4 m; RANMATH_ALIGN(16) f32 gl[4];}
+#define RM_VEC2_CVT union {vec2 v; RANMATH_ALIGN(8) f32 gl[2];}
+#define RM_VEC3_CVT union {vec3 v; f32 gl[3];}
+#define RM_VEC4_CVT union {vec4 v; RANMATH_ALIGN(16) f32 gl[4];}
 
 #define RM_MAT2_CVT union {mat2 m; RANMATH_ALIGN(16) f32 gl[2][2];}
 #define RM_MAT3_CVT union {mat3 m; RANMATH_ALIGN(16) f32 gl[3][3];}
