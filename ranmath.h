@@ -369,7 +369,6 @@ RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 {0, 0, 0, 0}        \
 }
 
-/* ----------------- METHODS ----------------- */
 RANMATH_INLINE i32 rm_facti(i32 x) {
     if (x < 0) return -1;
     i32 i;
