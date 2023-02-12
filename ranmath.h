@@ -2,7 +2,6 @@
 #define RANMATH_H
 
 #include <stdint.h>
-#include <stddef.h>
 #include <stdbool.h>
 
 #ifndef RANMATH_SSE_ENABLE
@@ -18,12 +17,18 @@
 #endif /* RANMATH_SSE_ENABLE */
 
 #if defined(__GNUC__)
+/* GCC-compatible compiler (gcc, clang) */
 #define RANMATH_ALIGN(x) __attribute((aligned(x)))
-#else
+#define RANMATH_INLINE static inline __attribute((always_inline))
+#elif defined(_MSC_VER)
+/* Microsoft */
 #define RANMATH_ALIGN(x) __declspec((align(x)))
-#endif
-
+#define RANMATH_INLINE static inline __forceinline
+#else
+/* Unknown */
+#define RANMATH_ALIGN(x)
 #define RANMATH_INLINE static inline
+#endif /* Check compiler */
 
 /* ---------------- TYPES ---------------- */
 typedef uint8_t  u8;
@@ -134,6 +139,8 @@ RANMATH_INLINE f32 rm_ceilf(f32);
 RANMATH_INLINE f64 rm_ceild(f64);
 RANMATH_INLINE f32 rm_roundf(f32);
 RANMATH_INLINE f64 rm_roundd(f64);
+RANMATH_INLINE f32 rm_wrap_maxf(f32, f32);
+RANMATH_INLINE f64 rm_wrap_maxd(f64, f64);
 RANMATH_INLINE f32 rm_wrapf(f32, f32, f32);
 RANMATH_INLINE f64 rm_wrapd(f64, f64, f64);
 RANMATH_INLINE f32 rm_cosf(f32);
@@ -351,19 +358,19 @@ RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 {1, 0},                              \
 {0, 1},                              \
 }}
-#define RM_MAT2_ZERO (mat2){{    \
-RM_VEC2_FILL(0),                 \
-RM_VEC2_FILL(0),                 \
+#define RM_MAT2_FILL(x) (mat2){{    \
+RM_VEC2_FILL(x),                    \
+RM_VEC2_FILL(x),                    \
 }}
 #define RM_MAT3_IDENTITY (mat3){{    \
 {1, 0, 0},                           \
 {0, 1, 0},                           \
 {0, 0, 1},                           \
 }}
-#define RM_MAT3_ZERO (mat3){{    \
-RM_VEC3_FILL(0),                 \
-RM_VEC3_FILL(0),                 \
-RM_VEC3_FILL(0),                 \
+#define RM_MAT3_FILL(x) (mat3){{    \
+RM_VEC3_FILL(x),                    \
+RM_VEC3_FILL(x),                    \
+RM_VEC3_FILL(x),                    \
 }}
 #define RM_MAT4_IDENTITY (mat4){{    \
 {1, 0, 0, 0},                        \
@@ -371,11 +378,11 @@ RM_VEC3_FILL(0),                 \
 {0, 0, 1, 0},                        \
 {0, 0, 0, 1},                        \
 }}
-#define RM_MAT4_ZERO (mat4){{    \
-RM_VEC4_FILL(0),                 \
-RM_VEC4_FILL(0),                 \
-RM_VEC4_FILL(0),                 \
-RM_VEC4_FILL(0),                 \
+#define RM_MAT4_FILL(x) (mat4){{    \
+RM_VEC4_FILL(x),                    \
+RM_VEC4_FILL(x),                    \
+RM_VEC4_FILL(x),                    \
+RM_VEC4_FILL(x),                    \
 }}
 
 RANMATH_INLINE i32 rm_facti(i32 x) {
@@ -587,25 +594,31 @@ RANMATH_INLINE f64 rm_roundd(f64 x) {
 
     return (c1) ? ((c2) ? rm_ceild(x) : rm_floord(x)) : ((c2) ? rm_floord(x) : rm_ceild(x));
 }
+RANMATH_INLINE f32 rm_wrap_maxf(f32 val, f32 maxval) {
+    return rm_modf(maxval + rm_modf(val, maxval), maxval);
+}
+RANMATH_INLINE f64 rm_wrap_maxd(f64 val, f64 maxval) {
+    return rm_modd(maxval + rm_modd(val, maxval), maxval);
+}
 RANMATH_INLINE f32 rm_wrapf(f32 val, f32 minval, f32 maxval) {
-    f32 ret;
+    f32 tmaxval;
 
-    ret = rm_modf(val, maxval);
+    tmaxval = maxval - minval;
 
-    return (ret < minval) ? ret + maxval : ret;
+    return minval + rm_modf(tmaxval + rm_modf(val - minval, tmaxval), tmaxval);
 }
 RANMATH_INLINE f64 rm_wrapd(f64 val, f64 minval, f64 maxval) {
-    f64 ret;
+    f64 tmaxval;
 
-    ret = rm_modd(val, maxval);
+    tmaxval = maxval - minval;
 
-    return (ret < minval) ? ret + maxval : ret;
+    return minval + rm_modd(tmaxval + rm_modd(val - minval, tmaxval), tmaxval);
 }
 RANMATH_INLINE f32 rm_cosf(f32 x) {
     f32 i, i2, i4;
     f64 a, b, c, d, val, val2;
 
-    i = RM_PI_2 - rm_absf(rm_wrapf(x, -RM_2PI, RM_2PI) - RM_PI);
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
@@ -622,7 +635,7 @@ RANMATH_INLINE f32 rm_cosf(f32 x) {
 RANMATH_INLINE f64 rm_cosd(f64 x) {
     f64 i, i2, i4, a, b, c, d, val, val2;
 
-    i = RM_PI_2 - rm_absd(rm_wrapd(x, -RM_2PI, RM_2PI) - RM_PI);
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
@@ -1343,7 +1356,7 @@ RANMATH_INLINE void rm_mat2_identity_array(mat2 *m, size_t count) {
     }
 }
 RANMATH_INLINE mat2 rm_mat2_zero(void) {
-    return RM_MAT2_ZERO;
+    return RM_MAT2_FILL(0);
 }
 RANMATH_INLINE mat2 rm_mat2_mul(mat2 a, mat2 b) {
     vec2 c1, c2;
@@ -1449,7 +1462,7 @@ RANMATH_INLINE void rm_mat3_identity_array(mat3 *m, size_t count) {
     }
 }
 RANMATH_INLINE mat3 rm_mat3_zero(void) {
-    return RM_MAT3_ZERO;
+    return RM_MAT3_FILL(0);
 }
 RANMATH_INLINE mat3 rm_mat3_mul(mat3 a, mat3 b) {
     vec3 c1, c2, c3, tmp;
@@ -1579,7 +1592,7 @@ RANMATH_INLINE void rm_mat4_identity_array(mat4 *m, size_t count) {
     }
 }
 RANMATH_INLINE mat4 rm_mat4_zero(void) {
-    return RM_MAT4_ZERO;
+    return RM_MAT4_FILL(0);
 }
 RANMATH_INLINE mat3 rm_mat4_pick3(mat4 m) {
     vec3 c1, c2, c3;
