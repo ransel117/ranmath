@@ -37,35 +37,29 @@ typedef int64_t  i64;
 typedef float    f32;
 typedef double   f64;
 
-typedef RANMATH_ALIGN(8) struct {
+typedef RANMATH_ALIGN(4) struct {
     f32 x;
     f32 y;
 } vec2;
-typedef struct {
+typedef RANMATH_ALIGN(4) struct {
     f32 x;
     f32 y;
     f32 z;
 } vec3;
-typedef RANMATH_ALIGN(16) struct {
+typedef RANMATH_ALIGN(4) struct {
     f32 x;
     f32 y;
     f32 z;
     f32 w;
 } vec4;
 typedef RANMATH_ALIGN(16) struct {
-    vec2 c1;
-    vec2 c2;
+    vec2 cols[2];
 } mat2;
 typedef RANMATH_ALIGN(16) struct {
-    vec3 c1;
-    vec3 c2;
-    vec3 c3;
+    vec3 cols[3];
 } mat3;
 typedef RANMATH_ALIGN(16) struct {
-    vec4 c1;
-    vec4 c2;
-    vec4 c3;
-    vec4 c4;
+    vec4 cols[4];
 } mat4;
 
 /* ---------------- CONSTANTS ---------------- */
@@ -91,6 +85,9 @@ typedef RANMATH_ALIGN(16) struct {
 #define RM_MAKE_RAD    0.0174532925199432957692369076848861271344287188854172545609719144
 
 /* ----------------- METHODS ----------------- */
+#define RM_F32_CVT union {f32 f; u32 i;}
+#define RM_F64_CVT union {f64 f; u64 i;}
+
 #define RM_VEC_CVT(v) ((f32*)&v)
 
 #define RM_VEC2_CVT union {vec2 v; RANMATH_ALIGN(8) f32 gl[2];}
@@ -166,6 +163,7 @@ RANMATH_INLINE f32  rm_vec2_hadd(vec2);
 RANMATH_INLINE vec2 rm_vec2_zero(void);
 RANMATH_INLINE vec2 rm_vec2_one(void);
 RANMATH_INLINE vec2 rm_vec2_set(f32, f32);
+RANMATH_INLINE vec2 rm_vec2_fill(f32);
 RANMATH_INLINE f32  rm_vec2_dot(vec2, vec2);
 RANMATH_INLINE f32  rm_vec2_cross(vec2, vec2);
 RANMATH_INLINE f32  rm_vec2_norm2(vec2);
@@ -179,6 +177,7 @@ RANMATH_INLINE vec2 rm_vec2_subs(vec2, f32);
 RANMATH_INLINE vec2 rm_vec2_mul(vec2, vec2);
 RANMATH_INLINE vec2 rm_vec2_scale(vec2, f32);
 RANMATH_INLINE vec2 rm_vec2_scale_as(vec2, f32);
+RANMATH_INLINE vec2 rm_vec2_scale_aniso(vec2, f32, f32);
 RANMATH_INLINE vec2 rm_vec2_div(vec2, vec2);
 RANMATH_INLINE vec2 rm_vec2_divs(vec2, f32);
 RANMATH_INLINE vec2 rm_vec2_negate(vec2);
@@ -187,6 +186,7 @@ RANMATH_INLINE vec2 rm_vec2_rotate(vec2, f32);
 RANMATH_INLINE f32  rm_vec2_distance2(vec2, vec2);
 RANMATH_INLINE f32  rm_vec2_distance(vec2, vec2);
 RANMATH_INLINE vec2 rm_vec2_clamp(vec2, f32, f32);
+RANMATH_INLINE vec2 rm_vec2_wrap(vec2, f32, f32);
 RANMATH_INLINE vec2 rm_vec2_center(vec2, vec2);
 
 RANMATH_INLINE vec3 rm_vec3_copy(vec3);
@@ -200,6 +200,7 @@ RANMATH_INLINE f32  rm_vec3_hadd(vec3);
 RANMATH_INLINE vec3 rm_vec3_zero(void);
 RANMATH_INLINE vec3 rm_vec3_one(void);
 RANMATH_INLINE vec3 rm_vec3_set(f32, f32, f32);
+RANMATH_INLINE vec3 rm_vec3_fill(f32);
 RANMATH_INLINE vec3 rm_make_vec3(vec2, f32);
 RANMATH_INLINE f32  rm_vec3_dot(vec3, vec3);
 RANMATH_INLINE vec3 rm_vec3_cross(vec3, vec3);
@@ -215,6 +216,7 @@ RANMATH_INLINE vec3 rm_vec3_subs(vec3, f32);
 RANMATH_INLINE vec3 rm_vec3_mul(vec3, vec3);
 RANMATH_INLINE vec3 rm_vec3_scale(vec3, f32);
 RANMATH_INLINE vec3 rm_vec3_scale_as(vec3, f32);
+RANMATH_INLINE vec3 rm_vec3_scale_aniso(vec3, f32, f32, f32);
 RANMATH_INLINE vec3 rm_vec3_div(vec3, vec3);
 RANMATH_INLINE vec3 rm_vec3_divs(vec3, f32);
 RANMATH_INLINE vec3 rm_vec3_negate(vec3);
@@ -223,6 +225,7 @@ RANMATH_INLINE vec3 rm_vec3_rotate(vec3, f32, vec3);
 RANMATH_INLINE f32  rm_vec3_distance2(vec3, vec3);
 RANMATH_INLINE f32  rm_vec3_distance(vec3, vec3);
 RANMATH_INLINE vec3 rm_vec3_clamp(vec3, f32, f32);
+RANMATH_INLINE vec3 rm_vec3_wrap(vec3, f32, f32);
 RANMATH_INLINE vec3 rm_vec3_center(vec3, vec3);
 
 RANMATH_INLINE vec4 rm_vec4_copy(vec4);
@@ -236,6 +239,7 @@ RANMATH_INLINE f32  rm_vec4_hadd(vec4);
 RANMATH_INLINE vec4 rm_vec4_zero(void);
 RANMATH_INLINE vec4 rm_vec4_one(void);
 RANMATH_INLINE vec4 rm_vec4_set(f32, f32, f32, f32);
+RANMATH_INLINE vec4 rm_vec4_fill(f32);
 RANMATH_INLINE vec4 rm_make_vec4(vec3, f32);
 RANMATH_INLINE f32  rm_vec4_dot(vec4, vec4);
 RANMATH_INLINE f32  rm_vec4_norm2(vec4);
@@ -256,6 +260,7 @@ RANMATH_INLINE vec4 rm_vec4_normalize(vec4);
 RANMATH_INLINE f32  rm_vec4_distance2(vec4, vec4);
 RANMATH_INLINE f32  rm_vec4_distance(vec4, vec4);
 RANMATH_INLINE vec4 rm_vec4_clamp(vec4, f32, f32);
+RANMATH_INLINE vec4 rm_vec4_wrap(vec4, f32, f32);
 RANMATH_INLINE vec4 rm_vec4_center(vec4, vec4);
 
 RANMATH_INLINE mat2 rm_mat2_copy(mat2);
@@ -338,41 +343,47 @@ RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define RANMATH_CLAMP(val, min, max) (RANMATH_MIN(RANMATH_MAX(val, min), max))
 #define RANMATH_POW2(x) (x * x)
 
-#define RM_MAT2_IDENTITY (mat2){  \
-{1, 0},             \
-{0, 1},             \
-}
-#define RM_MAT2_ZERO (mat2){  \
-{0, 0},           \
-{0, 0},           \
-}
-#define RM_MAT3_IDENTITY (mat3){  \
-{1, 0, 0},           \
-{0, 1, 0},           \
-{0, 0, 1}            \
-}
-#define RM_MAT3_ZERO (mat3){  \
-{0, 0, 0},         \
-{0, 0, 0},         \
-{0, 0, 0}          \
-}
-#define RM_MAT4_IDENTITY (mat4){  \
-{1, 0, 0, 0},          \
-{0, 1, 0, 0},          \
-{0, 0, 1, 0},          \
-{0, 0, 0, 1}          \
-}
-#define RM_MAT4_ZERO (mat4){  \
-{0, 0, 0, 0},        \
-{0, 0, 0, 0},        \
-{0, 0, 0, 0},        \
-{0, 0, 0, 0}        \
-}
+#define RM_VEC2_FILL(x) (vec2){x, x}
+#define RM_VEC3_FILL(x) (vec3){x, x, x}
+#define RM_VEC4_FILL(x) (vec4){x, x, x}
+
+#define RM_MAT2_IDENTITY (mat2){{    \
+{1, 0},                              \
+{0, 1},                              \
+}}
+#define RM_MAT2_ZERO (mat2){{    \
+RM_VEC2_FILL(0),                 \
+RM_VEC2_FILL(0),                 \
+}}
+#define RM_MAT3_IDENTITY (mat3){{    \
+{1, 0, 0},                           \
+{0, 1, 0},                           \
+{0, 0, 1},                           \
+}}
+#define RM_MAT3_ZERO (mat3){{    \
+RM_VEC3_FILL(0),                 \
+RM_VEC3_FILL(0),                 \
+RM_VEC3_FILL(0),                 \
+}}
+#define RM_MAT4_IDENTITY (mat4){{    \
+{1, 0, 0, 0},                        \
+{0, 1, 0, 0},                        \
+{0, 0, 1, 0},                        \
+{0, 0, 0, 1},                        \
+}}
+#define RM_MAT4_ZERO (mat4){{    \
+RM_VEC4_FILL(0),                 \
+RM_VEC4_FILL(0),                 \
+RM_VEC4_FILL(0),                 \
+RM_VEC4_FILL(0),                 \
+}}
 
 RANMATH_INLINE i32 rm_facti(i32 x) {
     if (x < 0) return -1;
-    i32 i;
-    i32 d = 1;
+
+    i32 i, d;
+
+    d = 1;
     for (i = 1; i <= x; ++i) {
         d *= i;
     }
@@ -381,8 +392,10 @@ RANMATH_INLINE i32 rm_facti(i32 x) {
 }
 RANMATH_INLINE i64 rm_factl(i64 x) {
     if (x < 0) return -1;
-    i64 i;
-    i64 d = 1;
+
+    i64 i, d;
+
+    d = 1;
     for (i = 1; i <= x; ++i) {
         d *= i;
     }
@@ -393,9 +406,11 @@ RANMATH_INLINE i32 rm_powi(i32 x, i32 p) {
     if (x == 0 || x == 1) return x;
     if (p == 0) return 1;
 
-    i32 val = 1;
-    i32 x2 = (x < 0) ? 1 / x : x;
-    i32 i, p2 = rm_absi(p);
+    i32 i, val, x2, p2;
+
+    val = 1;
+    x2 = (x < 0) ? 1 / x : x;
+    p2 = rm_absi(p);
     for (i = 0; i < p2; ++i) {
         val *= x2;
     }
@@ -406,9 +421,11 @@ RANMATH_INLINE i64 rm_powl(i64 x, i64 p) {
     if (x == 0 || x == 1) return x;
     if (p == 0) return 1;
 
-    i64 val = 1;
-    i64 x2 = (x < 0) ? 1 / x : x;
-    i64 i, p2 = rm_absl(p);
+    i64 i, val, x2, p2;
+
+    val = 1;
+    x2 = (x < 0) ? 1 / x : x;
+    p2 = rm_absl(p);
     for (i = 0; i < p2; ++i) {
         val *= x2;
     }
@@ -428,9 +445,10 @@ RANMATH_INLINE f64 rm_pow2d(f64 x) {
     return RANMATH_POW2(x);
 }
 RANMATH_INLINE f32 rm_rsqrtf(f32 x) {
-    union { f32 f; u32 i; } c = {x};
+    f32 xh;
+    RM_F32_CVT c = {x};
 
-    f32 xh = 0.5 * x;
+    xh = 0.5 * x;
 
     c.i = 0x5F375A86 - (c.i >> 1);
 
@@ -441,9 +459,10 @@ RANMATH_INLINE f32 rm_rsqrtf(f32 x) {
     return c.f;
 }
 RANMATH_INLINE f64 rm_rsqrtd(f64 x) {
-    union { f64 f; u64 i; } c = {x};
+    f64 xh;
+    RM_F64_CVT c = {x};
 
-    f64 xh = 0.5 * x;
+    xh = 0.5 * x;
 
     c.i = 0x5FE6EB50C7B537A9 - (c.i >> 1);
 
@@ -522,69 +541,98 @@ RANMATH_INLINE f64 rm_modd(f64 a, f64 b) {
 }
 RANMATH_INLINE f32 rm_floorf(f32 x) {
     if (x == 0) return x;
-    i32 inx = (i32)x -1;
+    i32 inx;
+
+    inx = (i32)x -1;
+
     return (x < 0) ? (inx == 0 ? -0.0 : inx) : (i32)x;
 }
 RANMATH_INLINE f64 rm_floord(f64 x) {
     if (x == 0) return x;
-    i64 inx = (i64)x -1;
+    i64 inx;
+
+    inx = (i64)x -1;
+
     return (x < 0) ? (inx == 0 ? -0.0 : inx) : (i64)x;
 }
 RANMATH_INLINE f32 rm_ceilf(f32 x) {
     if (x == 0) return x;
-    i32 ix = (i32)x;
+    i32 ix;
+
+    ix = (i32)x;
+
     return (x < 0) ? (ix == 0 ? -0.0 : ix) : (i32)x + 1;
 }
 RANMATH_INLINE f64 rm_ceild(f64 x) {
     if (x == 0) return x;
-    i64 ix = (i64)x;
+    i64 ix;
+
+    ix = (i64)x;
+
     return (x < 0) ? (ix == 0 ? -0.0 : ix) : (i64)x + 1;
 }
 RANMATH_INLINE f32 rm_roundf(f32 x) {
-    bool c1 = (rm_absf(x) - rm_absi((i32)x)) < 0.5;
-    bool c2 = x < 0;
+    bool c1, c2;
+
+    c1 = (rm_absf(x) - rm_absi((i32)x)) < 0.5;
+    c2 = x < 0;
 
     return (c1) ? ((c2) ? rm_ceilf(x) : rm_floorf(x)) : ((c2) ? rm_floorf(x) : rm_ceilf(x));
 }
 RANMATH_INLINE f64 rm_roundd(f64 x) {
-    bool c1 = (rm_absd(x) - rm_absl((i64)x)) < 0.5;
-    bool c2 = x < 0;
+    bool c1, c2;
+
+    c1 = (rm_absd(x) - rm_absl((i64)x)) < 0.5;
+    c2 = x < 0;
 
     return (c1) ? ((c2) ? rm_ceild(x) : rm_floord(x)) : ((c2) ? rm_floord(x) : rm_ceild(x));
 }
 RANMATH_INLINE f32 rm_wrapf(f32 val, f32 minval, f32 maxval) {
-    f32 retval = rm_modf(val, maxval);
-    return (retval < minval) ? retval + maxval : retval;
+    f32 ret;
+
+    ret = rm_modf(val, maxval);
+
+    return (ret < minval) ? ret + maxval : ret;
 }
 RANMATH_INLINE f64 rm_wrapd(f64 val, f64 minval, f64 maxval) {
-    f64 retval = rm_modd(val, maxval);
-    return (retval < minval) ? retval + maxval : retval;
+    f64 ret;
+
+    ret = rm_modd(val, maxval);
+
+    return (ret < minval) ? ret + maxval : ret;
 }
 RANMATH_INLINE f32 rm_cosf(f32 x) {
-    const f32 i = RM_PI_2 - rm_absf(rm_wrapf(x, -RM_2PI, RM_2PI) - RM_PI);
-    const f32 i2 = rm_pow2f(i);
-    const f32 i4 = rm_pow2f(i2);
-    const f64 a = -0.132995644812022330410032839099700470577487194965079816065230286;
-    const f64 b = 0.0032172781382535624048708288689972016965839213439467243797038973;
-    const f64 c = 0.0336709157304375144254000370104015622020879871979042486728981326;
-    const f64 d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+    f32 i, i2, i4;
+    f64 a, b, c, d, val, val2;
 
-    const f64 val = 1 + a * i2 + b * i4;
-    const f64 val2 = 1 / (1 + c * i2 + d * i4);
+    i = RM_PI_2 - rm_absf(rm_wrapf(x, -RM_2PI, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    a = -0.132995644812022330410032839099700470577487194965079816065230286;
+    b = 0.0032172781382535624048708288689972016965839213439467243797038973;
+    c = 0.0336709157304375144254000370104015622020879871979042486728981326;
+    d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+
+    val = 1 + a * i2 + b * i4;
+    val2 = 1 / (1 + c * i2 + d * i4);
 
     return (f32)-i * val * val2;
 }
 RANMATH_INLINE f64 rm_cosd(f64 x) {
-    const f64 i = RM_PI_2 - rm_absd(rm_wrapd(x, -RM_2PI, RM_2PI) - RM_PI);
-    const f64 i2 = rm_pow2d(i);
-    const f64 i4 = rm_pow2d(i2);
-    const f64 a = -0.132995644812022330410032839099700470577487194965079816065230286;
-    const f64 b = 0.0032172781382535624048708288689972016965839213439467243797038973;
-    const f64 c = 0.0336709157304375144254000370104015622020879871979042486728981326;
-    const f64 d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+    f64 i, i2, i4, a, b, c, d, val, val2;
 
-    const f64 val = 1 + a * i2 + b * i4;
-    const f64 val2 = 1 / (1 + c * i2 + d * i4);
+    i = RM_PI_2 - rm_absd(rm_wrapd(x, -RM_2PI, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    a = -0.132995644812022330410032839099700470577487194965079816065230286;
+    b = 0.0032172781382535624048708288689972016965839213439467243797038973;
+    c = 0.0336709157304375144254000370104015622020879871979042486728981326;
+    d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+
+    val = 1 + a * i2 + b * i4;
+    val2 = 1 / (1 + c * i2 + d * i4);
 
     return -i * val * val2;
 }
@@ -654,13 +702,16 @@ RANMATH_INLINE f32 rm_vec2_hadd(vec2 v) {
     return v.x + v.y;
 }
 RANMATH_INLINE vec2 rm_vec2_zero(void) {
-    return (vec2){0, 0};
+    return RM_VEC2_FILL(0);
 }
 RANMATH_INLINE vec2 rm_vec2_one(void) {
-    return (vec2){1, 1};
+    return RM_VEC2_FILL(1);
 }
 RANMATH_INLINE vec2 rm_vec2_set(f32 x, f32 y) {
     return (vec2){x, y};
+}
+RANMATH_INLINE vec2 rm_vec2_fill(f32 x) {
+    return RM_VEC2_FILL(x);
 }
 RANMATH_INLINE f32 rm_vec2_dot(vec2 a, vec2 b) {
     return a.x * b.x + a.y * b.y;
@@ -699,8 +750,14 @@ RANMATH_INLINE vec2 rm_vec2_scale(vec2 v, f32 s) {
     return (vec2){v.x * s, v.y * s};
 }
 RANMATH_INLINE vec2 rm_vec2_scale_as(vec2 v, f32 s) {
-    f32 norm = rm_vec2_norm(v);
+    f32 norm;
+
+    norm = rm_vec2_norm(v);
+
     return (norm == 0) ? rm_vec2_zero() : rm_vec2_scale(v, s / norm);
+}
+RANMATH_INLINE vec2 rm_vec2_scale_aniso(vec2 v, f32 x, f32 y) {
+    return (vec2){v.x * x, v.y * y};
 }
 RANMATH_INLINE vec2 rm_vec2_div(vec2 a, vec2 b) {
     return (vec2){a.x / b.x, a.y / b.y};
@@ -712,12 +769,17 @@ RANMATH_INLINE vec2 rm_vec2_negate(vec2 v) {
     return (vec2){-v.x, -v.y};
 }
 RANMATH_INLINE vec2 rm_vec2_normalize(vec2 v) {
-    f32 norm = rm_vec2_norm(v);
+    f32 norm;
+
+    norm = rm_vec2_norm(v);
+
     return (norm == 0) ? rm_vec2_zero() : rm_vec2_scale(v, 1 / norm);
 }
 RANMATH_INLINE vec2 rm_vec2_rotate(vec2 v, f32 a) {
-    f32 c = rm_cosf(a);
-    f32 s = rm_sinf(a);
+    f32 c, s;
+
+    c = rm_cosf(a);
+    s = rm_sinf(a);
 
     return (vec2){c * v.x - s * v.y, s * v.x + c * v.y};
 }
@@ -729,6 +791,9 @@ RANMATH_INLINE f32 rm_vec2_distance(vec2 a, vec2 b) {
 }
 RANMATH_INLINE vec2 rm_vec2_clamp(vec2 v, f32 minval, f32 maxval) {
     return (vec2){rm_clampf(v.x, minval, maxval), rm_clampf(v.y, minval, maxval)};
+}
+RANMATH_INLINE vec2 rm_vec2_wrap(vec2 v, f32 minval, f32 maxval) {
+    return (vec2){rm_wrapf(v.x, minval, maxval), rm_wrapf(v.y, minval, maxval)};
 }
 RANMATH_INLINE vec2 rm_vec2_center(vec2 a, vec2 b) {
     return rm_vec2_scale(rm_vec2_add(a, b), 0.5);
@@ -750,30 +815,25 @@ RANMATH_INLINE f32 rm_vec3_min(vec3 v) {
     return rm_minf(rm_minf(v.x, v.y), v.z);
 }
 RANMATH_INLINE vec3 rm_vec3_maxv(vec3 a, vec3 b) {
-    return (vec3) {
-        rm_maxf(a.x, b.x),
-        rm_maxf(a.y, b.y),
-        rm_maxf(a.z, b.z)
-    };
+    return (vec3){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z)};
 }
 RANMATH_INLINE vec3 rm_vec3_minv(vec3 a, vec3 b) {
-    return (vec3) {
-        rm_minf(a.x, b.x),
-        rm_minf(a.y, b.y),
-        rm_minf(a.z, b.z)
-    };
+    return (vec3){rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z)};
 }
 RANMATH_INLINE f32 rm_vec3_hadd(vec3 v) {
     return v.x + v.y + v.z;
 }
 RANMATH_INLINE vec3 rm_vec3_zero(void) {
-    return (vec3){0, 0, 0};
+    return RM_VEC3_FILL(0);
 }
 RANMATH_INLINE vec3 rm_vec3_one(void) {
-    return (vec3){1, 1, 1};
+    return RM_VEC3_FILL(1);
 }
 RANMATH_INLINE vec3 rm_vec3_set(f32 x, f32 y, f32 z) {
     return (vec3){x, y, z};
+}
+RANMATH_INLINE vec3 rm_vec3_fill(f32 x) {
+    return RM_VEC3_FILL(x);
 }
 RANMATH_INLINE vec3 rm_make_vec3(vec2 v, f32 last) {
     return (vec3){v.x, v.y, last};
@@ -782,11 +842,7 @@ RANMATH_INLINE f32 rm_vec3_dot(vec3 a, vec3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 RANMATH_INLINE vec3 rm_vec3_cross(vec3 a, vec3 b) {
-    return (vec3){
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x
-    };
+    return (vec3){a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
 }
 RANMATH_INLINE vec3 rm_vec3_crossn(vec3 a, vec3 b) {
     return rm_vec3_normalize(rm_vec3_cross(a, b));
@@ -822,8 +878,14 @@ RANMATH_INLINE vec3 rm_vec3_scale(vec3 v, f32 s) {
     return (vec3){v.x * s, v.y * s, v.z * s};
 }
 RANMATH_INLINE vec3 rm_vec3_scale_as(vec3 v, f32 s) {
-    f32 norm = rm_vec3_norm(v);
+    f32 norm;
+
+    norm = rm_vec3_norm(v);
+
     return (norm == 0) ? rm_vec3_zero() : rm_vec3_scale(v, s / norm);
+}
+RANMATH_INLINE vec3 rm_vec3_scale_aniso(vec3 v, f32 x, f32 y, f32 z) {
+    return (vec3){v.x * x, v.y * y, v.z * z};
 }
 RANMATH_INLINE vec3 rm_vec3_div(vec3 a, vec3 b) {
     return (vec3){a.x / b.x, a.y / b.y, a.z / b.z};
@@ -835,14 +897,18 @@ RANMATH_INLINE vec3 rm_vec3_negate(vec3 v) {
     return (vec3){-v.x, -v.y, -v.z};
 }
 RANMATH_INLINE vec3 rm_vec3_normalize(vec3 v) {
-    f32 norm = rm_vec3_norm(v);
+    f32 norm;
+
+    norm = rm_vec3_norm(v);
+
     return (norm == 0) ? rm_vec3_zero() : rm_vec3_scale(v, 1 / norm);
 }
 RANMATH_INLINE vec3 rm_vec3_rotate(vec3 v, f32 a, vec3 axis) {
+    f32 c, s;
     vec3 v1, v2, k;
 
-    f32 c = rm_cosf(a);
-    f32 s = rm_sinf(a);
+    c = rm_cosf(a);
+    s = rm_sinf(a);
 
     k = rm_vec3_normalize(axis);
 
@@ -870,6 +936,13 @@ RANMATH_INLINE vec3 rm_vec3_clamp(vec3 v, f32 minval, f32 maxval) {
         rm_clampf(v.z, minval, maxval)
     };
 }
+RANMATH_INLINE vec3 rm_vec3_wrap(vec3 v, f32 minval, f32 maxval) {
+    return (vec3){
+        rm_wrapf(v.x, minval, maxval),
+        rm_wrapf(v.y, minval, maxval),
+        rm_wrapf(v.z, minval, maxval)
+    };
+}
 RANMATH_INLINE vec3 rm_vec3_center(vec3 a, vec3 b) {
     return rm_vec3_scale(rm_vec3_add(a, b), 0.5);
 }
@@ -882,12 +955,15 @@ RANMATH_INLINE vec3 rm_vec4_copy3(vec4 v) {
 }
 RANMATH_INLINE vec4 rm_vec4_abs(vec4 v) {
     #if RANMATH_SSE_ENABLE
-    const __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
-    __m128 x0;
+    __m128 x0, mask;
     vec4 dest;
+
+    mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
     x0 = rmm_load(v);
     x0 = _mm_and_ps(mask, x0);
+
     rmm_store(dest, x0);
+
     return dest;
     #else
     return (vec4){rm_absf(v.x), rm_absf(v.y), rm_absf(v.z), rm_absf(v.w)};
@@ -903,9 +979,12 @@ RANMATH_INLINE vec4 rm_vec4_maxv(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0,x1;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     rmm_store(dest, _mm_max_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){
@@ -920,9 +999,12 @@ RANMATH_INLINE vec4 rm_vec4_minv(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0,x1;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     rmm_store(dest, _mm_min_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){
@@ -943,37 +1025,57 @@ RANMATH_INLINE f32 rm_vec4_hadd(vec4 v) {
 RANMATH_INLINE vec4 rm_vec4_zero(void) {
     #if RANMATH_SSE_ENABLE
     vec4 dest;
+
     rmm_store(dest, _mm_setzero_ps());
+
     return dest;
     #else
-    return (vec4){0, 0, 0, 0};
+    return RM_VEC4_FILL(0);
     #endif /* RANMATH_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_one(void) {
     #if RANMATH_SSE_ENABLE
     vec4 dest;
+
     rmm_store(dest, rmm_set1(1));
+
     return dest;
     #else
-    return (vec4){1, 1, 1, 1};
+    return RM_VEC4_FILL(1);
     #endif /* RANMATH_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_set(f32 x, f32 y, f32 z, f32 w) {
     #if RANMATH_SSE_ENABLE
     vec4 dest;
+
     rmm_store(dest, rmm_set(x, y, z, w));
+
     return dest;
     #else
     return (vec4){x, y, z, w};
+    #endif /* RANMATH_SSE_ENABLE */
+}
+RANMATH_INLINE vec4 rm_vec4_fill(f32 x) {
+    #if RANMATH_SSE_ENABLE
+    vec4 dest;
+
+    rmm_store(dest, rmm_set1(x));
+
+    return dest;
+    #else
+    return RM_VEC4_FILL(x);
     #endif /* RANMATH_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_make_vec4(vec3 v, f32 last) {
     #if RANMATH_SSE_ENABLE
     __m128 x0;
     vec4 dest;
+
     x0 = rmm_load(v);
     x0[3] = last;
+
     rmm_store(dest, x0);
+
     return dest;
     #else
     return (vec4){v.x, v.y, v.z, last};
@@ -982,8 +1084,10 @@ RANMATH_INLINE vec4 rm_make_vec4(vec3 v, f32 last) {
 RANMATH_INLINE f32 rm_vec4_dot(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     return rmm_hadd(_mm_mul_ps(x0, x1));
     #else
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
@@ -1005,9 +1109,12 @@ RANMATH_INLINE vec4 rm_vec4_add(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     rmm_store(dest, _mm_add_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
@@ -1017,9 +1124,12 @@ RANMATH_INLINE vec4 rm_vec4_adds(vec4 v, f32 s) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(v);
     x1 = rmm_set1(s);
+
     rmm_store(dest, _mm_add_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){v.x + s, v.y + s, v.z + s, v.w + s};
@@ -1029,9 +1139,12 @@ RANMATH_INLINE vec4 rm_vec4_sub(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     rmm_store(dest, _mm_sub_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
@@ -1041,9 +1154,12 @@ RANMATH_INLINE vec4 rm_vec4_subs(vec4 v, f32 s) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(v);
     x1 = rmm_set1(s);
+
     rmm_store(dest, _mm_sub_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){v.x - s, v.y - s, v.z - s, v.w - s};
@@ -1053,9 +1169,12 @@ RANMATH_INLINE vec4 rm_vec4_mul(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     rmm_store(dest, _mm_mul_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
@@ -1065,9 +1184,12 @@ RANMATH_INLINE vec4 rm_vec4_scale(vec4 v, f32 s) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(v);
     x1 = rmm_set1(s);
+
     rmm_store(dest, _mm_mul_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){v.x * s, v.y * s, v.z * s, v.w * s};
@@ -1078,13 +1200,31 @@ RANMATH_INLINE vec4 rm_vec4_scale_as(vec4 v, f32 s) {
     norm = rm_vec4_norm(v);
     return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, s / norm);
 }
+RANMATH_INLINE vec4 rm_vec4_scale_aniso(vec4 v, f32 x, f32 y, f32 z, f32 w) {
+    #if RANMATH_SSE_ENABLE
+    __m128 x0, x1;
+    vec4 dest;
+
+    x0 = rmm_load(v);
+    x1 = rmm_set(x, y, z, w);
+
+    rmm_store(dest, _mm_mul_ps(x0, x1));
+
+    return dest;
+    #else
+    return (vec4){v.x * x, v.y * y, v.z * z, v.w * w};
+    #endif /* RANMATH_SSE_ENABLE */
+}
 RANMATH_INLINE vec4 rm_vec4_div(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
+
     rmm_store(dest, _mm_div_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w};
@@ -1094,9 +1234,12 @@ RANMATH_INLINE vec4 rm_vec4_divs(vec4 v, f32 s) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1;
     vec4 dest;
+
     x0 = rmm_load(v);
     x1 = rmm_set1(s);
+
     rmm_store(dest, _mm_div_ps(x0, x1));
+
     return dest;
     #else
     return (vec4){v.x / s, v.y / s, v.z / s, v.w / s};
@@ -1106,28 +1249,34 @@ RANMATH_INLINE vec4 rm_vec4_negate(vec4 v) {
     #if RANMATH_SSE_ENABLE
     __m128 x0;
     vec4 dest;
+
     x0 = rmm_load(v);
+
     rmm_store(dest, _mm_mul_ps(x0, rmm_set1(-1)));
+
     return dest;
     #else
     return (vec4){-v.x, -v.y, -v.z, -v.w};
     #endif /* RANMATH_SSE_ENABLE */
 }
 RANMATH_INLINE vec4 rm_vec4_normalize(vec4 v) {
-    f32 norm = rm_vec4_norm(v);
+    f32 norm;
+    norm = rm_vec4_norm(v);
+
     return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1 / norm);
 }
 RANMATH_INLINE f32 rm_vec4_distance2(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1, x2;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
     x2 = _mm_mul_ps(x0, x1);
     x2 = _mm_mul_ps(x2, x2);
+
     return rmm_hadd(x2);
     #else
-    return rm_pow2f(a.x - b.x) + rm_pow2f(a.y - b.y)
-    + rm_pow2f(a.z - b.z) + rm_pow2f(a.w - b.w);
+    return rm_pow2f(a.x - b.x) + rm_pow2f(a.y - b.y) + rm_pow2f(a.z - b.z) + rm_pow2f(a.w - b.w);
     #endif /* RANMATH_SSE_ENABLE */
 }
 RANMATH_INLINE f32 rm_vec4_distance(vec4 a, vec4 b) {
@@ -1137,10 +1286,13 @@ RANMATH_INLINE vec4 rm_vec4_clamp(vec4 v, f32 minval, f32 maxval) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1, x2;
     vec4 dest;
+
     x0 = rmm_load(v);
     x1 = rmm_set1(minval);
     x2 = rmm_set1(maxval);
+
     rmm_store(dest, _mm_min_ps(_mm_max_ps(x0, x1), x2));
+
     return dest;
     #else
     return (vec4){
@@ -1151,14 +1303,26 @@ RANMATH_INLINE vec4 rm_vec4_clamp(vec4 v, f32 minval, f32 maxval) {
     };
     #endif /* RANMATH_SSE_ENABLE */
 }
+/* TODO: SIMD representation? */
+RANMATH_INLINE vec4 rm_vec4_wrap(vec4 v, f32 minval, f32 maxval) {
+    return (vec4){
+        rm_wrapf(v.x , minval, maxval),
+        rm_wrapf(v.y , minval, maxval),
+        rm_wrapf(v.z , minval, maxval),
+        rm_wrapf(v.w , minval, maxval),
+    };
+}
 RANMATH_INLINE vec4 rm_vec4_center(vec4 a, vec4 b) {
     #if RANMATH_SSE_ENABLE
     __m128 x0, x1, x2;
     vec4 dest;
+
     x0 = rmm_load(a);
     x1 = rmm_load(b);
     x2 = rmm_set1(0.5);
+
     rmm_store(dest, _mm_mul_ps(_mm_sub_ps(x0, x1), x2));
+
     return dest;
     #else
     return rm_vec4_scale(rm_vec4_add(a, b), 0.5);
@@ -1172,11 +1336,10 @@ RANMATH_INLINE mat2 rm_mat2_identity(void) {
     return RM_MAT2_IDENTITY;
 }
 RANMATH_INLINE void rm_mat2_identity_array(mat2 *m, size_t count) {
-    mat2 t = RM_MAT2_IDENTITY;
     size_t i;
 
     for (i = 0; i < count; i++) {
-        m[i] = rm_mat2_copy(t);
+        m[i] = rm_mat2_identity();
     }
 }
 RANMATH_INLINE mat2 rm_mat2_zero(void) {
@@ -1184,71 +1347,76 @@ RANMATH_INLINE mat2 rm_mat2_zero(void) {
 }
 RANMATH_INLINE mat2 rm_mat2_mul(mat2 a, mat2 b) {
     vec2 c1, c2;
+    mat2 dest;
 
-    c1 = (vec2){
-        a.c1.x * b.c1.x + a.c2.x * b.c1.y,
-        a.c1.y * b.c1.x + a.c2.y * b.c1.y
-    };
-    c2 = (vec2){
-        a.c1.x * b.c2.x + a.c2.x * b.c2.y,
-        a.c1.y * b.c2.x + a.c2.y * b.c2.y
-    };
+    c1 = rm_vec2_add(rm_vec2_scale(a.cols[0], b.cols[0].x), rm_vec2_scale(a.cols[1], b.cols[0].y));
+    c2 = rm_vec2_add(rm_vec2_scale(a.cols[0], b.cols[1].x), rm_vec2_scale(a.cols[1], b.cols[1].y));
 
-    return (mat2){c1, c2};
+    dest = (mat2){{c1, c2}};
+
+    return dest;
 }
 RANMATH_INLINE vec2 rm_mat2_mulv(mat2 m, vec2 v) {
-    return (vec2){
-        m.c1.x * v.x + m.c2.x * v.y,
-        m.c1.y * v.x + m.c2.y * v.y
-    };
+    return rm_vec2_add(rm_vec2_scale(m.cols[0], v.x), rm_vec2_scale(m.cols[1], v.y));
 }
 RANMATH_INLINE mat2 rm_mat2_transpose(mat2 m) {
-    return (mat2){
-        {m.c1.x, m.c2.x},
-        {m.c1.y, m.c2.y}
-    };
+    vec2 c1, c2;
+    mat2 dest;
+
+    c1 = (vec2){m.cols[0].x, m.cols[1].x};
+    c2 = (vec2){m.cols[0].y, m.cols[1].y};
+
+    dest = (mat2){{c1, c2}};
+
+    return dest;
 }
 RANMATH_INLINE f32 rm_mat2_trace(mat2 m) {
-    return m.c1.x + m.c2.y;
+    return m.cols[0].x + m.cols[1].y;
 }
 RANMATH_INLINE mat2 rm_mat2_scale(mat2 m, f32 s) {
-    return (mat2){
-        rm_vec2_scale(m.c1, s),
-        rm_vec2_scale(m.c2, s)
-    };
+    vec2 c1, c2;
+    mat2 dest;
+
+    c1 = rm_vec2_scale(m.cols[0], s);
+    c2 = rm_vec2_scale(m.cols[1], s);
+
+    dest = (mat2){{c1, c2}};
+
+    return dest;
 }
 RANMATH_INLINE f32 rm_mat2_det(mat2 m) {
-    return m.c1.x * m.c2.y - m.c1.y * m.c2.x;
+    return m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x;
 }
 RANMATH_INLINE mat2 rm_mat2_inv(mat2 m) {
     f32 det;
-    det = (f32)1 / rm_mat2_det(m);
+    vec2 c1, c2, tmp;
+    mat2 dest;
 
-    return (mat2){
-        {m.c2.y * det, -m.c1.y * det},
-        {-m.c2.x * det, m.c1.x * det}
-    };
+    det = (f32)1 / m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x;
+
+    c1 = rm_vec2_scale(m.cols[0], det);
+    c2 = rm_vec2_scale(m.cols[1], det);
+
+    tmp = rm_vec2_copy(c1);
+
+    c1 = (vec2){c2.y, -tmp.y};
+    c2 = (vec2){-c2.x, tmp.x};
+
+    dest = (mat2){{c1, c2}};
+
+    return dest;
 }
 RANMATH_INLINE void rm_mat2_swap_col(mat2 m, u32 col1, u32 col2) {
-    RM_MAT2_CVT c;
-    f32 a, b;
+    vec2 tmp;
 
-    c.m = rm_mat2_copy(m);
+    tmp = rm_vec2_copy(m.cols[col1]);
 
-    a = c.gl[col1][0];
-    b = c.gl[col1][1];
-
-    c.gl[col1][0] = c.gl[col2][0];
-    c.gl[col1][1] = c.gl[col2][1];
-
-    c.gl[col2][0] = a;
-    c.gl[col2][1] = b;
-
-    m = rm_mat2_copy(c.m);
+    m.cols[col1] = rm_vec2_copy(m.cols[col2]);
+    m.cols[col2] = rm_vec2_copy(tmp);
 }
 RANMATH_INLINE void rm_mat2_swap_row(mat2 m, u32 row1, u32 row2) {
-    RM_MAT2_CVT c;
     f32 a, b;
+    RM_MAT2_CVT c;
 
     c.m = rm_mat2_copy(m);
 
@@ -1274,128 +1442,109 @@ RANMATH_INLINE mat3 rm_mat3_identity(void) {
     return RM_MAT3_IDENTITY;
 }
 RANMATH_INLINE void rm_mat3_identity_array(mat3 *m, size_t count) {
-    mat3 t = RM_MAT3_IDENTITY;
     size_t i;
 
     for (i = 0; i < count; i++) {
-        m[i] = rm_mat3_copy(t);
+        m[i] = rm_mat3_identity();
     }
 }
 RANMATH_INLINE mat3 rm_mat3_zero(void) {
     return RM_MAT3_ZERO;
 }
 RANMATH_INLINE mat3 rm_mat3_mul(mat3 a, mat3 b) {
-    vec3 c1, c2, c3;
+    vec3 c1, c2, c3, tmp;
+    mat3 dest;
 
-    c1 = (vec3){
-        a.c1.x * b.c1.x + a.c2.x * b.c1.y + a.c3.x * b.c1.z,
-        a.c1.y * b.c1.x + a.c2.y * b.c1.y + a.c3.y * b.c1.z,
-        a.c1.z * b.c1.x + a.c2.z * b.c1.y + a.c3.z * b.c1.z
-    };
-    c2 = (vec3){
-        a.c1.x * b.c2.x + a.c2.x * b.c2.y + a.c3.x * b.c2.z,
-        a.c1.y * b.c2.x + a.c2.y * b.c2.y + a.c3.y * b.c2.z,
-        a.c1.z * b.c2.x + a.c2.z * b.c2.y + a.c3.z * b.c2.z
-    };
-    c3 = (vec3){
-        a.c1.x * b.c3.x + a.c2.x * b.c3.y + a.c3.x * b.c3.z,
-        a.c1.y * b.c3.x + a.c2.y * b.c3.y + a.c3.y * b.c3.z,
-        a.c1.z * b.c3.x + a.c2.z * b.c3.y + a.c3.z * b.c3.z
-    };
+    tmp = rm_vec3_add(rm_vec3_scale(a.cols[0], b.cols[0].x), rm_vec3_scale(a.cols[1], b.cols[0].y));
+    c1 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[0].z));
 
-    return (mat3){c1, c2, c3};
-}
-RANMATH_INLINE vec3 rm_mat3_mulv(mat3 m, vec3 v) {
-    vec3 dest;
+    tmp = rm_vec3_add(rm_vec3_scale(a.cols[0], b.cols[1].x), rm_vec3_scale(a.cols[1], b.cols[1].y));
+    c1 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[1].z));
 
-    dest.x = m.c1.x * v.x + m.c2.x * v.y + m.c3.x * v.z;
-    dest.y = m.c1.y * v.x + m.c2.y * v.y + m.c3.y * v.z;
-    dest.z = m.c1.z * v.x + m.c2.z * v.y + m.c3.z * v.z;
+    tmp = rm_vec3_add(rm_vec3_scale(a.cols[0], b.cols[2].x), rm_vec3_scale(a.cols[1], b.cols[2].y));
+    c3 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[2].z));
+
+    dest = (mat3){{c1, c2, c3}};
 
     return dest;
 }
+RANMATH_INLINE vec3 rm_mat3_mulv(mat3 m, vec3 v) {
+    vec3 tmp;
+    tmp = rm_vec3_add(rm_vec3_scale(m.cols[0], v.x), rm_vec3_scale(m.cols[1], v.y));
+
+    return rm_vec3_add(tmp, rm_vec3_scale(m.cols[2], v.z));
+}
 RANMATH_INLINE mat3 rm_mat3_transpose(mat3 m) {
     vec3 c1, c2, c3;
-    c1 = (vec3){
-        m.c1.x,
-        m.c2.x,
-        m.c3.x
-    };
-    c2 = (vec3){
-        m.c1.y,
-        m.c2.y,
-        m.c3.y
-    };
-    c3 = (vec3){
-        m.c1.z,
-        m.c2.z,
-        m.c3.z
-    };
+    mat3 dest;
 
-    return (mat3){c1, c2, c3};
+    c1 = (vec3){m.cols[0].x, m.cols[1].x, m.cols[2].x};
+    c2 = (vec3){m.cols[0].y, m.cols[1].y, m.cols[2].y};
+    c3 = (vec3){m.cols[0].z, m.cols[1].z, m.cols[2].z};
+
+    dest = (mat3){{c1, c2, c3}};
+
+    return dest;
 }
 RANMATH_INLINE f32 rm_mat3_trace(mat3 m) {
-    return m.c1.x + m.c2.y + m.c3.z;
+    return m.cols[0].x + m.cols[1].y + m.cols[2].z;
 }
 RANMATH_INLINE mat3 rm_mat3_scale(mat3 m, f32 s) {
-    return (mat3){
-        rm_vec3_scale(m.c1, s),
-        rm_vec3_scale(m.c2, s),
-        rm_vec3_scale(m.c3, s)
-    };
+    vec3 c1, c2, c3;
+    mat3 dest;
+
+    c1 = rm_vec3_scale(m.cols[0], s);
+    c2 = rm_vec3_scale(m.cols[1], s);
+    c3 = rm_vec3_scale(m.cols[2], s);
+
+    dest = (mat3){{c1, c2, c3}};
+
+    return dest;
 }
 RANMATH_INLINE f32 rm_mat3_det(mat3 m) {
-    f32 t[3];
-    t[0] = m.c1.x * (m.c2.y * m.c3.z - m.c2.z * m.c3.y);
-    t[1] = m.c2.x * (m.c1.y * m.c3.z - m.c1.z * m.c3.y);
-    t[2] = m.c3.x * (m.c1.y * m.c2.z - m.c1.z * m.c2.y);
+    vec3 tmp;
 
-    return t[0] - t[1] + t[2];
+    tmp.x = m.cols[0].x * (m.cols[1].y * m.cols[2].z - m.cols[1].z * m.cols[2].y);
+    tmp.y = -(m.cols[1].x * (m.cols[0].y * m.cols[2].z - m.cols[0].z * m.cols[2].y));
+    tmp.z = m.cols[2].x * (m.cols[0].y * m.cols[1].z - m.cols[0].z * m.cols[1].y);
+
+    return rm_vec3_hadd(tmp);
 }
 RANMATH_INLINE mat3 rm_mat3_inv(mat3 m) {
     float det;
+    vec3 tmp;
     mat3 dest;
 
-    dest.c1.x = m.c2.y * m.c3.z - m.c2.z * m.c3.y;
-    dest.c1.y = -(m.c1.y * m.c3.z - m.c3.y * m.c1.z);
-    dest.c1.z = m.c1.y * m.c2.z - m.c2.y * m.c1.z;
+    dest.cols[0].x = m.cols[1].y * m.cols[2].z - m.cols[2].y * m.cols[1].z;
+    dest.cols[0].y = -(m.cols[0].y * m.cols[2].z - m.cols[2].y * m.cols[0].z);
+    dest.cols[0].z = m.cols[0].y * m.cols[1].z - m.cols[1].y * m.cols[0].z;
 
-    dest.c2.x = -(m.c2.x * m.c3.z - m.c3.x * m.c2.z);
-    dest.c2.y = m.c1.x * m.c3.z - m.c1.z * m.c3.x;
-    dest.c2.z = -(m.c1.x * m.c2.z - m.c2.x * m.c1.z);
+    dest.cols[1].x = -(m.cols[1].x * m.cols[2].z - m.cols[2].x * m.cols[1].z);
+    dest.cols[1].y = m.cols[0].x * m.cols[2].z - m.cols[2].x * m.cols[0].z;
+    dest.cols[1].z = -(m.cols[0].x * m.cols[1].z - m.cols[1].x * m.cols[0].z);
 
-    dest.c3.x = m.c2.x * m.c3.y - m.c3.x * m.c2.y;
-    dest.c3.y = -(m.c1.x * m.c3.y - m.c3.x * m.c1.y);
-    dest.c3.z = m.c1.x * m.c2.y - m.c1.y * m.c2.x;
+    dest.cols[2].x = m.cols[1].x * m.cols[2].y - m.cols[2].x * m.cols[1].y;
+    dest.cols[2].y = -(m.cols[0].x * m.cols[2].y - m.cols[2].x * m.cols[0].y);
+    dest.cols[2].z = m.cols[0].x * m.cols[1].y - m.cols[1].x * m.cols[0].y;
 
-    det = (f32)1 / (m.c1.x * dest.c1.x + m.c1.y * dest.c2.x + m.c1.z * dest.c3.x);
+    tmp = rm_vec3_scale_aniso(m.cols[0], dest.cols[0].x, dest.cols[1].x, dest.cols[2].x);
+
+    det = (f32)1 / rm_vec3_hadd(tmp);
 
     return rm_mat3_scale(dest, det);
 }
 
 RANMATH_INLINE void rm_mat3_swap_col(mat3 m, u32 col1, u32 col2) {
-    RM_MAT3_CVT c;
     vec3 tmp;
 
-    c.m = rm_mat3_copy(m);
+    tmp = rm_vec3_copy(m.cols[col1]);
 
-    tmp.x = c.gl[col1][0];
-    tmp.y = c.gl[col1][1];
-    tmp.z = c.gl[col1][2];
-
-    c.gl[col1][0] = c.gl[col2][0];
-    c.gl[col1][1] = c.gl[col2][1];
-    c.gl[col1][2] = c.gl[col2][2];
-
-    c.gl[col2][0] = tmp.x;
-    c.gl[col2][1] = tmp.y;
-    c.gl[col2][2] = tmp.z;
-
-    m = rm_mat3_copy(c.m);
+    m.cols[col1] = rm_vec3_copy(m.cols[col2]);
+    m.cols[col2] = rm_vec3_copy(tmp);
 }
 RANMATH_INLINE void rm_mat3_swap_row(mat3 m, u32 row1, u32 row2) {
-    RM_MAT3_CVT c;
     vec3 tmp;
+    RM_MAT3_CVT c;
 
     c.m = rm_mat3_copy(m);
 
@@ -1423,243 +1572,223 @@ RANMATH_INLINE mat4 rm_mat4_identity(void) {
     return RM_MAT4_IDENTITY;
 }
 RANMATH_INLINE void rm_mat4_identity_array(mat4 *m, size_t count) {
-    mat4 t = RM_MAT4_IDENTITY;
     size_t i;
 
     for (i = 0; i < count; i++) {
-        m[i] = rm_mat4_copy(t);
+        m[i] = rm_mat4_identity();
     }
 }
 RANMATH_INLINE mat4 rm_mat4_zero(void) {
     return RM_MAT4_ZERO;
 }
 RANMATH_INLINE mat3 rm_mat4_pick3(mat4 m) {
-    return (mat3){rm_vec4_copy3(m.c1), rm_vec4_copy3(m.c2), rm_vec4_copy3(m.c3)};
+    vec3 c1, c2, c3;
+    mat3 dest;
+
+    c1 = rm_vec4_copy3(m.cols[0]);
+    c2 = rm_vec4_copy3(m.cols[1]);
+    c3 = rm_vec4_copy3(m.cols[2]);
+
+    dest = (mat3){{c1, c2, c3}};
+
+    return dest;
 }
 RANMATH_INLINE mat3 rm_mat4_pick3t(mat4 m) {
     vec3 c1, c2, c3;
+    mat3 dest;
 
-    c1 = (vec3){m.c1.x, m.c2.x, m.c3.x};
-    c2 = (vec3){m.c1.y, m.c2.y, m.c3.y};
-    c3 = (vec3){m.c1.z, m.c2.z, m.c3.z};
+    c1 = (vec3){m.cols[0].x, m.cols[1].x, m.cols[2].x};
+    c2 = (vec3){m.cols[0].y, m.cols[1].y, m.cols[2].y};
+    c3 = (vec3){m.cols[0].z, m.cols[1].z, m.cols[2].z};
 
-    return (mat3){c1, c2, c3};
+    dest = (mat3){{c1, c2, c3}};
+
+    return dest;
 }
 RANMATH_INLINE void rm_mat4_ins3(mat3 a, mat4 b) {
-    b.c1.x = a.c1.x;
-    b.c1.y = a.c1.y;
-    b.c1.z = a.c1.z;
-
-    b.c2.x = a.c2.x;
-    b.c2.y = a.c2.y;
-    b.c2.z = a.c2.z;
-
-    b.c3.x = a.c3.x;
-    b.c3.y = a.c3.y;
-    b.c3.z = a.c3.z;
+    b.cols[0] = rm_make_vec4(a.cols[0], b.cols[0].w);
+    b.cols[1] = rm_make_vec4(a.cols[1], b.cols[1].w);
+    b.cols[2] = rm_make_vec4(a.cols[2], b.cols[2].w);
 }
 RANMATH_INLINE mat4 rm_mat4_mul(mat4 a, mat4 b) {
-    vec4 c1, c2, c3, c4;
+    vec4 c1, c2, c3, c4, tmp1, tmp2;
+    mat4 dest;
 
-    c1 = (vec4){
-        a.c1.x * b.c1.x + a.c2.x * b.c1.y + a.c3.x * b.c1.z + a.c4.x * b.c1.w,
-        a.c1.y * b.c1.x + a.c2.y * b.c1.y + a.c3.y * b.c1.z + a.c4.y * b.c1.w,
-        a.c1.z * b.c1.x + a.c2.z * b.c1.y + a.c3.z * b.c1.z + a.c4.z * b.c1.w,
-        a.c1.w * b.c1.x + a.c2.w * b.c1.y + a.c3.w * b.c1.z + a.c4.w * b.c1.w
-    };
-    c2 = (vec4){
-        a.c1.x * b.c2.x + a.c2.x * b.c2.y + a.c3.x * b.c2.z + a.c4.x * b.c2.w,
-        a.c1.y * b.c2.x + a.c2.y * b.c2.y + a.c3.y * b.c2.z + a.c4.y * b.c2.w,
-        a.c1.z * b.c2.x + a.c2.z * b.c2.y + a.c3.z * b.c2.z + a.c4.z * b.c2.w,
-        a.c1.w * b.c2.x + a.c2.w * b.c2.y + a.c3.w * b.c2.z + a.c4.w * b.c2.w
-    };
-    c3 = (vec4){
-        a.c1.x * b.c3.x + a.c2.x * b.c3.y + a.c3.x * b.c3.z + a.c4.x * b.c3.w,
-        a.c1.y * b.c3.x + a.c2.y * b.c3.y + a.c3.y * b.c3.z + a.c4.y * b.c3.w,
-        a.c1.z * b.c3.x + a.c2.z * b.c3.y + a.c3.z * b.c3.z + a.c4.z * b.c3.w,
-        a.c1.w * b.c3.x + a.c2.w * b.c3.y + a.c3.w * b.c3.z + a.c4.w * b.c3.w
-    };
-    c4 = (vec4){
-        a.c1.x * b.c4.x + a.c2.x * b.c4.y + a.c3.x * b.c4.z + a.c4.x * b.c4.w,
-        a.c1.y * b.c4.x + a.c2.y * b.c4.y + a.c3.y * b.c4.z + a.c4.y * b.c4.w,
-        a.c1.z * b.c4.x + a.c2.z * b.c4.y + a.c3.z * b.c4.z + a.c4.z * b.c4.w,
-        a.c1.w * b.c4.x + a.c2.w * b.c4.y + a.c3.w * b.c4.z + a.c4.w * b.c4.w
-    };
+    tmp1 = rm_vec4_add(rm_vec4_scale(a.cols[0], b.cols[0].x), rm_vec4_scale(a.cols[1], b.cols[0].y));
+    tmp2 = rm_vec4_add(rm_vec4_scale(a.cols[2], b.cols[0].z), rm_vec4_scale(a.cols[3], b.cols[0].w));
+    c1 = rm_vec4_add(tmp1, tmp2);
 
-    return (mat4){c1, c2, c3, c4};
+    tmp1 = rm_vec4_add(rm_vec4_scale(a.cols[0], b.cols[1].x), rm_vec4_scale(a.cols[1], b.cols[1].y));
+    tmp2 = rm_vec4_add(rm_vec4_scale(a.cols[2], b.cols[1].z), rm_vec4_scale(a.cols[3], b.cols[1].w));
+    c2 = rm_vec4_add(tmp1, tmp2);
+
+    tmp1 = rm_vec4_add(rm_vec4_scale(a.cols[0], b.cols[2].x), rm_vec4_scale(a.cols[1], b.cols[2].y));
+    tmp2 = rm_vec4_add(rm_vec4_scale(a.cols[2], b.cols[2].z), rm_vec4_scale(a.cols[3], b.cols[2].w));
+    c3 = rm_vec4_add(tmp1, tmp2);
+
+    tmp1 = rm_vec4_add(rm_vec4_scale(a.cols[0], b.cols[3].x), rm_vec4_scale(a.cols[1], b.cols[3].y));
+    tmp2 = rm_vec4_add(rm_vec4_scale(a.cols[2], b.cols[3].z), rm_vec4_scale(a.cols[3], b.cols[3].w));
+    c4 = rm_vec4_add(tmp1, tmp2);
+
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
 }
 RANMATH_INLINE vec4 rm_mat4_mulv(mat4 m, vec4 v) {
-    vec4 dest;
+    vec4 tmp1, tmp2, dest;
 
-    dest.x = m.c1.x * v.x + m.c2.x * v.y + m.c3.x * v.z + m.c4.x * v.w;
-    dest.y = m.c1.y * v.x + m.c2.y * v.y + m.c3.y * v.z + m.c4.y * v.w;
-    dest.z = m.c1.z * v.x + m.c2.z * v.y + m.c3.z * v.z + m.c4.z * v.w;
-    dest.w = m.c1.w * v.x + m.c2.w * v.y + m.c3.w * v.z + m.c4.w * v.w;
+    tmp1 = rm_vec4_add(rm_vec4_scale(m.cols[0], v.x), rm_vec4_scale(m.cols[1], v.y));
+    tmp2 = rm_vec4_add(rm_vec4_scale(m.cols[2], v.z), rm_vec4_scale(m.cols[3], v.w));
+
+    dest = rm_vec4_add(tmp1, tmp2);
 
     return dest;
 }
 RANMATH_INLINE vec3 rm_mat4_mulv3(mat4 m, vec3 v, f32 last) {
-    vec4 dest = rm_make_vec4(v, last);
+    vec4 dest;
+
+    dest = rm_make_vec4(v, last);
     dest = rm_mat4_mulv(m, dest);
+
     return rm_vec4_copy3(dest);
 }
 RANMATH_INLINE f32 rm_mat4_trace(mat4 m) {
-    return m.c1.x + m.c2.y + m.c3.z + m.c4.w;
+    return m.cols[0].x + m.cols[1].y + m.cols[2].z + m.cols[3].w;
 }
 RANMATH_INLINE f32 rm_mat4_trace3(mat4 m) {
-    return m.c1.x + m.c2.y + m.c3.z;
+    return m.cols[0].x + m.cols[1].y + m.cols[2].z;
 }
 RANMATH_INLINE mat4 rm_mat4_transpose(mat4 m) {
     vec4 c1, c2, c3, c4;
+    mat4 dest;
 
-    c1 = (vec4){
-        m.c1.x,
-        m.c2.x,
-        m.c3.x,
-        m.c4.x
-    };
-    c2 = (vec4){
-        m.c1.y,
-        m.c2.y,
-        m.c3.y,
-        m.c4.y
-    };
-    c3 = (vec4){
-        m.c1.z,
-        m.c2.z,
-        m.c3.z,
-        m.c4.z
-    };
-    c4 = (vec4){
-        m.c1.w,
-        m.c2.w,
-        m.c3.w,
-        m.c4.w
-    };
+    c1 = (vec4){m.cols[0].x, m.cols[1].x, m.cols[2].x, m.cols[3].x};
+    c2 = (vec4){m.cols[0].y, m.cols[1].y, m.cols[2].y, m.cols[3].y};
+    c3 = (vec4){m.cols[0].z, m.cols[1].z, m.cols[2].z, m.cols[3].z};
+    c4 = (vec4){m.cols[0].w, m.cols[1].w, m.cols[2].w, m.cols[3].w};
 
-    return (mat4){c1, c2, c3, c4};
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
 }
 RANMATH_INLINE mat4 rm_mat4_translate(f32 x, f32 y, f32 z) {
-    mat4 m = rm_mat4_identity();
+    mat4 dest;
 
-    m.c4.x = x;
-    m.c4.y = y;
-    m.c4.z = z;
+    dest = rm_mat4_identity();
+    dest.cols[3].x = x;
+    dest.cols[3].y = y;
+    dest.cols[3].z = z;
 
-    return m;
+    return dest;
 }
 RANMATH_INLINE mat4 rm_mat4_scale(mat4 m, f32 s) {
-    return (mat4){
-        rm_vec4_scale(m.c1, s),
-        rm_vec4_scale(m.c2, s),
-        rm_vec4_scale(m.c3, s),
-        rm_vec4_scale(m.c4, s)
-    };
+    vec4 c1, c2, c3, c4;
+    mat4 dest;
+
+    c1 = rm_vec4_scale(m.cols[0], s);
+    c2 = rm_vec4_scale(m.cols[1], s);
+    c3 = rm_vec4_scale(m.cols[2], s);
+    c4 = rm_vec4_scale(m.cols[3], s);
+
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
 }
 RANMATH_INLINE mat4 rm_mat4_scale_aniso(mat4 m, f32 x, f32 y, f32 z) {
-    return (mat4){
-        rm_vec4_scale(m.c1, x),
-        rm_vec4_scale(m.c2, y),
-        rm_vec4_scale(m.c3, z),
-        rm_vec4_copy(m.c4)
-    };
+    vec4 c1, c2, c3, c4;
+    mat4 dest;
+
+    c1 = rm_vec4_scale(m.cols[0], x);
+    c2 = rm_vec4_scale(m.cols[1], y);
+    c3 = rm_vec4_scale(m.cols[2], z);
+    c4 = rm_vec4_copy(m.cols[3]);
+
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
 }
 RANMATH_INLINE f32 rm_mat4_det(mat4 m) {
     f32 t[6];
-    f32 v[4];
+    vec4 v;
 
-    t[0] = m.c3.z * m.c4.w - m.c4.z * m.c3.w;
-    t[1] = m.c3.y * m.c4.w - m.c4.y * m.c3.w;
-    t[2] = m.c3.y * m.c4.z - m.c4.y * m.c3.z;
-    t[3] = m.c3.x * m.c4.w - m.c4.x * m.c3.w;
-    t[4] = m.c3.x * m.c4.z - m.c4.x * m.c3.z;
-    t[5] = m.c3.x * m.c4.y - m.c4.x * m.c3.y;
+    t[0] = m.cols[2].z * m.cols[3].w - m.cols[3].z * m.cols[2].w;
+    t[1] = m.cols[2].y * m.cols[3].w - m.cols[3].y * m.cols[2].w;
+    t[2] = m.cols[2].y * m.cols[3].z - m.cols[3].y * m.cols[2].z;
+    t[3] = m.cols[2].x * m.cols[3].w - m.cols[3].x * m.cols[2].w;
+    t[4] = m.cols[2].x * m.cols[3].z - m.cols[3].x * m.cols[2].z;
+    t[5] = m.cols[2].x * m.cols[3].y - m.cols[3].x * m.cols[2].y;
 
-    v[0] = m.c1.x * (m.c2.y * t[0] - m.c2.z * t[1] + m.c2.w * t[2]);
-    v[1] = m.c1.y * (m.c2.x * t[0] - m.c2.z * t[3] + m.c2.w * t[4]);
-    v[2] = m.c1.z * (m.c2.x * t[1] - m.c2.y * t[3] + m.c2.w * t[5]);
-    v[3] = m.c1.w * (m.c2.x * t[2] - m.c2.y * t[4] + m.c2.z * t[5]);
+    v.x = m.cols[0].x * (m.cols[1].y * t[0] - m.cols[1].z * t[1] + m.cols[1].w * t[2]);
+    v.y = -(m.cols[0].y * (m.cols[1].x * t[0] - m.cols[1].z * t[3] + m.cols[1].w * t[4]));
+    v.z = m.cols[0].z * (m.cols[1].x * t[1] - m.cols[1].y * t[3] + m.cols[1].w * t[5]);
+    v.w = -(m.cols[0].w * (m.cols[1].x * t[2] - m.cols[1].y * t[4] + m.cols[1].z * t[5]));
 
-    return v[0] - v[1] + v[2] - v[3];
+    return rm_vec4_hadd(v);
 }
 RANMATH_INLINE mat4 rm_mat4_inv(mat4 m) {
-    mat4 dest;
-    f32 t[6];
     f32 det;
+    f32 t[6];
+    vec4 v;
+    mat4 dest;
 
-    t[0] = m.c3.z * m.c4.w - m.c4.z * m.c3.w;
-    t[1] = m.c3.y * m.c4.w - m.c4.y * m.c3.w;
-    t[2] = m.c3.y * m.c4.z - m.c4.y * m.c3.z;
-    t[3] = m.c3.x * m.c4.w - m.c4.x * m.c3.w;
-    t[4] = m.c3.x * m.c4.z - m.c4.x * m.c3.z;
-    t[5] = m.c3.x * m.c4.y - m.c4.x * m.c3.y;
+    t[0] = m.cols[2].z * m.cols[3].w - m.cols[3].z * m.cols[2].w;
+    t[1] = m.cols[2].y * m.cols[3].w - m.cols[3].y * m.cols[2].w;
+    t[2] = m.cols[2].y * m.cols[3].z - m.cols[3].y * m.cols[2].z;
+    t[3] = m.cols[2].x * m.cols[3].w - m.cols[3].x * m.cols[2].w;
+    t[4] = m.cols[2].x * m.cols[3].z - m.cols[3].x * m.cols[2].z;
+    t[5] = m.cols[2].x * m.cols[3].y - m.cols[3].x * m.cols[2].y;
 
-    dest.c1.x = m.c2.y * t[0] - m.c2.z * t[1] + m.c2.w * t[2];
-    dest.c2.x = -(m.c2.x * t[0] - m.c2.z * t[3] + m.c2.w * t[4]);
-    dest.c3.x = m.c2.x * t[1] - m.c2.y * t[3] + m.c2.w * t[5];
-    dest.c4.x = -(m.c2.x * t[2] - m.c2.y * t[4] + m.c2.z * t[5]);
+    dest.cols[0].x = m.cols[1].y * t[0] - m.cols[1].z * t[1] + m.cols[1].w * t[2];
+    dest.cols[1].x = -(m.cols[1].x * t[0] - m.cols[1].z * t[3] + m.cols[1].w * t[4]);
+    dest.cols[2].x = m.cols[1].x * t[1] - m.cols[1].y * t[3] + m.cols[1].w * t[5];
+    dest.cols[3].x = -(m.cols[1].x * t[2] - m.cols[1].y * t[4] + m.cols[1].z * t[5]);
 
-    dest.c1.y = -(m.c1.y * t[0] - m.c1.z * t[1] + m.c1.w * t[2]);
-    dest.c2.y = m.c1.x * t[0] - m.c1.z * t[3] + m.c1.w * t[4];
-    dest.c3.y = -(m.c1.x * t[1] - m.c1.y * t[3] + m.c1.w * t[5]);
-    dest.c4.y = m.c1.x * t[2] - m.c1.y * t[4] + m.c1.z * t[5];
+    dest.cols[0].y = -(m.cols[0].y * t[0] - m.cols[0].z * t[1] + m.cols[0].w * t[2]);
+    dest.cols[1].y = m.cols[0].x * t[0] - m.cols[0].z * t[3] + m.cols[0].w * t[4];
+    dest.cols[2].y = -(m.cols[0].x * t[1] - m.cols[0].y * t[3] + m.cols[0].w * t[5]);
+    dest.cols[3].y = m.cols[0].x * t[2] - m.cols[0].y * t[4] + m.cols[0].z * t[5];
 
-    t[0] = m.c2.z * m.c4.w - m.c4.z * m.c2.w;
-    t[1] = m.c2.y * m.c4.w - m.c4.y * m.c2.w;
-    t[2] = m.c2.y * m.c4.z - m.c4.y * m.c2.z;
-    t[3] = m.c2.x * m.c4.w - m.c4.x * m.c2.w;
-    t[4] = m.c2.x * m.c4.z - m.c4.x * m.c2.z;
-    t[5] = m.c2.x * m.c4.y - m.c4.x * m.c2.y;
+    t[0] = m.cols[1].z * m.cols[3].w - m.cols[3].z * m.cols[1].w;
+    t[1] = m.cols[1].y * m.cols[3].w - m.cols[3].y * m.cols[1].w;
+    t[2] = m.cols[1].y * m.cols[3].z - m.cols[3].y * m.cols[1].z;
+    t[3] = m.cols[1].x * m.cols[3].w - m.cols[3].x * m.cols[1].w;
+    t[4] = m.cols[1].x * m.cols[3].z - m.cols[3].x * m.cols[1].z;
+    t[5] = m.cols[1].x * m.cols[3].y - m.cols[3].x * m.cols[1].y;
 
-    dest.c1.z = m.c1.y * t[0] - m.c1.z * t[1] + m.c1.w * t[2];
-    dest.c2.z = -(m.c1.x * t[0] - m.c1.z * t[3] + m.c1.w * t[4]);
-    dest.c3.z = m.c1.x * t[1] - m.c1.y * t[3] + m.c1.w * t[5];
-    dest.c4.z = -(m.c1.x * t[2] - m.c1.y * t[4] + m.c1.z * t[5]);
+    dest.cols[0].z = m.cols[0].y * t[0] - m.cols[0].z * t[1] + m.cols[0].w * t[2];
+    dest.cols[1].z = -(m.cols[0].x * t[0] - m.cols[0].z * t[3] + m.cols[0].w * t[4]);
+    dest.cols[2].z = m.cols[0].x * t[1] - m.cols[0].y * t[3] + m.cols[0].w * t[5];
+    dest.cols[3].z = -(m.cols[0].x * t[2] - m.cols[0].y * t[4] + m.cols[0].z * t[5]);
 
-    t[0] = m.c2.z * m.c3.w - m.c3.z * m.c2.w;
-    t[1] = m.c2.y * m.c3.w - m.c3.y * m.c2.w;
-    t[2] = m.c2.y * m.c3.z - m.c3.y * m.c2.z;
-    t[3] = m.c2.x * m.c3.w - m.c3.x * m.c2.w;
-    t[4] = m.c2.x * m.c3.z - m.c3.x * m.c2.z;
-    t[5] = m.c2.x * m.c3.y - m.c3.x * m.c2.y;
+    t[0] = m.cols[1].z * m.cols[2].w - m.cols[2].z * m.cols[1].w;
+    t[1] = m.cols[1].y * m.cols[2].w - m.cols[2].y * m.cols[1].w;
+    t[2] = m.cols[1].y * m.cols[2].z - m.cols[2].y * m.cols[1].z;
+    t[3] = m.cols[1].x * m.cols[2].w - m.cols[2].x * m.cols[1].w;
+    t[4] = m.cols[1].x * m.cols[2].z - m.cols[2].x * m.cols[1].z;
+    t[5] = m.cols[1].x * m.cols[2].y - m.cols[2].x * m.cols[1].y;
 
-    dest.c1.w = -(m.c1.y * t[0] - m.c1.z * t[1] + m.c1.w * t[2]);
-    dest.c2.w = m.c1.x * t[0] - m.c1.z * t[3] + m.c1.w * t[4];
-    dest.c3.w = -(m.c1.x * t[1] - m.c1.y * t[3] + m.c1.w * t[5]);
-    dest.c4.w = m.c1.x * t[2] - m.c1.y * t[4] + m.c1.z * t[5];
+    dest.cols[0].w = -(m.cols[0].y * t[0] - m.cols[0].z * t[1] + m.cols[0].w * t[2]);
+    dest.cols[1].w = m.cols[0].x * t[0] - m.cols[0].z * t[3] + m.cols[0].w * t[4];
+    dest.cols[2].w = -(m.cols[0].x * t[1] - m.cols[0].y * t[3] + m.cols[0].w * t[5]);
+    dest.cols[3].w = m.cols[0].x * t[2] - m.cols[0].y * t[4] + m.cols[0].z * t[5];
 
-    t[0] = m.c1.x * dest.c1.x;
-    t[1] = m.c1.y * dest.c2.x;
-    t[2] = m.c1.z * dest.c3.x;
-    t[3] = m.c1.w * dest.c4.x;
+    v = rm_vec4_scale_aniso(m.cols[0], dest.cols[0].x, dest.cols[1].x, dest.cols[2].x, dest.cols[3].x);
 
-    det = (f32)1 / (t[0] + t[1] + t[2] + t[3]);
+    det = (f32)1 / rm_vec4_hadd(v);
 
     return rm_mat4_scale(dest, det);
 }
 RANMATH_INLINE void rm_mat4_swap_col(mat4 m, u32 col1, u32 col2) {
-    RM_MAT4_CVT c;
     vec4 tmp;
 
-    c.m = rm_mat4_copy(m);
+    tmp = rm_vec4_copy(m.cols[col1]);
 
-    tmp = (vec4){c.gl[col1][0], c.gl[col1][1], c.gl[col1][2], c.gl[col1][3]};
-
-    c.gl[col1][0] = c.gl[col2][0];
-    c.gl[col1][1] = c.gl[col2][1];
-    c.gl[col1][2] = c.gl[col2][2];
-    c.gl[col1][3] = c.gl[col2][3];
-
-    c.gl[col2][0] = tmp.x;
-    c.gl[col2][1] = tmp.y;
-    c.gl[col2][2] = tmp.z;
-    c.gl[col2][3] = tmp.w;
-
-    m = rm_mat4_copy(c.m);
+    m.cols[col1] = rm_vec4_copy(m.cols[col2]);
+    m.cols[col2] = rm_vec4_copy(tmp);
 }
 RANMATH_INLINE void rm_mat4_swap_row(mat4 m, u32 row1, u32 row2) {
-    RM_MAT4_CVT c;
     vec4 tmp;
+    RM_MAT4_CVT c;
 
     c.m = rm_mat4_copy(m);
 
@@ -1686,6 +1815,7 @@ RANMATH_INLINE f32 rm_mat4_rmc(vec4 r, mat4 m, vec4 c) {
 RANMATH_INLINE mat4 rm_mat4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     f32 rl, tb, fn;
     vec4 c1, c2, c3, c4;
+    mat4 dest;
 
     rl = r - l;
     tb = t - b;
@@ -1696,7 +1826,9 @@ RANMATH_INLINE mat4 rm_mat4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     c3 = (vec4){0, 0, -2 / (fn), 0};
     c4 = (vec4){-(r + l) / (rl), -(t + b) / (tb), -(f + n) / (fn), 1};
 
-    return (mat4) {c1, c2, c3, c4};
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
 }
 
 #endif /* RANMATH_IMPLEMENTATION */
