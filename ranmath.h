@@ -103,225 +103,225 @@ typedef RANMATH_ALIGN(16) struct {
 #define RM_MAT3_CVT union {mat3 m; RANMATH_ALIGN(16) f32 f[3][3];}
 #define RM_MAT4_CVT union {mat4 m; RANMATH_ALIGN(16) f32 f[4][4];}
 
-RANMATH_INLINE i32 rm_facti(i32);
-RANMATH_INLINE i64 rm_factl(i64);
-RANMATH_INLINE i32 rm_powi(i32, i32);
-RANMATH_INLINE i64 rm_powl(i64, i64);
-RANMATH_INLINE i32 rm_pow2i(i32);
-RANMATH_INLINE i64 rm_pow2l(i64);
-RANMATH_INLINE f32 rm_pow2f(f32);
-RANMATH_INLINE f64 rm_pow2d(f64);
-RANMATH_INLINE f32 rm_rsqrtf(f32);
-RANMATH_INLINE f64 rm_rsqrtd(f64);
-RANMATH_INLINE f32 rm_sqrtf(f32);
-RANMATH_INLINE f64 rm_sqrtd(f64);
-RANMATH_INLINE i32 rm_absi(i32);
-RANMATH_INLINE i64 rm_absl(i64);
-RANMATH_INLINE f32 rm_absf(f32);
-RANMATH_INLINE f64 rm_absd(f64);
-RANMATH_INLINE i32 rm_mini(i32, i32);
-RANMATH_INLINE i64 rm_minl(i64, i64);
-RANMATH_INLINE f32 rm_minf(f32, f32);
-RANMATH_INLINE f64 rm_mind(f64, f64);
-RANMATH_INLINE i32 rm_mini(i32, i32);
-RANMATH_INLINE i64 rm_minl(i64, i64);
-RANMATH_INLINE f32 rm_maxf(f32, f32);
-RANMATH_INLINE f64 rm_maxd(f64, f64);
-RANMATH_INLINE i32 rm_clampi(i32, i32, i32);
-RANMATH_INLINE i64 rm_clampl(i64, i64, i64);
-RANMATH_INLINE f32 rm_clampf(f32, f32, f32);
-RANMATH_INLINE f64 rm_clampd(f64, f64, f64);
-RANMATH_INLINE f32 rm_truncf(f32);
-RANMATH_INLINE f64 rm_truncd(f64);
-RANMATH_INLINE f32 rm_floorf(f32);
-RANMATH_INLINE f64 rm_floord(f64);
-RANMATH_INLINE f32 rm_ceilf(f32);
-RANMATH_INLINE f64 rm_ceild(f64);
-RANMATH_INLINE f32 rm_roundf(f32);
-RANMATH_INLINE f64 rm_roundd(f64);
-RANMATH_INLINE f32 rm_wrap_maxf(f32, f32);
-RANMATH_INLINE f64 rm_wrap_maxd(f64, f64);
-RANMATH_INLINE f32 rm_wrapf(f32, f32, f32);
-RANMATH_INLINE f64 rm_wrapd(f64, f64, f64);
-RANMATH_INLINE f32 rm_cosf(f32);
-RANMATH_INLINE f64 rm_cosd(f64);
-RANMATH_INLINE f32 rm_sinf(f32);
-RANMATH_INLINE f64 rm_sind(f64);
-RANMATH_INLINE f32 rm_tanf(f32);
-RANMATH_INLINE f64 rm_tand(f64);
-RANMATH_INLINE f32 rm_cotf(f32);
-RANMATH_INLINE f64 rm_cotd(f64);
-RANMATH_INLINE f32 rm_secf(f32);
-RANMATH_INLINE f64 rm_secd(f64);
-RANMATH_INLINE f32 rm_cscf(f32);
-RANMATH_INLINE f64 rm_cscd(f64);
-RANMATH_INLINE f32 rm_rad2degf(f32);
-RANMATH_INLINE f64 rm_rad2degd(f64);
-RANMATH_INLINE f32 rm_deg2radf(f32);
-RANMATH_INLINE f64 rm_deg2radd(f64);
+RANMATH_INLINE i32 rm_facti(const i32);
+RANMATH_INLINE i64 rm_factl(const i64);
+RANMATH_INLINE i32 rm_powi(const i32, const i32);
+RANMATH_INLINE i64 rm_powl(const i64, const i64);
+RANMATH_INLINE i32 rm_pow2i(const i32);
+RANMATH_INLINE i64 rm_pow2l(const i64);
+RANMATH_INLINE f32 rm_pow2f(const f32);
+RANMATH_INLINE f64 rm_pow2d(const f64);
+RANMATH_INLINE f32 rm_rsqrtf(const f32);
+RANMATH_INLINE f64 rm_rsqrtd(const f64);
+RANMATH_INLINE f32 rm_sqrtf(const f32);
+RANMATH_INLINE f64 rm_sqrtd(const f64);
+RANMATH_INLINE i32 rm_absi(const i32);
+RANMATH_INLINE i64 rm_absl(const i64);
+RANMATH_INLINE f32 rm_absf(const f32);
+RANMATH_INLINE f64 rm_absd(const f64);
+RANMATH_INLINE i32 rm_mini(const i32, const i32);
+RANMATH_INLINE i64 rm_minl(const i64, const i64);
+RANMATH_INLINE f32 rm_minf(const f32, const f32);
+RANMATH_INLINE f64 rm_mind(const f64, const f64);
+RANMATH_INLINE i32 rm_mini(const i32, const i32);
+RANMATH_INLINE i64 rm_minl(const i64, const i64);
+RANMATH_INLINE f32 rm_maxf(const f32, const f32);
+RANMATH_INLINE f64 rm_maxd(const f64, const f64);
+RANMATH_INLINE i32 rm_clampi(const i32, const i32, const i32);
+RANMATH_INLINE i64 rm_clampl(const i64, const i64, const i64);
+RANMATH_INLINE f32 rm_clampf(const f32, const f32, const f32);
+RANMATH_INLINE f64 rm_clampd(const f64, const f64, const f64);
+RANMATH_INLINE f32 rm_truncf(const f32);
+RANMATH_INLINE f64 rm_truncd(const f64);
+RANMATH_INLINE f32 rm_floorf(const f32);
+RANMATH_INLINE f64 rm_floord(const f64);
+RANMATH_INLINE f32 rm_ceilf(const f32);
+RANMATH_INLINE f64 rm_ceild(const f64);
+RANMATH_INLINE f32 rm_roundf(const f32);
+RANMATH_INLINE f64 rm_roundd(const f64);
+RANMATH_INLINE f32 rm_wrap_maxf(const f32, const f32);
+RANMATH_INLINE f64 rm_wrap_maxd(const f64, const f64);
+RANMATH_INLINE f32 rm_wrapf(const f32, const f32, const f32);
+RANMATH_INLINE f64 rm_wrapd(const f64, const f64, const f64);
+RANMATH_INLINE f32 rm_cosf(const f32);
+RANMATH_INLINE f64 rm_cosd(const f64);
+RANMATH_INLINE f32 rm_sinf(const f32);
+RANMATH_INLINE f64 rm_sind(const f64);
+RANMATH_INLINE f32 rm_tanf(const f32);
+RANMATH_INLINE f64 rm_tand(const f64);
+RANMATH_INLINE f32 rm_cotf(const f32);
+RANMATH_INLINE f64 rm_cotd(const f64);
+RANMATH_INLINE f32 rm_secf(const f32);
+RANMATH_INLINE f64 rm_secd(const f64);
+RANMATH_INLINE f32 rm_cscf(const f32);
+RANMATH_INLINE f64 rm_cscd(const f64);
+RANMATH_INLINE f32 rm_rad2degf(const f32);
+RANMATH_INLINE f64 rm_rad2degd(const f64);
+RANMATH_INLINE f32 rm_deg2radf(const f32);
+RANMATH_INLINE f64 rm_deg2radd(const f64);
 
-RANMATH_INLINE vec2 rm_vec2_copy(vec2);
-RANMATH_INLINE vec2 rm_vec2_abs(vec2);
-RANMATH_INLINE f32  rm_vec2_max(vec2);
-RANMATH_INLINE f32  rm_vec2_min(vec2);
-RANMATH_INLINE vec2 rm_vec2_maxv(vec2, vec2);
-RANMATH_INLINE vec2 rm_vec2_minv(vec2, vec2);
-RANMATH_INLINE f32  rm_vec2_hadd(vec2);
+RANMATH_INLINE vec2 rm_vec2_copy(const vec2);
+RANMATH_INLINE vec2 rm_vec2_abs(const vec2);
+RANMATH_INLINE f32  rm_vec2_max(const vec2);
+RANMATH_INLINE f32  rm_vec2_min(const vec2);
+RANMATH_INLINE vec2 rm_vec2_maxv(const vec2, const vec2);
+RANMATH_INLINE vec2 rm_vec2_minv(const vec2, const vec2);
+RANMATH_INLINE f32  rm_vec2_hadd(const vec2);
 RANMATH_INLINE vec2 rm_vec2_zero(void);
 RANMATH_INLINE vec2 rm_vec2_one(void);
-RANMATH_INLINE vec2 rm_vec2_set(f32, f32);
-RANMATH_INLINE vec2 rm_vec2_fill(f32);
-RANMATH_INLINE f32  rm_vec2_dot(vec2, vec2);
-RANMATH_INLINE f32  rm_vec2_cross(vec2, vec2);
-RANMATH_INLINE f32  rm_vec2_norm2(vec2);
-RANMATH_INLINE f32  rm_vec2_norm(vec2);
-RANMATH_INLINE f32  rm_vec2_norm_one(vec2);
-RANMATH_INLINE f32  rm_vec2_norm_inf(vec2);
-RANMATH_INLINE vec2 rm_vec2_add(vec2, vec2);
-RANMATH_INLINE vec2 rm_vec2_adds(vec2, f32);
-RANMATH_INLINE vec2 rm_vec2_sub(vec2, vec2);
-RANMATH_INLINE vec2 rm_vec2_subs(vec2, f32);
-RANMATH_INLINE vec2 rm_vec2_mul(vec2, vec2);
-RANMATH_INLINE vec2 rm_vec2_scale(vec2, f32);
-RANMATH_INLINE vec2 rm_vec2_scale_as(vec2, f32);
-RANMATH_INLINE vec2 rm_vec2_scale_aniso(vec2, f32, f32);
-RANMATH_INLINE vec2 rm_vec2_div(vec2, vec2);
-RANMATH_INLINE vec2 rm_vec2_divs(vec2, f32);
-RANMATH_INLINE vec2 rm_vec2_negate(vec2);
-RANMATH_INLINE vec2 rm_vec2_normalize(vec2);
-RANMATH_INLINE vec2 rm_vec2_rotate(vec2, f32);
-RANMATH_INLINE f32  rm_vec2_distance2(vec2, vec2);
-RANMATH_INLINE f32  rm_vec2_distance(vec2, vec2);
-RANMATH_INLINE vec2 rm_vec2_clamp(vec2, f32, f32);
-RANMATH_INLINE vec2 rm_vec2_wrap(vec2, f32, f32);
-RANMATH_INLINE vec2 rm_vec2_center(vec2, vec2);
+RANMATH_INLINE vec2 rm_vec2_set(const f32, const f32);
+RANMATH_INLINE vec2 rm_vec2_fill(const f32);
+RANMATH_INLINE f32  rm_vec2_dot(const vec2, const vec2);
+RANMATH_INLINE f32  rm_vec2_cross(const vec2, const vec2);
+RANMATH_INLINE f32  rm_vec2_norm2(const vec2);
+RANMATH_INLINE f32  rm_vec2_norm(const vec2);
+RANMATH_INLINE f32  rm_vec2_norm_one(const vec2);
+RANMATH_INLINE f32  rm_vec2_norm_inf(const vec2);
+RANMATH_INLINE vec2 rm_vec2_add(const vec2, const vec2);
+RANMATH_INLINE vec2 rm_vec2_adds(const vec2, const f32);
+RANMATH_INLINE vec2 rm_vec2_sub(const vec2, const vec2);
+RANMATH_INLINE vec2 rm_vec2_subs(const vec2, const f32);
+RANMATH_INLINE vec2 rm_vec2_mul(const vec2, const vec2);
+RANMATH_INLINE vec2 rm_vec2_scale(const vec2, const f32);
+RANMATH_INLINE vec2 rm_vec2_scale_as(const vec2, const f32);
+RANMATH_INLINE vec2 rm_vec2_scale_aniso(const vec2, const f32, const f32);
+RANMATH_INLINE vec2 rm_vec2_div(const vec2, const vec2);
+RANMATH_INLINE vec2 rm_vec2_divs(const vec2, const f32);
+RANMATH_INLINE vec2 rm_vec2_negate(const vec2);
+RANMATH_INLINE vec2 rm_vec2_normalize(const vec2);
+RANMATH_INLINE vec2 rm_vec2_rotate(const vec2, const f32);
+RANMATH_INLINE f32  rm_vec2_distance2(const vec2, const vec2);
+RANMATH_INLINE f32  rm_vec2_distance(const vec2, const vec2);
+RANMATH_INLINE vec2 rm_vec2_clamp(const vec2, const f32, const f32);
+RANMATH_INLINE vec2 rm_vec2_wrap(const vec2, const f32, const f32);
+RANMATH_INLINE vec2 rm_vec2_center(const vec2, const vec2);
 
-RANMATH_INLINE vec3 rm_vec3_copy(vec3);
-RANMATH_INLINE vec2 rm_vec3_copy2(vec3);
-RANMATH_INLINE vec3 rm_vec3_abs(vec3);
-RANMATH_INLINE f32  rm_vec3_max(vec3);
-RANMATH_INLINE f32  rm_vec3_min(vec3);
-RANMATH_INLINE vec3 rm_vec3_maxv(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_minv(vec3, vec3);
-RANMATH_INLINE f32  rm_vec3_hadd(vec3);
+RANMATH_INLINE vec3 rm_vec3_copy(const vec3);
+RANMATH_INLINE vec2 rm_vec3_copy2(const vec3);
+RANMATH_INLINE vec3 rm_vec3_abs(const vec3);
+RANMATH_INLINE f32  rm_vec3_max(const vec3);
+RANMATH_INLINE f32  rm_vec3_min(const vec3);
+RANMATH_INLINE vec3 rm_vec3_maxv(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_minv(const vec3, const vec3);
+RANMATH_INLINE f32  rm_vec3_hadd(const vec3);
 RANMATH_INLINE vec3 rm_vec3_zero(void);
 RANMATH_INLINE vec3 rm_vec3_one(void);
-RANMATH_INLINE vec3 rm_vec3_set(f32, f32, f32);
-RANMATH_INLINE vec3 rm_vec3_fill(f32);
-RANMATH_INLINE vec3 rm_vec3_make(vec2, f32);
-RANMATH_INLINE f32  rm_vec3_dot(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_cross(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_crossn(vec3, vec3);
-RANMATH_INLINE f32  rm_vec3_norm2(vec3);
-RANMATH_INLINE f32  rm_vec3_norm(vec3);
-RANMATH_INLINE f32  rm_vec3_norm_one(vec3);
-RANMATH_INLINE f32  rm_vec3_norm_inf(vec3);
-RANMATH_INLINE vec3 rm_vec3_add(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_adds(vec3, f32);
-RANMATH_INLINE vec3 rm_vec3_sub(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_subs(vec3, f32);
-RANMATH_INLINE vec3 rm_vec3_mul(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_scale(vec3, f32);
-RANMATH_INLINE vec3 rm_vec3_scale_as(vec3, f32);
-RANMATH_INLINE vec3 rm_vec3_scale_aniso(vec3, f32, f32, f32);
-RANMATH_INLINE vec3 rm_vec3_div(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_divs(vec3, f32);
-RANMATH_INLINE vec3 rm_vec3_negate(vec3);
-RANMATH_INLINE vec3 rm_vec3_normalize(vec3);
-RANMATH_INLINE vec3 rm_vec3_rotate(vec3, f32, vec3);
-RANMATH_INLINE f32  rm_vec3_distance2(vec3, vec3);
-RANMATH_INLINE f32  rm_vec3_distance(vec3, vec3);
-RANMATH_INLINE vec3 rm_vec3_clamp(vec3, f32, f32);
-RANMATH_INLINE vec3 rm_vec3_wrap(vec3, f32, f32);
-RANMATH_INLINE vec3 rm_vec3_center(vec3, vec3);
+RANMATH_INLINE vec3 rm_vec3_set(const f32, const f32, const f32);
+RANMATH_INLINE vec3 rm_vec3_fill(const f32);
+RANMATH_INLINE vec3 rm_vec3_make(const vec2, const f32);
+RANMATH_INLINE f32  rm_vec3_dot(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_cross(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_crossn(const vec3, const vec3);
+RANMATH_INLINE f32  rm_vec3_norm2(const vec3);
+RANMATH_INLINE f32  rm_vec3_norm(const vec3);
+RANMATH_INLINE f32  rm_vec3_norm_one(const vec3);
+RANMATH_INLINE f32  rm_vec3_norm_inf(const vec3);
+RANMATH_INLINE vec3 rm_vec3_add(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_adds(const vec3, const f32);
+RANMATH_INLINE vec3 rm_vec3_sub(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_subs(const vec3, const f32);
+RANMATH_INLINE vec3 rm_vec3_mul(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_scale(const vec3, const f32);
+RANMATH_INLINE vec3 rm_vec3_scale_as(const vec3, const f32);
+RANMATH_INLINE vec3 rm_vec3_scale_aniso(const vec3, const f32, const f32, const f32);
+RANMATH_INLINE vec3 rm_vec3_div(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_divs(const vec3, const f32);
+RANMATH_INLINE vec3 rm_vec3_negate(const vec3);
+RANMATH_INLINE vec3 rm_vec3_normalize(const vec3);
+RANMATH_INLINE vec3 rm_vec3_rotate(const vec3, const f32, const vec3);
+RANMATH_INLINE f32  rm_vec3_distance2(const vec3, const vec3);
+RANMATH_INLINE f32  rm_vec3_distance(const vec3, const vec3);
+RANMATH_INLINE vec3 rm_vec3_clamp(const vec3, const f32, const f32);
+RANMATH_INLINE vec3 rm_vec3_wrap(const vec3, const f32, const f32);
+RANMATH_INLINE vec3 rm_vec3_center(const vec3, const vec3);
 
-RANMATH_INLINE vec4 rm_vec4_copy(vec4);
-RANMATH_INLINE vec3 rm_vec4_copy3(vec4);
-RANMATH_INLINE vec4 rm_vec4_abs(vec4);
-RANMATH_INLINE f32  rm_vec4_max(vec4);
-RANMATH_INLINE f32  rm_vec4_min(vec4);
-RANMATH_INLINE vec4 rm_vec4_maxv(vec4, vec4);
-RANMATH_INLINE vec4 rm_vec4_minv(vec4, vec4);
-RANMATH_INLINE f32  rm_vec4_hadd(vec4);
+RANMATH_INLINE vec4 rm_vec4_copy(const vec4);
+RANMATH_INLINE vec3 rm_vec4_copy3(const vec4);
+RANMATH_INLINE vec4 rm_vec4_abs(const vec4);
+RANMATH_INLINE f32  rm_vec4_max(const vec4);
+RANMATH_INLINE f32  rm_vec4_min(const vec4);
+RANMATH_INLINE vec4 rm_vec4_maxv(const vec4, const vec4);
+RANMATH_INLINE vec4 rm_vec4_minv(const vec4, const vec4);
+RANMATH_INLINE f32  rm_vec4_hadd(const vec4);
 RANMATH_INLINE vec4 rm_vec4_zero(void);
 RANMATH_INLINE vec4 rm_vec4_one(void);
-RANMATH_INLINE vec4 rm_vec4_set(f32, f32, f32, f32);
-RANMATH_INLINE vec4 rm_vec4_fill(f32);
-RANMATH_INLINE vec4 rm_vec4_make(vec3, f32);
-RANMATH_INLINE f32  rm_vec4_dot(vec4, vec4);
-RANMATH_INLINE f32  rm_vec4_norm2(vec4);
-RANMATH_INLINE f32  rm_vec4_norm(vec4);
-RANMATH_INLINE f32  rm_vec4_norm_one(vec4);
-RANMATH_INLINE f32  rm_vec4_norm_inf(vec4);
-RANMATH_INLINE vec4 rm_vec4_add(vec4, vec4);
-RANMATH_INLINE vec4 rm_vec4_adds(vec4, f32);
-RANMATH_INLINE vec4 rm_vec4_sub(vec4, vec4);
-RANMATH_INLINE vec4 rm_vec4_subs(vec4, f32);
-RANMATH_INLINE vec4 rm_vec4_mul(vec4, vec4);
-RANMATH_INLINE vec4 rm_vec4_scale(vec4, f32);
-RANMATH_INLINE vec4 rm_vec4_scale_as(vec4, f32);
-RANMATH_INLINE vec4 rm_vec4_div(vec4, vec4);
-RANMATH_INLINE vec4 rm_vec4_divs(vec4, f32);
-RANMATH_INLINE vec4 rm_vec4_negate(vec4);
-RANMATH_INLINE vec4 rm_vec4_normalize(vec4);
-RANMATH_INLINE f32  rm_vec4_distance2(vec4, vec4);
-RANMATH_INLINE f32  rm_vec4_distance(vec4, vec4);
-RANMATH_INLINE vec4 rm_vec4_clamp(vec4, f32, f32);
-RANMATH_INLINE vec4 rm_vec4_wrap(vec4, f32, f32);
-RANMATH_INLINE vec4 rm_vec4_center(vec4, vec4);
+RANMATH_INLINE vec4 rm_vec4_set(const f32, const f32, const f32, const f32);
+RANMATH_INLINE vec4 rm_vec4_fill(const f32);
+RANMATH_INLINE vec4 rm_vec4_make(const vec3, const f32);
+RANMATH_INLINE f32  rm_vec4_dot(const vec4, const vec4);
+RANMATH_INLINE f32  rm_vec4_norm2(const vec4);
+RANMATH_INLINE f32  rm_vec4_norm(const vec4);
+RANMATH_INLINE f32  rm_vec4_norm_one(const vec4);
+RANMATH_INLINE f32  rm_vec4_norm_inf(const vec4);
+RANMATH_INLINE vec4 rm_vec4_add(const vec4, const vec4);
+RANMATH_INLINE vec4 rm_vec4_adds(const vec4, const f32);
+RANMATH_INLINE vec4 rm_vec4_sub(const vec4, const vec4);
+RANMATH_INLINE vec4 rm_vec4_subs(const vec4, const f32);
+RANMATH_INLINE vec4 rm_vec4_mul(const vec4, const vec4);
+RANMATH_INLINE vec4 rm_vec4_scale(const vec4, const f32);
+RANMATH_INLINE vec4 rm_vec4_scale_as(const vec4, const f32);
+RANMATH_INLINE vec4 rm_vec4_div(const vec4, const vec4);
+RANMATH_INLINE vec4 rm_vec4_divs(const vec4, const f32);
+RANMATH_INLINE vec4 rm_vec4_negate(const vec4);
+RANMATH_INLINE vec4 rm_vec4_normalize(const vec4);
+RANMATH_INLINE f32  rm_vec4_distance2(const vec4, const vec4);
+RANMATH_INLINE f32  rm_vec4_distance(const vec4, const vec4);
+RANMATH_INLINE vec4 rm_vec4_clamp(const vec4, const f32, const f32);
+RANMATH_INLINE vec4 rm_vec4_wrap(const vec4, const f32, const f32);
+RANMATH_INLINE vec4 rm_vec4_center(const vec4, const vec4);
 
-RANMATH_INLINE mat2 rm_mat2_copy(mat2);
+RANMATH_INLINE mat2 rm_mat2_copy(const mat2);
 RANMATH_INLINE mat2 rm_mat2_identity(void);
-RANMATH_INLINE void rm_mat2_identity_array(mat2 *, size_t);
+RANMATH_INLINE void rm_mat2_identity_array(mat2*, const size_t);
 RANMATH_INLINE mat2 rm_mat2_zero(void);
-RANMATH_INLINE mat2 rm_mat2_mul(mat2, mat2);
-RANMATH_INLINE mat2 rm_mat2_transpose(mat2);
-RANMATH_INLINE vec2 rm_mat2_mulv(mat2, vec2);
-RANMATH_INLINE f32  rm_mat2_trace(mat2);
-RANMATH_INLINE mat2 rm_mat2_scale(mat2, f32);
-RANMATH_INLINE f32  rm_mat2_det(mat2);
-RANMATH_INLINE mat2 rm_mat2_inv(mat2);
-RANMATH_INLINE void rm_mat2_swap_col(mat2, u32, u32);
-RANMATH_INLINE void rm_mat2_swap_row(mat2, u32, u32);
-RANMATH_INLINE f32  rm_mat2_rmc(vec2, mat2, vec2);
+RANMATH_INLINE mat2 rm_mat2_mul(const mat2, const mat2);
+RANMATH_INLINE mat2 rm_mat2_transpose(const mat2);
+RANMATH_INLINE vec2 rm_mat2_mulv(const mat2, const vec2);
+RANMATH_INLINE f32  rm_mat2_trace(const mat2);
+RANMATH_INLINE mat2 rm_mat2_scale(const mat2, const f32);
+RANMATH_INLINE f32  rm_mat2_det(const mat2);
+RANMATH_INLINE mat2 rm_mat2_inv(const mat2);
+RANMATH_INLINE void rm_mat2_swap_col(mat2, const u32, const u32);
+RANMATH_INLINE void rm_mat2_swap_row(mat2, const u32, const u32);
+RANMATH_INLINE f32  rm_mat2_rmc(const vec2, const mat2, const vec2);
 
-RANMATH_INLINE mat3 rm_mat3_copy(mat3);
+RANMATH_INLINE mat3 rm_mat3_copy(const mat3);
 RANMATH_INLINE mat3 rm_mat3_identity(void);
-RANMATH_INLINE void rm_mat3_identity_array(mat3 *, size_t);
+RANMATH_INLINE void rm_mat3_identity_array(mat3*, const size_t);
 RANMATH_INLINE mat3 rm_mat3_zero(void);
-RANMATH_INLINE mat3 rm_mat3_mul(mat3, mat3);
-RANMATH_INLINE mat3 rm_mat3_transpose(mat3);
-RANMATH_INLINE vec3 rm_mat3_mulv(mat3, vec3);
-RANMATH_INLINE f32  rm_mat3_trace(mat3);
-RANMATH_INLINE mat3 rm_mat3_scale(mat3, f32);
-RANMATH_INLINE f32  rm_mat3_det(mat3);
-RANMATH_INLINE mat3 rm_mat3_inv(mat3);
-RANMATH_INLINE void rm_mat3_swap_col(mat3, u32, u32);
-RANMATH_INLINE void rm_mat3_swap_row(mat3, u32, u32);
-RANMATH_INLINE f32  rm_mat3_rmc(vec3, mat3, vec3);
+RANMATH_INLINE mat3 rm_mat3_mul(const mat3, const mat3);
+RANMATH_INLINE mat3 rm_mat3_transpose(const mat3);
+RANMATH_INLINE vec3 rm_mat3_mulv(const mat3, const vec3);
+RANMATH_INLINE f32  rm_mat3_trace(const mat3);
+RANMATH_INLINE mat3 rm_mat3_scale(const mat3, const f32);
+RANMATH_INLINE f32  rm_mat3_det(const mat3);
+RANMATH_INLINE mat3 rm_mat3_inv(const mat3);
+RANMATH_INLINE void rm_mat3_swap_col(mat3, const u32, const u32);
+RANMATH_INLINE void rm_mat3_swap_row(mat3, const u32, const u32);
+RANMATH_INLINE f32  rm_mat3_rmc(const vec3, const mat3, const vec3);
 
-RANMATH_INLINE mat4 rm_mat4_copy(mat4);
+RANMATH_INLINE mat4 rm_mat4_copy(const mat4);
 RANMATH_INLINE mat4 rm_mat4_identity(void);
-RANMATH_INLINE void rm_mat4_identity_array(mat4 *, size_t);
+RANMATH_INLINE void rm_mat4_identity_array(mat4*, const size_t);
 RANMATH_INLINE mat4 rm_mat4_zero(void);
-RANMATH_INLINE mat3 rm_mat4_pick3(mat4);
-RANMATH_INLINE mat3 rm_mat4_pick3t(mat4);
-RANMATH_INLINE void rm_mat4_ins3(mat3, mat4);
-RANMATH_INLINE mat4 rm_mat4_mul(mat4, mat4);
-RANMATH_INLINE vec4 rm_mat4_mulv(mat4, vec4);
-RANMATH_INLINE vec3 rm_mat4_mulv3(mat4, vec3, f32);
-RANMATH_INLINE f32  rm_mat4_trace(mat4);
-RANMATH_INLINE f32  rm_mat4_trace3(mat4);
-RANMATH_INLINE mat4 rm_mat4_transpose(mat4);
-RANMATH_INLINE mat4 rm_mat4_translate(f32, f32, f32);
-RANMATH_INLINE mat4 rm_mat4_scale(mat4, f32);
-RANMATH_INLINE mat4 rm_mat4_scale_aniso(mat4, f32, f32, f32);
-RANMATH_INLINE f32  rm_mat4_det(mat4);
-RANMATH_INLINE mat4 rm_mat4_inv(mat4);
-RANMATH_INLINE void rm_mat4_swap_col(mat4, u32, u32);
-RANMATH_INLINE void rm_mat4_swap_row(mat4, u32, u32);
-RANMATH_INLINE f32  rm_mat4_rmc(vec4, mat4, vec4);
-RANMATH_INLINE mat4 rm_mat4_ortho(f32, f32, f32, f32, f32, f32);
+RANMATH_INLINE mat3 rm_mat4_pick3(const mat4);
+RANMATH_INLINE mat3 rm_mat4_pick3t(const mat4);
+RANMATH_INLINE void rm_mat4_ins3(const mat3, mat4);
+RANMATH_INLINE mat4 rm_mat4_mul(const mat4, const mat4);
+RANMATH_INLINE vec4 rm_mat4_mulv(const mat4, const vec4);
+RANMATH_INLINE vec3 rm_mat4_mulv3(const mat4, const vec3, const f32);
+RANMATH_INLINE f32  rm_mat4_trace(const mat4);
+RANMATH_INLINE f32  rm_mat4_trace3(const mat4);
+RANMATH_INLINE mat4 rm_mat4_transpose(const mat4);
+RANMATH_INLINE mat4 rm_mat4_translate(const f32, const f32, const f32);
+RANMATH_INLINE mat4 rm_mat4_scale(const mat4, const f32);
+RANMATH_INLINE mat4 rm_mat4_scale_aniso(const mat4, const f32, const f32, const f32);
+RANMATH_INLINE f32  rm_mat4_det(const mat4);
+RANMATH_INLINE mat4 rm_mat4_inv(const mat4);
+RANMATH_INLINE void rm_mat4_swap_col(mat4, const u32, const u32);
+RANMATH_INLINE void rm_mat4_swap_row(mat4, const u32, const u32);
+RANMATH_INLINE f32  rm_mat4_rmc(const vec4, const mat4, const vec4);
+RANMATH_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f32, const f32);
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
@@ -352,37 +352,26 @@ RANMATH_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 
 #define RM_VEC2_FILL(x) (vec2){x, x}
 #define RM_VEC3_FILL(x) (vec3){x, x, x}
-#define RM_VEC4_FILL(x) (vec4){x, x, x}
+#define RM_VEC4_FILL(x) (vec4){x, x, x, x}
+
+#define RM_MAT2_FILL(x) (mat2){{RM_VEC2_FILL(x), RM_VEC2_FILL(x)}}
+#define RM_MAT3_FILL(x) (mat3){{RM_VEC3_FILL(x), RM_VEC3_FILL(x), RM_VEC3_FILL(x)}}
+#define RM_MAT4_FILL(x) (mat4){{RM_VEC4_FILL(x), RM_VEC4_FILL(x), RM_VEC4_FILL(x), RM_VEC4_FILL(x)}}
 
 #define RM_MAT2_IDENTITY (mat2){{    \
 {1, 0},                              \
 {0, 1},                              \
-}}
-#define RM_MAT2_FILL(x) (mat2){{    \
-RM_VEC2_FILL(x),                    \
-RM_VEC2_FILL(x),                    \
 }}
 #define RM_MAT3_IDENTITY (mat3){{    \
 {1, 0, 0},                           \
 {0, 1, 0},                           \
 {0, 0, 1},                           \
 }}
-#define RM_MAT3_FILL(x) (mat3){{    \
-RM_VEC3_FILL(x),                    \
-RM_VEC3_FILL(x),                    \
-RM_VEC3_FILL(x),                    \
-}}
 #define RM_MAT4_IDENTITY (mat4){{    \
 {1, 0, 0, 0},                        \
 {0, 1, 0, 0},                        \
 {0, 0, 1, 0},                        \
 {0, 0, 0, 1},                        \
-}}
-#define RM_MAT4_FILL(x) (mat4){{    \
-RM_VEC4_FILL(x),                    \
-RM_VEC4_FILL(x),                    \
-RM_VEC4_FILL(x),                    \
-RM_VEC4_FILL(x),                    \
 }}
 
 RANMATH_INLINE i32 rm_facti(i32 x) {
