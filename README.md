@@ -14,9 +14,9 @@ or
 ```
 
 ## Contribute
-Feel free to contribute! Try to make sure it fits in with the current codebase which may be subject of change.
+Feel free to make contributions! Try to fit in with the current code base which may change.
 
-## TODO
+## TODO (in no particular order)
 - add own definitions of basic functions
 - mat2 and mat4 SIMD
 - add other stuff
