@@ -17,6 +17,7 @@ Just try to make sure it fits in with the current codebase structure which may o
 
 ## TODO
 - Add own definitions of basic functions
+- Mat2 and Mat4 SIMD
 - Add other stuff
 - Optimize
-- Mat2 and Mat4 SIMD
+- ARM NEON support?
