@@ -1,7 +1,7 @@
 # ranmath
 Math library by me.
 
-Aiming to be a single header stb-style library:
+Aiming to be a single header stb-style library.
 
 ## How to use
 Include ranmath.h in your project:
