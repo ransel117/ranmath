@@ -19,3 +19,4 @@ Just try to make sure it fits in with the current codebase structure which may o
 - Add own definitions of basic functions
 - Add other stuff
 - Optimize
+- Mat2 and Mat4 SIMD
