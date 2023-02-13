@@ -366,11 +366,11 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 }
 #endif /* RM_SSE_ENABLE */
 
-#define RANMATH_ABS(x) ((x < 0) ? -x : x)
-#define RANMATH_MIN(a, b) ((a < b) ? a : b)
-#define RANMATH_MAX(a, b) ((a > b) ? a : b)
-#define RANMATH_CLAMP(val, min, max) (RANMATH_MIN(RANMATH_MAX(val, min), max))
-#define RANMATH_POW2(x) (x * x)
+#define RM_ABS(x) ((x < 0) ? -x : x)
+#define RM_MIN(a, b) ((a < b) ? a : b)
+#define RM_MAX(a, b) ((a > b) ? a : b)
+#define RM_CLAMP(val, min, max) (RM_MIN(RM_MAX(val, min), max))
+#define RM_POW2(x) (x * x)
 
 #define RM_VEC2_FILL(x) (vec2){x, x}
 #define RM_VEC3_FILL(x) (vec3){x, x, x}
@@ -451,16 +451,16 @@ RM_INLINE i64 rm_powl(const i64 x, const i64 p) {
     return val;
 }
 RM_INLINE i32 rm_pow2i(const i32 x) {
-    return RANMATH_POW2(x);
+    return RM_POW2(x);
 }
 RM_INLINE i64 rm_pow2l(const i64 x) {
-    return RANMATH_POW2(x);
+    return RM_POW2(x);
 }
 RM_INLINE f32 rm_pow2f(const f32 x) {
-    return RANMATH_POW2(x);
+    return RM_POW2(x);
 }
 RM_INLINE f64 rm_pow2d(const f64 x) {
-    return RANMATH_POW2(x);
+    return RM_POW2(x);
 }
 RM_INLINE f32 rm_rsqrtf(const f32 x) {
     f32 xh;
@@ -470,9 +470,9 @@ RM_INLINE f32 rm_rsqrtf(const f32 x) {
 
     c.i = 0x5F375A86 - (c.i >> 1);
 
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
 
     return c.f;
 }
@@ -484,10 +484,10 @@ RM_INLINE f64 rm_rsqrtd(const f64 x) {
 
     c.i = 0x5FE6EB50C7B537A9 - (c.i >> 1);
 
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
-    c.f *= 1.5 - (xh * RANMATH_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
+    c.f *= 1.5 - (xh * RM_POW2(c.f));
 
     return c.f;
 }
@@ -498,52 +498,52 @@ RM_INLINE f64 rm_sqrtd(const f64 x) {
     return x * rm_rsqrtd(x);
 }
 RM_INLINE i32 rm_absi(const i32 x) {
-    return RANMATH_ABS(x);
+    return RM_ABS(x);
 }
 RM_INLINE i64 rm_absl(const i64 x) {
-    return RANMATH_ABS(x);
+    return RM_ABS(x);
 }
 RM_INLINE f32 rm_absf(const f32 x) {
-    return RANMATH_ABS(x);
+    return RM_ABS(x);
 }
 RM_INLINE f64 rm_absd(const f64 x) {
-    return RANMATH_ABS(x);
+    return RM_ABS(x);
 }
 RM_INLINE i32 rm_mini(const i32 a, const i32 b) {
-    return RANMATH_MIN(a, b);
+    return RM_MIN(a, b);
 }
 RM_INLINE i64 rm_minl(const i64 a, const i64 b) {
-    return RANMATH_MIN(a, b);
+    return RM_MIN(a, b);
 }
 RM_INLINE f32 rm_minf(const f32 a, const f32 b) {
-    return RANMATH_MIN(a, b);
+    return RM_MIN(a, b);
 }
 RM_INLINE f64 rm_mind(const f64 a, const f64 b) {
-    return RANMATH_MIN(a, b);
+    return RM_MIN(a, b);
 }
 RM_INLINE i32 rm_maxi(const i32 a, const i32 b) {
-    return RANMATH_MAX(a, b);
+    return RM_MAX(a, b);
 }
 RM_INLINE i64 rm_maxl(const i64 a, const i64 b) {
-    return RANMATH_MAX(a,b);
+    return RM_MAX(a,b);
 }
 RM_INLINE f32 rm_maxf(const f32 a, const f32 b) {
-    return RANMATH_MAX(a, b);
+    return RM_MAX(a, b);
 }
 RM_INLINE f64 rm_maxd(const f64 a, const f64 b) {
-    return RANMATH_MAX(a, b);
+    return RM_MAX(a, b);
 }
 RM_INLINE i32 rm_clampi(const i32 val, const i32 minval, const i32 maxval) {
-    return RANMATH_CLAMP(val, minval, maxval);
+    return RM_CLAMP(val, minval, maxval);
 }
 RM_INLINE i64 rm_clampl(const i64 val, const i64 minval, const i64 maxval) {
-    return RANMATH_CLAMP(val, minval, maxval);
+    return RM_CLAMP(val, minval, maxval);
 }
 RM_INLINE f32 rm_clampf(const f32 val, const f32 minval, const f32 maxval) {
-    return RANMATH_CLAMP(val, minval, maxval);
+    return RM_CLAMP(val, minval, maxval);
 }
 RM_INLINE f64 rm_clampd(const f64 val, const f64 minval, const f64 maxval) {
-    return RANMATH_CLAMP(val, minval, maxval);
+    return RM_CLAMP(val, minval, maxval);
 }
 RM_INLINE f32 rm_truncf(const f32 x) {
     return (i32)x;
