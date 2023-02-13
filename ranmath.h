@@ -4,18 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef RANMATH_SSE_ENABLE
-#if defined(__SSE2__) || defined(__SSE__)
-#define RANMATH_SSE_ENABLE 1
-#else
-#define RANMATH_SSE_ENABLE 0
-#endif /* Check for sse2 */
-#endif /* Check if already defined */
-
-#if RANMATH_SSE_ENABLE
-#include <emmintrin.h>
-#endif /* RANMATH_SSE_ENABLE */
-
 #if defined(__GNUC__)
 /* GCC-compatible compiler (gcc, clang) */
 #define RANMATH_ALIGN(x) __attribute((aligned(x)))
@@ -325,7 +313,17 @@ RANMATH_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, co
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
+#ifndef RANMATH_SSE_ENABLE
+#if defined(__SSE2__) || defined(__SSE__)
+#define RANMATH_SSE_ENABLE 1
+#else
+#define RANMATH_SSE_ENABLE 0
+#endif /* Check for sse2 */
+#endif /* Check if already defined */
+
 #if RANMATH_SSE_ENABLE
+#include <emmintrin.h>
+
 #define rmm_load(v) _mm_load_ps(RM_VEC_CVT(v))
 #define rmm_store(v, a) _mm_store_ps(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
