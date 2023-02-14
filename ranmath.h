@@ -24,6 +24,7 @@
 #ifndef RANMATH_H
 #define RANMATH_H
 
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -36,6 +37,17 @@
 #endif /* Check for sse2 */
 #endif /* Check if already defined */
 
+#define RM_PLATFORM_UNK   0
+#define RM_PLATFORM_LINUX 1
+#define RM_PLATFORM_WIN   2
+
+#if defined(__linux__)
+#define RM_PLATFORM RM_PLATFORM_LINUX
+#elif defined(_MSC_VER)
+#define RM_PLATFORM RM_PLATFORM_WIN
+#else
+#define RM_PLATFORM RM_PLATFORM_UNK
+#endif /* Check platform */
 #if defined(__GNUC__)
 /* GCC-compatible compiler (gcc, clang) */
 #define RM_INLINE static inline __attribute((always_inline))
@@ -43,7 +55,7 @@
 #elif defined(_MSC_VER)
 /* Microsoft */
 #define RM_INLINE static inline __forceinline
-#define RM_ALIGN(x) __declspec((align(x)))
+#define RM_ALIGN(x) __declspec(align(x))
 #else
 /* Unknown */
 #define RM_INLINE static inline
@@ -353,7 +365,11 @@ RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
 #define rmm_set1(x) _mm_set_ps1(x)
 RM_INLINE f32 rmm_hadd(__m128 x) {
+    #if RM_PLATFORM == RM_PLATFORM_LINUX
     return x[0] + x[1] + x[2] + x[3];
+    #else
+    return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
+    #endif /*  */
 }
 RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
     /* [a0+a2 c0+c2 a1+a3 c1+c3 */
