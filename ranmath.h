@@ -1593,7 +1593,7 @@ RM_INLINE mat3 rm_mat3_mul(const mat3 a, const mat3 b) {
     c1 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[0].z));
 
     tmp = rm_vec3_add(rm_vec3_scale(a.cols[0], b.cols[1].x), rm_vec3_scale(a.cols[1], b.cols[1].y));
-    c1 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[1].z));
+    c2 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[1].z));
 
     tmp = rm_vec3_add(rm_vec3_scale(a.cols[0], b.cols[2].x), rm_vec3_scale(a.cols[1], b.cols[2].y));
     c3 = rm_vec3_add(tmp, rm_vec3_scale(a.cols[2], b.cols[2].z));
