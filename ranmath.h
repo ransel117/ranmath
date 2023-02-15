@@ -24,40 +24,34 @@
 #ifndef RANMATH_H
 #define RANMATH_H
 
-
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
+#define RM_CC 0
+#define RM_CL  1
+
 #ifndef RM_SSE_ENABLE
-#if defined(__SSE2__) || defined(__SSE__)
+#if defined(__SSE2__) || defined(__SSE__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
 #define RM_SSE_ENABLE 1
 #else
 #define RM_SSE_ENABLE 0
-#endif /* Check for sse2 */
+#endif /* Check for sse/sse2 */
 #endif /* Check if already defined */
 
-#define RM_PLATFORM_UNK   0
-#define RM_PLATFORM_LINUX 1
-#define RM_PLATFORM_WIN   2
-
-#if defined(__linux__)
-#define RM_PLATFORM RM_PLATFORM_LINUX
-#elif defined(_MSC_VER)
-#define RM_PLATFORM RM_PLATFORM_WIN
-#else
-#define RM_PLATFORM RM_PLATFORM_UNK
-#endif /* Check platform */
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 /* GCC-compatible compiler (gcc, clang) */
+#define RM_COMPILER RM_CC
 #define RM_INLINE static inline __attribute((always_inline))
 #define RM_ALIGN(x) __attribute((aligned(x)))
 #elif defined(_MSC_VER)
-/* Microsoft */
+/* Microsoft cl */
+#define RM_COMPILER RM_CL
 #define RM_INLINE static inline __forceinline
 #define RM_ALIGN(x) __declspec(align(x))
 #else
 /* Unknown */
+#define RM_COMPILER RM_CC /* Temporary, might change */
 #define RM_INLINE static inline
 #define RM_ALIGN(x)
 #endif /* Check compiler */
@@ -128,7 +122,7 @@ typedef RM_ALIGN(16) struct {
 #define RM_VEC_CVT(v) ((f32*)&v)
 
 #define RM_VEC2_CVT union {vec2 v; RM_ALIGN(4) f32 f[2];}
-#define RM_VEC3_CVT union {vec3 v; RM_ALIGN(4) f32 gl[3];}
+#define RM_VEC3_CVT union {vec3 v; RM_ALIGN(4) f32 f[3];}
 #define RM_VEC4_CVT union {vec4 v; RM_ALIGN(4) f32 f[4];}
 
 #define RM_MAT2_CVT union {mat2 m; RM_ALIGN(16) f32 f[2][2];}
@@ -365,7 +359,7 @@ RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
 #define rmm_set1(x) _mm_set_ps1(x)
 RM_INLINE f32 rmm_hadd(__m128 x) {
-    #if RM_PLATFORM == RM_PLATFORM_LINUX
+    #if RM_COMPILER == RM_CC
     return x[0] + x[1] + x[2] + x[3];
     #else
     return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
@@ -549,17 +543,17 @@ RM_INLINE f32 rm_maxf(const f32 a, const f32 b) {
 RM_INLINE f64 rm_maxd(const f64 a, const f64 b) {
     return RM_MAX(a, b);
 }
-RM_INLINE i32 rm_clampi(const i32 val, const i32 minval, const i32 maxval) {
-    return RM_CLAMP(val, minval, maxval);
+RM_INLINE i32 rm_clampi(const i32 val, const i32 min, const i32 max) {
+    return RM_CLAMP(val, min, max);
 }
-RM_INLINE i64 rm_clampl(const i64 val, const i64 minval, const i64 maxval) {
-    return RM_CLAMP(val, minval, maxval);
+RM_INLINE i64 rm_clampl(const i64 val, const i64 min, const i64 max) {
+    return RM_CLAMP(val, min, max);
 }
-RM_INLINE f32 rm_clampf(const f32 val, const f32 minval, const f32 maxval) {
-    return RM_CLAMP(val, minval, maxval);
+RM_INLINE f32 rm_clampf(const f32 val, const f32 min, const f32 max) {
+    return RM_CLAMP(val, min, max);
 }
-RM_INLINE f64 rm_clampd(const f64 val, const f64 minval, const f64 maxval) {
-    return RM_CLAMP(val, minval, maxval);
+RM_INLINE f64 rm_clampd(const f64 val, const f64 min, const f64 max) {
+    return RM_CLAMP(val, min, max);
 }
 RM_INLINE f32 rm_truncf(const f32 x) {
     return (i32)x;
@@ -621,25 +615,25 @@ RM_INLINE f64 rm_roundd(const f64 x) {
 
     return (c1) ? ((c2) ? rm_ceild(x) : rm_floord(x)) : ((c2) ? rm_floord(x) : rm_ceild(x));
 }
-RM_INLINE f32 rm_wrap_maxf(const f32 val, const f32 maxval) {
-    return rm_modf(maxval + rm_modf(val, maxval), maxval);
+RM_INLINE f32 rm_wrap_maxf(const f32 val, const f32 max) {
+    return rm_modf(max + rm_modf(val, max), max);
 }
-RM_INLINE f64 rm_wrap_maxd(const f64 val, const f64 maxval) {
-    return rm_modd(maxval + rm_modd(val, maxval), maxval);
+RM_INLINE f64 rm_wrap_maxd(const f64 val, const f64 max) {
+    return rm_modd(max + rm_modd(val, max), max);
 }
-RM_INLINE f32 rm_wrapf(const f32 val, const f32 minval, const f32 maxval) {
-    f32 tmaxval;
+RM_INLINE f32 rm_wrapf(const f32 val, const f32 min, const f32 max) {
+    f32 tmax;
 
-    tmaxval = maxval - minval;
+    tmax = max - min;
 
-    return minval + rm_modf(tmaxval + rm_modf(val - minval, tmaxval), tmaxval);
+    return min + rm_modf(tmax + rm_modf(val - min, tmax), tmax);
 }
-RM_INLINE f64 rm_wrapd(const f64 val, const f64 minval, const f64 maxval) {
-    f64 tmaxval;
+RM_INLINE f64 rm_wrapd(const f64 val, const f64 min, const f64 max) {
+    f64 tmax;
 
-    tmaxval = maxval - minval;
+    tmax = max - min;
 
-    return minval + rm_modd(tmaxval + rm_modd(val - minval, tmaxval), tmaxval);
+    return min + rm_modd(tmax + rm_modd(val - min, tmax), tmax);
 }
 RM_INLINE f32 rm_cosf(const f32 x) {
     f32 i, i2, i4;
@@ -907,23 +901,23 @@ RM_INLINE f32 rm_vec2_distance2(const vec2 a, const vec2 b) {
 RM_INLINE f32 rm_vec2_distance(const vec2 a, const vec2 b) {
     return rm_sqrtf(rm_vec2_distance2(a, b));
 }
-RM_INLINE vec2 rm_vec2_clamp(const vec2 v, const f32 minval, const f32 maxval) {
+RM_INLINE vec2 rm_vec2_clamp(const vec2 v, const f32 min, const f32 max) {
     f32 cx, cy;
     vec2 dest;
 
-    cx = rm_clampf(v.x, minval, maxval);
-    cy = rm_clampf(v.y, minval, maxval);
+    cx = rm_clampf(v.x, min, max);
+    cy = rm_clampf(v.y, min, max);
 
     dest = (vec2){cx, cy};
 
     return dest;
 }
-RM_INLINE vec2 rm_vec2_wrap(const vec2 v, const f32 minval, const f32 maxval) {
+RM_INLINE vec2 rm_vec2_wrap(const vec2 v, const f32 min, const f32 max) {
     f32 wx, wy;
     vec2 dest;
 
-    wx = rm_wrapf(v.x, minval, maxval);
-    wy = rm_wrapf(v.y, minval, maxval);
+    wx = rm_wrapf(v.x, min, max);
+    wy = rm_wrapf(v.y, min, max);
 
     dest = (vec2){wx, wy};
 
@@ -1152,26 +1146,26 @@ RM_INLINE f32 rm_vec3_distance2(const vec3 a, const vec3 b) {
 RM_INLINE f32 rm_vec3_distance(const vec3 a, const vec3 b) {
     return rm_sqrtf(rm_vec3_distance2(a, b));
 }
-RM_INLINE vec3 rm_vec3_clamp(const vec3 v, const f32 minval, const f32 maxval) {
+RM_INLINE vec3 rm_vec3_clamp(const vec3 v, const f32 min, const f32 max) {
     f32 cx, cy, cz;
     vec3 dest;
 
-    cx = rm_clampf(v.x, minval, maxval);
-    cy = rm_clampf(v.y, minval, maxval);
-    cz = rm_clampf(v.z, minval, maxval);
+    cx = rm_clampf(v.x, min, max);
+    cy = rm_clampf(v.y, min, max);
+    cz = rm_clampf(v.z, min, max);
 
     dest = (vec3){cx, cy, cz};
 
     return dest;
 
 }
-RM_INLINE vec3 rm_vec3_wrap(const vec3 v, const f32 minval, const f32 maxval) {
+RM_INLINE vec3 rm_vec3_wrap(const vec3 v, const f32 min, const f32 max) {
     f32 wx, wy, wz;
     vec3 dest;
 
-    wx = rm_wrapf(v.x, minval, maxval);
-    wy = rm_wrapf(v.y, minval, maxval);
-    wz = rm_wrapf(v.z, minval, maxval);
+    wx = rm_wrapf(v.x, min, max);
+    wy = rm_wrapf(v.y, min, max);
+    wz = rm_wrapf(v.z, min, max);
 
     dest = (vec3){wx, wy, wz};
 
@@ -1425,29 +1419,29 @@ RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
 RM_INLINE f32 rm_vec4_distance(const vec4 a, const vec4 b) {
     return rm_sqrtf(rm_vec4_distance2(a, b));
 }
-RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 minval, const f32 maxval) {
+RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
     vec4 dest;
     #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_min_ps(_mm_max_ps(rmm_load(v), rmm_set1(minval)), rmm_set1(maxval)));
+    rmm_store(dest, _mm_min_ps(_mm_max_ps(rmm_load(v), rmm_set1(min)), rmm_set1(max)));
     #else
     f32 cx, cy, cz, cw;
 
-    cx = rm_clampf(v.x, minval, maxval);
-    cy = rm_clampf(v.y, minval, maxval);
-    cz = rm_clampf(v.z, minval, maxval);
-    cw = rm_clampf(v.w, minval, maxval);
+    cx = rm_clampf(v.x, min, max);
+    cy = rm_clampf(v.y, min, max);
+    cz = rm_clampf(v.z, min, max);
+    cw = rm_clampf(v.w, min, max);
 
     dest = (vec4){cx, cy, cz, cw};
     #endif /* RM_SSE_ENABLE */
     return dest;
 }
-RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 minval, const f32 maxval) {
+RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
     vec4 dest;
     #if RM_SSE_ENABLE
     __m128 x0, x1, x2;
 
-    x1 = rmm_set1(minval);
-    x2 = rmm_set1(maxval - minval);
+    x1 = rmm_set1(min);
+    x2 = rmm_set1(max - min);
 
     x0 = _mm_sub_ps(rmm_load(v), x1);
     x0 = _mm_add_ps(x2, _mm_sub_ps(x0, _mm_mul_ps(_mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_div_ps(x0, x2))), x2)));
@@ -1457,10 +1451,10 @@ RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 minval, const f32 maxval) {
     #else
     f32 wx, wy, wz, ww;
 
-    wx = rm_wrapf(v.x , minval, maxval);
-    wy = rm_wrapf(v.y , minval, maxval);
-    wz = rm_wrapf(v.z , minval, maxval);
-    ww = rm_wrapf(v.w , minval, maxval);
+    wx = rm_wrapf(v.x , min, max);
+    wy = rm_wrapf(v.y , min, max);
+    wz = rm_wrapf(v.z , min, max);
+    ww = rm_wrapf(v.w , min, max);
 
     dest = (vec4){wx, wy, wz, ww};
     #endif /* RM_SSE_ENABLE */
