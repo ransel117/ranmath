@@ -42,8 +42,8 @@
 #if defined(__GNUC__) || defined(__clang__)
 /* GCC-compatible compiler (gcc, clang) */
 #define RM_COMPILER RM_CC
-#define RM_INLINE static inline __attribute((always_inline))
-#define RM_ALIGN(x) __attribute((aligned(x)))
+#define RM_INLINE static inline __attribute__((always_inline))
+#define RM_ALIGN(x) __attribute__((aligned(x)))
 #elif defined(_MSC_VER)
 /* Microsoft cl */
 #define RM_COMPILER RM_CL
@@ -406,6 +406,11 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 {0, 0, 0, 1},                        \
 }}
 
+#define RM_COS_APPR_A -0.132995644812022330410032839099700470577487194965079816065230286
+#define RM_COS_APPR_B 0.0032172781382535624048708288689972016965839213439467243797038973
+#define RM_COS_APPR_C 0.0336709157304375144254000370104015622020879871979042486728981326
+#define RM_COS_APPR_D 0.0004962828018660570906955733487210649504998482691550479603258607
+
 RM_INLINE i32 rm_facti(const i32 x) {
     if (x < 0) return -1;
 
@@ -637,68 +642,223 @@ RM_INLINE f64 rm_wrapd(const f64 val, const f64 min, const f64 max) {
 }
 RM_INLINE f32 rm_cosf(const f32 x) {
     f32 i, i2, i4;
-    f64 a, b, c, d, val, val2;
+    f64 val;
 
     i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    a = -0.132995644812022330410032839099700470577487194965079816065230286;
-    b = 0.0032172781382535624048708288689972016965839213439467243797038973;
-    c = 0.0336709157304375144254000370104015622020879871979042486728981326;
-    d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
 
-    val = 1 + a * i2 + b * i4;
-    val2 = 1 / (1 + c * i2 + d * i4);
-
-    return (f32)-i * val * val2;
+    return (f32)-val;
 }
 RM_INLINE f64 rm_cosd(const f64 x) {
-    f64 i, i2, i4, a, b, c, d, val, val2;
+    f64 i, i2, i4, val;
 
     i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    a = -0.132995644812022330410032839099700470577487194965079816065230286;
-    b = 0.0032172781382535624048708288689972016965839213439467243797038973;
-    c = 0.0336709157304375144254000370104015622020879871979042486728981326;
-    d = 0.0004962828018660570906955733487210649504998482691550479603258607;
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
 
-    val = 1 + a * i2 + b * i4;
-    val2 = 1 / (1 + c * i2 + d * i4);
-
-    return -i * val * val2;
+    return -val;
 }
 RM_INLINE f32 rm_sinf(const f32 x) {
-    return -rm_cosf(x + RM_PI_2);
+    /* return -rm_cosf(x + RM_PI_2); */
+    f32 i, i2, i4;
+    f64 val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
+
+    return (f32)val;
 }
 RM_INLINE f64 rm_sind(const f64 x) {
-    return -rm_cosd(x + RM_PI_2);
+    /* return -rm_cosd(x + RM_PI_2); */
+    f64 i, i2, i4, val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
+
+    return val;
 }
 RM_INLINE f32 rm_tanf(const f32 x) {
-    return rm_sinf(x) / rm_cosf(x);
+    /* return rm_sinf(x) / rm_cosf(x); */
+    f32 i, i2, i4;
+    f64 sinval, ncosval, val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval *= i;
+
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval *= i;
+
+    val = sinval / ncosval;
+
+    return (f32)-val;
 }
 RM_INLINE f64 rm_tand(const f64 x) {
-    return rm_sind(x) / rm_cosd(x);
+    /* return rm_sind(x) / rm_cosd(x); */
+    f64 i, i2, i4, sinval, ncosval, val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval *= i;
+
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval *= i;
+
+    val = sinval / ncosval;
+
+    return -val;
 }
 RM_INLINE f32 rm_cotf(const f32 x) {
-    return rm_cosf(x) / rm_sinf(x);
+    /* return rm_cosf(x) / rm_sinf(x); */
+    f32 i, i2, i4;
+    f64 sinval, ncosval, val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval *= i;
+
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval *= i;
+
+    val = ncosval / sinval;
+
+    return (f32)-val;
 }
 RM_INLINE f64 rm_cotd(const f64 x) {
-    return rm_cosd(x) / rm_sind(x);
+    /* return rm_cosd(x) / rm_sind(x); */
+    f64 i, i2, i4, sinval, ncosval, val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval *= i;
+
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval *= i;
+
+    val = ncosval / sinval;
+
+    return -val;
 }
 RM_INLINE f32 rm_secf(const f32 x) {
-    return 1 / rm_cosf(x);
+    /* return 1 / rm_cosf(x); */
+    f32 i, i2, i4;
+    f64 val;
+
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
+
+    return -1 / (f32)val;
 }
 RM_INLINE f64 rm_secd(const f64 x) {
-    return 1 / rm_cosd(x);
+    /* return 1 / rm_cosd(x); */
+    f64 i, i2, i4, val;
+
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
+
+    return -1 / val;
 }
 RM_INLINE f32 rm_cscf(const f32 x) {
-    return 1 / rm_sinf(x);
+    /* return 1 / rm_sinf(x);  */
+    f32 i, i2, i4;
+    f64 val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2f(i);
+    i4 = rm_pow2f(i2);
+
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
+
+    return 1 / (f32)val;
 }
 RM_INLINE f64 rm_cscd(const f64 x) {
-    return 1 / rm_sind(x);
+    /* return 1 / rm_sind(x); */
+    f64 i, i2, i4, val;
+
+    i = x + RM_PI_2;
+    i = RM_PI_2 - rm_absd(rm_wrap_maxd(i, RM_2PI) - RM_PI);
+    i2 = rm_pow2d(i);
+    i4 = rm_pow2d(i2);
+
+    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
+    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val *= i;
+
+    return 1 / val;
 }
 RM_INLINE f32 rm_rad2degf(const f32 x) {
     return RM_MAKE_DEG * x;
