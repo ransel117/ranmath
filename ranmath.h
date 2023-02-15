@@ -359,10 +359,10 @@ RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
 #define rmm_set1(x) _mm_set_ps1(x)
 RM_INLINE f32 rmm_hadd(__m128 x) {
-    #if RM_COMPILER == RM_CC
-    return x[0] + x[1] + x[2] + x[3];
-    #else
+    #if RM_COMPILER == RM_CL
     return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
+    #else
+    return x[0] + x[1] + x[2] + x[3];
     #endif /*  */
 }
 RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
