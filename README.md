@@ -18,6 +18,7 @@ Feel free to make contributions! Try to fit in with the current code base which 
 
 ## TODO (in no particular order)
 - add own definitions of basic functions
+- add inverse of cos, sin, tan etc...
 - mat2 and mat4 SIMD
 - add other stuff
 - ARM NEON support?

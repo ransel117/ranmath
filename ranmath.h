@@ -391,7 +391,7 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
 #define RM_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define RM_MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define RM_CLAMP(val, min, max) (RM_MIN(RM_MAX(val, min), max))
+#define RM_CLAMP(val, min, max) (RM_MIN(RM_MAX((val), (min)), (max)))
 #define RM_POW2(x) ((x) * (x))
 
 #define RM_VEC2_FILL(x) (vec2){x, x}
@@ -402,26 +402,14 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define RM_MAT3_FILL(x) (mat3){{RM_VEC3_FILL(x), RM_VEC3_FILL(x), RM_VEC3_FILL(x)}}
 #define RM_MAT4_FILL(x) (mat4){{RM_VEC4_FILL(x), RM_VEC4_FILL(x), RM_VEC4_FILL(x), RM_VEC4_FILL(x)}}
 
-#define RM_MAT2_IDENTITY (mat2){{    \
-{1, 0},                              \
-{0, 1},                              \
-}}
-#define RM_MAT3_IDENTITY (mat3){{    \
-{1, 0, 0},                           \
-{0, 1, 0},                           \
-{0, 0, 1},                           \
-}}
-#define RM_MAT4_IDENTITY (mat4){{    \
-{1, 0, 0, 0},                        \
-{0, 1, 0, 0},                        \
-{0, 0, 1, 0},                        \
-{0, 0, 0, 1},                        \
-}}
+#define RM_MAT2_IDENTITY (mat2){{{1, 0}, {0, 1}}}
+#define RM_MAT3_IDENTITY (mat3){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}
+#define RM_MAT4_IDENTITY (mat4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}}
 
 #define RM_COS_APPR_A -0.132995644812022330410032839099700470577487194965079816065230286
-#define RM_COS_APPR_B 0.0032172781382535624048708288689972016965839213439467243797038973
-#define RM_COS_APPR_C 0.0336709157304375144254000370104015622020879871979042486728981326
-#define RM_COS_APPR_D 0.0004962828018660570906955733487210649504998482691550479603258607
+#define RM_COS_APPR_B  0.0032172781382535624048708288689972016965839213439467243797038973
+#define RM_COS_APPR_C  0.0336709157304375144254000370104015622020879871979042486728981326
+#define RM_COS_APPR_D  0.0004962828018660570906955733487210649504998482691550479603258607
 
 RM_INLINE i32 rm_facti(const i32 x) {
     if (x < 0) return -1;
