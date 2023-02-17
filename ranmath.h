@@ -24,12 +24,16 @@
 #ifndef RANMATH_H
 #define RANMATH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* Cplusplus */
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 
 #define RM_CC 0
-#define RM_CL  1
+#define RM_CL 1
 
 #ifndef RM_SSE_ENABLE
 #if defined(__SSE2__) || defined(__SSE__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
@@ -348,9 +352,17 @@ RM_INLINE void rm_mat4_swap_col(mat4, const u32, const u32);
 RM_INLINE void rm_mat4_swap_row(mat4, const u32, const u32);
 RM_INLINE f32  rm_mat4_rmc(const vec4, const mat4, const vec4);
 RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f32, const f32);
+
+#ifdef __cplusplus
+}
+#endif /* Cplusplus */
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
+#ifdef __cplusplus
+extern "C" {
+#endif /* Cplusplus */
+
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
 
@@ -363,7 +375,7 @@ RM_INLINE f32 rmm_hadd(__m128 x) {
     return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
     #else
     return x[0] + x[1] + x[2] + x[3];
-    #endif /*  */
+    #endif /* Microsoft */
 }
 RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
     /* [a0+a2 c0+c2 a1+a3 c1+c3 */
@@ -376,11 +388,11 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 }
 #endif /* RM_SSE_ENABLE */
 
-#define RM_ABS(x) ((x < 0) ? -x : x)
-#define RM_MIN(a, b) ((a < b) ? a : b)
-#define RM_MAX(a, b) ((a > b) ? a : b)
+#define RM_ABS(x) (((x) < 0) ? -(x) : (x))
+#define RM_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define RM_MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define RM_CLAMP(val, min, max) (RM_MIN(RM_MAX(val, min), max))
-#define RM_POW2(x) (x * x)
+#define RM_POW2(x) ((x) * (x))
 
 #define RM_VEC2_FILL(x) (vec2){x, x}
 #define RM_VEC3_FILL(x) (vec3){x, x, x}
@@ -2191,4 +2203,7 @@ RM_INLINE mat4 rm_mat4_ortho(const f32 l, const f32 r, const f32 b, const f32 t,
     return dest;
 }
 
+#ifdef __cplusplus
+}
+#endif /* Cplusplus */
 #endif /* RANMATH_IMPLEMENTATION */
