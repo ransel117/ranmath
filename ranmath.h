@@ -428,9 +428,9 @@ extern "C" {
 #define rmm_min(a, b) vminq_f32(a, b)
 #define rmm_max(a, b) vmaxq_f32(a, b)
 #define rmm_abs(x) vabsq_f32(x)
-#define rmm_cvts32_f32(x) vcvt_f32_s32(x)
-#define rmm_cvtf32_s32(x) vcvtn_s32_f32(x)
-#define rmm_cvttf32_s32(x) vcvt_s32_f32(x)
+#define rmm_cvts32_f32(x) vcvtq_f32_s32(x)
+#define rmm_cvtf32_s32(x) vcvtnq_s32_f32(x)
+#define rmm_cvttf32_s32(x) vcvtq_s32_f32(x)
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE f32 rmm_hadd(RM_VEC x) {
