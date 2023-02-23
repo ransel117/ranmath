@@ -53,6 +53,12 @@ extern "C" {
 #endif /* Check for neon intrinsics */
 #endif /* Check if already defined */
 
+#if RM_SSE_ENABLE || RM_NEON_ENABLE
+#define RM_SIMD 1
+#else
+#define RM_SIMD 0
+#endif /* Check for simd */
+
 #if defined(__GNUC__) || defined(__clang__)
 /* GCC-compatible compiler (gcc, clang) */
 #define RM_COMPILER RM_CC
@@ -81,6 +87,7 @@ typedef int32_t  i32;
 typedef int64_t  i64;
 typedef float    f32;
 typedef double   f64;
+typedef size_t   usize;
 
 typedef RM_ALIGN(4) struct {
     f32 x;
@@ -312,7 +319,7 @@ RM_INLINE vec4 rm_vec4_center(const vec4, const vec4);
 
 RM_INLINE mat2 rm_mat2_copy(const mat2);
 RM_INLINE mat2 rm_mat2_identity(void);
-RM_INLINE void rm_mat2_identity_array(mat2*, const size_t);
+RM_INLINE void rm_mat2_identity_array(mat2*, const usize);
 RM_INLINE mat2 rm_mat2_zero(void);
 RM_INLINE mat2 rm_mat2_mul(const mat2, const mat2);
 RM_INLINE mat2 rm_mat2_transpose(const mat2);
@@ -327,7 +334,7 @@ RM_INLINE f32  rm_mat2_rmc(const vec2, const mat2, const vec2);
 
 RM_INLINE mat3 rm_mat3_copy(const mat3);
 RM_INLINE mat3 rm_mat3_identity(void);
-RM_INLINE void rm_mat3_identity_array(mat3*, const size_t);
+RM_INLINE void rm_mat3_identity_array(mat3*, const usize);
 RM_INLINE mat3 rm_mat3_zero(void);
 RM_INLINE mat3 rm_mat3_mul(const mat3, const mat3);
 RM_INLINE mat3 rm_mat3_transpose(const mat3);
@@ -342,7 +349,7 @@ RM_INLINE f32  rm_mat3_rmc(const vec3, const mat3, const vec3);
 
 RM_INLINE mat4 rm_mat4_copy(const mat4);
 RM_INLINE mat4 rm_mat4_identity(void);
-RM_INLINE void rm_mat4_identity_array(mat4*, const size_t);
+RM_INLINE void rm_mat4_identity_array(mat4*, const usize);
 RM_INLINE mat4 rm_mat4_zero(void);
 RM_INLINE mat3 rm_mat4_pick3(const mat4);
 RM_INLINE mat3 rm_mat4_pick3t(const mat4);
@@ -354,6 +361,7 @@ RM_INLINE f32  rm_mat4_trace(const mat4);
 RM_INLINE f32  rm_mat4_trace3(const mat4);
 RM_INLINE mat4 rm_mat4_transpose(const mat4);
 RM_INLINE mat4 rm_mat4_translate(const f32, const f32, const f32);
+RM_INLINE mat4 rm_mat4_translatev3(const vec3);
 RM_INLINE mat4 rm_mat4_scale(const mat4, const f32);
 RM_INLINE mat4 rm_mat4_scale_aniso(const mat4, const f32, const f32, const f32);
 RM_INLINE f32  rm_mat4_det(const mat4);
@@ -394,6 +402,7 @@ extern "C" {
 #define rmm_cvtf32_s32(x) _mm_cvtps_epi32(x)
 #define rmm_cvttf32_s32(x) _mm_cvttps_epi32(x)
 #endif /* RM_SSE_ENABLE */
+
 #if RM_NEON_ENABLE
 #include <arm_neon.h>
 
@@ -542,23 +551,26 @@ RM_INLINE f64 rm_pow2d(const f64 x) {
 }
 RM_INLINE f32 rm_rsqrtf(const f32 x) {
     f32 xh;
-    RM_F32_CVT c = {x};
+    RM_F32_CVT c;
 
-    xh = 0.5 * x;
+    c.f = x;
+
+    xh = 0.5f * c.f;
 
     c.i = 0x5F375A86 - (c.i >> 1);
 
-    c.f *= 1.5 - (xh * RM_POW2(c.f));
-    c.f *= 1.5 - (xh * RM_POW2(c.f));
-    c.f *= 1.5 - (xh * RM_POW2(c.f));
+    c.f *= 1.5f - (xh * RM_POW2(c.f));
+    c.f *= 1.5f - (xh * RM_POW2(c.f));
+    c.f *= 1.5f - (xh * RM_POW2(c.f));
 
     return c.f;
 }
 RM_INLINE f64 rm_rsqrtd(const f64 x) {
     f64 xh;
-    RM_F64_CVT c = {x};
+    RM_F64_CVT c;
 
-    xh = 0.5 * x;
+    c.f = x;
+    xh = 0.5 * c.f;
 
     c.i = 0x5FE6EB50C7B537A9 - (c.i >> 1);
 
@@ -637,51 +649,59 @@ RM_INLINE f64 rm_modd(const f64 a, const f64 b) {
 }
 RM_INLINE f32 rm_floorf(const f32 x) {
     if (x == 0) return x;
-    i32 inx;
+    i32 ix ,inx;
 
-    inx = (i32)x -1;
+    ix = rm_truncf(x);
+    inx = ix - 1;
 
-    return (x < 0) ? (inx == 0 ? -0.0 : inx) : (i32)x;
+    return (x < 0) ? (inx == 0 ? -0.f : inx) : ix;
 }
 RM_INLINE f64 rm_floord(const f64 x) {
     if (x == 0) return x;
-    i64 inx;
+    i64 ix, inx;
 
-    inx = (i64)x -1;
+    ix = rm_truncd(x);
+    inx = ix - 1;
 
-    return (x < 0) ? (inx == 0 ? -0.0 : inx) : (i64)x;
+    return (x < 0) ? (inx == 0 ? -0.0 : inx) : ix;
 }
 RM_INLINE f32 rm_ceilf(const f32 x) {
     if (x == 0) return x;
     i32 ix;
 
-    ix = (i32)x;
+    ix = rm_truncf(x);
 
-    return (x < 0) ? (ix == 0 ? -0.0 : ix) : (i32)x + 1;
+    return (x < 0) ? (ix == 0 ? -0.f : ix) : ix + 1;
 }
 RM_INLINE f64 rm_ceild(const f64 x) {
     if (x == 0) return x;
     i64 ix;
 
-    ix = (i64)x;
+    ix = rm_truncd(x);
 
-    return (x < 0) ? (ix == 0 ? -0.0 : ix) : (i64)x + 1;
+    return (x < 0) ? (ix == 0 ? -0.0 : ix) : ix + 1;
 }
 RM_INLINE f32 rm_roundf(const f32 x) {
     bool c1, c2;
+    f32 floor, ceil;
 
-    c1 = (rm_absf(x) - rm_absi((i32)x)) < 0.5;
+    c1 = (rm_absf(x) - rm_absi(rm_truncf(x))) < 0.5f;
     c2 = x < 0;
+    floor = rm_floorf(x);
+    ceil = rm_ceilf(x);
 
-    return (c1) ? ((c2) ? rm_ceilf(x) : rm_floorf(x)) : ((c2) ? rm_floorf(x) : rm_ceilf(x));
+    return (c1) ? ((c2) ? ceil : floor) : ((c2) ? floor : ceil);
 }
 RM_INLINE f64 rm_roundd(const f64 x) {
     bool c1, c2;
+    f64 floor, ceil;
 
-    c1 = (rm_absd(x) - rm_absl((i64)x)) < 0.5;
+    c1 = (rm_absd(x) - rm_absl(rm_truncd(x))) < 0.5;
     c2 = x < 0;
+    floor = rm_floord(x);
+    ceil = rm_ceild(x);
 
-    return (c1) ? ((c2) ? rm_ceild(x) : rm_floord(x)) : ((c2) ? rm_floord(x) : rm_ceild(x));
+    return (c1) ? ((c2) ? ceil : floor) : ((c2) ? floor : ceil);
 }
 RM_INLINE f32 rm_wrap_maxf(const f32 val, const f32 max) {
     return rm_modf(max + rm_modf(val, max), max);
@@ -711,8 +731,8 @@ RM_INLINE f32 rm_cosf(const f32 x) {
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return (f32)-val;
@@ -724,8 +744,8 @@ RM_INLINE f64 rm_cosd(const f64 x) {
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return -val;
@@ -740,8 +760,8 @@ RM_INLINE f32 rm_sinf(const f32 x) {
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return (f32)val;
@@ -755,8 +775,8 @@ RM_INLINE f64 rm_sind(const f64 x) {
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return val;
@@ -771,16 +791,16 @@ RM_INLINE f32 rm_tanf(const f32 x) {
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    sinval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     sinval *= i;
 
     i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    ncosval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     ncosval *= i;
 
     val = sinval / ncosval;
@@ -796,16 +816,16 @@ RM_INLINE f64 rm_tand(const f64 x) {
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    sinval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     sinval *= i;
 
     i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    ncosval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     ncosval *= i;
 
     val = sinval / ncosval;
@@ -822,16 +842,16 @@ RM_INLINE f32 rm_cotf(const f32 x) {
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    sinval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     sinval *= i;
 
     i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    ncosval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     ncosval *= i;
 
     val = ncosval / sinval;
@@ -847,16 +867,16 @@ RM_INLINE f64 rm_cotd(const f64 x) {
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    sinval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    sinval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    sinval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    sinval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     sinval *= i;
 
     i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    ncosval = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    ncosval /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    ncosval = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    ncosval /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     ncosval *= i;
 
     val = ncosval / sinval;
@@ -872,8 +892,8 @@ RM_INLINE f32 rm_secf(const f32 x) {
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return -1 / (f32)val;
@@ -886,8 +906,8 @@ RM_INLINE f64 rm_secd(const f64 x) {
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return -1 / val;
@@ -902,8 +922,8 @@ RM_INLINE f32 rm_cscf(const f32 x) {
     i2 = rm_pow2f(i);
     i4 = rm_pow2f(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return 1 / (f32)val;
@@ -917,8 +937,8 @@ RM_INLINE f64 rm_cscd(const f64 x) {
     i2 = rm_pow2d(i);
     i4 = rm_pow2d(i2);
 
-    val = 1 + RM_COS_APPR_A * i2 + RM_COS_APPR_B * i4;
-    val /= 1 + RM_COS_APPR_C * i2 + RM_COS_APPR_D * i4;
+    val = 1 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
+    val /= 1 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
     val *= i;
 
     return 1 / val;
@@ -1086,7 +1106,7 @@ RM_INLINE vec2 rm_vec2_divs(const vec2 v, const f32 s) {
     f32 x;
     vec2 dest;
 
-    x = 1 / s;
+    x = 1.f / s;
 
     dest = rm_vec2_scale(v, x);
 
@@ -1320,7 +1340,7 @@ RM_INLINE vec3 rm_vec3_divs(const vec3 v, const f32 s) {
     f32 x;
     vec3 dest;
 
-    x = 1 / s;
+    x = 1.f / s;
 
     dest = rm_vec3_scale(v, x);
 
@@ -1413,11 +1433,11 @@ RM_INLINE vec3 rm_vec4_copy3(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_abs(const vec4 v) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_abs(rmm_load(v)));
     #else
     dest = (vec4){rm_absf(v.x), rm_absf(v.y), rm_absf(v.z), rm_absf(v.w)};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE f32 rm_vec4_max(const vec4 v) {
@@ -1428,80 +1448,80 @@ RM_INLINE f32 rm_vec4_min(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_maxv(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_max(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z), rm_maxf(a.w, b.w)};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_minv(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_min(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z), rm_minf(a.w, b.w)};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE f32 rm_vec4_hadd(const vec4 v) {
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     return rmm_hadd(rmm_load(v));
     #else
     return v.x + v.y + v.z + v.w;
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
 }
 RM_INLINE vec4 rm_vec4_zero(void) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_zero());
     #else
     dest = RM_VEC4_FILL(0);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_one(void) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_set1(1));
     #else
     dest = RM_VEC4_FILL(1);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_set(const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_set(x, y, z, w));
     #else
     dest = (vec4){x, y, z, w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_fill(const f32 x) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_set1(x));
     #else
     dest = RM_VEC4_FILL(x);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_make(const vec3 v, const f32 last) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_set(v.x, v.y, v.z, last));
     #else
     dest = (vec4){v.x, v.y, v.z, last};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE f32 rm_vec4_dot(const vec4 a, const vec4 b) {
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     return rmm_hadd(rmm_mul(rmm_load(a), rmm_load(b)));
     #else
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
 }
 RM_INLINE f32 rm_vec4_norm2(const vec4 v) {
     return rm_vec4_dot(v, v);
@@ -1517,56 +1537,56 @@ RM_INLINE f32 rm_vec4_norm_inf(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_add(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_add(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_adds(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_add(rmm_load(v), rmm_set1(s)));
     #else
     dest = (vec4){v.x + s, v.y + s, v.z + s, v.w + s};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_sub(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_sub(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_subs(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_sub(rmm_load(v), rmm_set1(s)));
     #else
     dest = (vec4){v.x - s, v.y - s, v.z - s, v.w - s};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_mul(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_mul(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_scale(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(s)));
     #else
     dest = (vec4){v.x * s, v.y * s, v.z * s, v.w * s};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_scale_as(const vec4 v, const f32 s) {
@@ -1578,42 +1598,42 @@ RM_INLINE vec4 rm_vec4_scale_as(const vec4 v, const f32 s) {
 }
 RM_INLINE vec4 rm_vec4_scale_aniso(const vec4 v, const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_mul(rmm_load(v), rmm_set(x, y, z, w)));
     #else
     dest = (vec4){v.x * x, v.y * y, v.z * z, v.w * w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_div(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_div(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
-    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1((f32)1 / s)));
+    #if RM_SIMD
+    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(1.f / s)));
     #else
     f32 x;
 
-    x = (f32)1 / s;
+    x = 1.f / s;
 
     dest = rm_vec4_scale(v, x);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_negate(const vec4 v) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(-1)));
     #else
     dest = (vec4){-v.x, -v.y, -v.z, -v.w};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
@@ -1621,10 +1641,10 @@ RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
 
     norm = rm_vec4_norm(v);
 
-    return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1 / norm);
+    return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1.f / norm);
 }
 RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     RM_VEC x0;
 
     x0 = rmm_sub(rmm_load(a), rmm_load(b));
@@ -1632,14 +1652,14 @@ RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
     return rmm_hadd(rmm_mul(x0, x0));
     #else
     return rm_pow2f(a.x - b.x) + rm_pow2f(a.y - b.y) + rm_pow2f(a.z - b.z) + rm_pow2f(a.w - b.w);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
 }
 RM_INLINE f32 rm_vec4_distance(const vec4 a, const vec4 b) {
     return rm_sqrtf(rm_vec4_distance2(a, b));
 }
 RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_min(rmm_max(rmm_load(v), rmm_set1(min)), rmm_set1(max)));
     #else
     f32 cx, cy, cz, cw;
@@ -1650,12 +1670,12 @@ RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
     cw = rm_clampf(v.w, min, max);
 
     dest = (vec4){cx, cy, cz, cw};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     RM_VEC x0, x1, x2;
 
     x1 = rmm_set1(min);
@@ -1675,16 +1695,16 @@ RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
     ww = rm_wrapf(v.w , min, max);
 
     dest = (vec4){wx, wy, wz, ww};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_vec4_center(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_mul(rmm_sub(rmm_load(a), rmm_load(b)), rmm_set1(0.5)));
     #else
     dest = rm_vec4_scale(rm_vec4_add(a, b), 0.5);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 
@@ -1694,8 +1714,8 @@ RM_INLINE mat2 rm_mat2_copy(const mat2 m) {
 RM_INLINE mat2 rm_mat2_identity(void) {
     return RM_MAT2_IDENTITY;
 }
-RM_INLINE void rm_mat2_identity_array(mat2 *m, const size_t count) {
-    size_t i;
+RM_INLINE void rm_mat2_identity_array(mat2 *m, const usize count) {
+    usize i;
 
     for (i = 0; i < count; i++) {
         m[i] = rm_mat2_identity();
@@ -1734,7 +1754,7 @@ RM_INLINE f32 rm_mat2_trace(const mat2 m) {
 }
 RM_INLINE mat2 rm_mat2_scale(const mat2 m, const f32 s) {
     mat2 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest, rmm_mul(rmm_load(m), rmm_set1(s)));
     #else
     vec2 c1, c2;
@@ -1743,7 +1763,7 @@ RM_INLINE mat2 rm_mat2_scale(const mat2 m, const f32 s) {
     c2 = rm_vec2_scale(m.cols[1], s);
 
     dest = (mat2){{c1, c2}};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE f32 rm_mat2_det(const mat2 m) {
@@ -1754,7 +1774,7 @@ RM_INLINE mat2 rm_mat2_inv(const mat2 m) {
     vec2 c1, c2, tmp;
     mat2 dest;
 
-    det = (f32)1 / m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x;
+    det = 1.f / m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x;
 
     c1 = rm_vec2_scale(m.cols[0], det);
     c2 = rm_vec2_scale(m.cols[1], det);
@@ -1803,8 +1823,8 @@ RM_INLINE mat3 rm_mat3_copy(const mat3 m) {
 RM_INLINE mat3 rm_mat3_identity(void) {
     return RM_MAT3_IDENTITY;
 }
-RM_INLINE void rm_mat3_identity_array(mat3 *m, const size_t count) {
-    size_t i;
+RM_INLINE void rm_mat3_identity_array(mat3 *m, const usize count) {
+    usize i;
 
     for (i = 0; i < count; i++) {
         m[i] = rm_mat3_identity();
@@ -1891,7 +1911,7 @@ RM_INLINE mat3 rm_mat3_inv(const mat3 m) {
 
     tmp = rm_vec3_scale_aniso(m.cols[0], dest.cols[0].x, dest.cols[1].x, dest.cols[2].x);
 
-    det = (f32)1 / rm_vec3_hadd(tmp);
+    det = 1.f / rm_vec3_hadd(tmp);
 
     return rm_mat3_scale(dest, det);
 }
@@ -1934,8 +1954,8 @@ RM_INLINE mat4 rm_mat4_copy(const mat4 m) {
 RM_INLINE mat4 rm_mat4_identity(void) {
     return RM_MAT4_IDENTITY;
 }
-RM_INLINE void rm_mat4_identity_array(mat4 *m, const size_t count) {
-    size_t i;
+RM_INLINE void rm_mat4_identity_array(mat4 *m, const usize count) {
+    usize i;
 
     for (i = 0; i < count; i++) {
         m[i] = rm_mat4_identity();
@@ -1975,7 +1995,7 @@ RM_INLINE void rm_mat4_ins3(const mat3 a, mat4 b) {
 }
 RM_INLINE mat4 rm_mat4_mul(const mat4 a, const mat4 b) {
     mat4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     RM_VEC x0, x1, x2, x3, x4, x5;
 
     x0 = rmm_load(a.cols[0]);
@@ -2026,12 +2046,12 @@ RM_INLINE mat4 rm_mat4_mul(const mat4 a, const mat4 b) {
     c4 = rm_vec4_add(tmp1, tmp2);
 
     dest = (mat4){{c1, c2, c3, c4}};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec4 rm_mat4_mulv(const mat4 m, const vec4 v) {
     vec4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     RM_VEC x0, x1;
 
     x0 = rmm_mul(rmm_load(m.cols[0]), rmm_set1(v.x));
@@ -2047,7 +2067,7 @@ RM_INLINE vec4 rm_mat4_mulv(const mat4 m, const vec4 v) {
     tmp2 = rm_vec4_add(rm_vec4_scale(m.cols[2], v.z), rm_vec4_scale(m.cols[3], v.w));
 
     dest = rm_vec4_add(tmp1, tmp2);
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec3 rm_mat4_mulv3(const mat4 m, const vec3 v, const f32 last) {
@@ -2081,15 +2101,20 @@ RM_INLINE mat4 rm_mat4_translate(const f32 x, const f32 y, const f32 z) {
     mat4 dest;
 
     dest = rm_mat4_identity();
-    dest.cols[3].x = x;
-    dest.cols[3].y = y;
-    dest.cols[3].z = z;
+    dest.cols[3] = rm_vec4_set(x, y, z, dest.cols[3].w);
+
+    return dest;
+}
+RM_INLINE mat4 rm_mat4_translatev3(const vec3 v) {
+    mat4 dest;
+    dest = rm_mat4_identity();
+    dest.cols[3] = rm_vec4_make(v, dest.cols[3].w);
 
     return dest;
 }
 RM_INLINE mat4 rm_mat4_scale(const mat4 m, const f32 s) {
     mat4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     RM_VEC x0;
 
     x0 = rmm_set1(s);
@@ -2107,12 +2132,12 @@ RM_INLINE mat4 rm_mat4_scale(const mat4 m, const f32 s) {
     c4 = rm_vec4_scale(m.cols[3], s);
 
     dest = (mat4){{c1, c2, c3, c4}};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE mat4 rm_mat4_scale_aniso(const mat4 m, const f32 x, const f32 y, const f32 z) {
     mat4 dest;
-    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    #if RM_SIMD
     rmm_store(dest.cols[0], rmm_mul(rmm_load(m.cols[0]), rmm_set1(x)));
     rmm_store(dest.cols[1], rmm_mul(rmm_load(m.cols[1]), rmm_set1(y)));
     rmm_store(dest.cols[2], rmm_mul(rmm_load(m.cols[2]), rmm_set1(z)));
@@ -2126,7 +2151,7 @@ RM_INLINE mat4 rm_mat4_scale_aniso(const mat4 m, const f32 x, const f32 y, const
     c4 = rm_vec4_copy(m.cols[3]);
 
     dest = (mat4){{c1, c2, c3, c4}};
-    #endif /* RM_SSE_ENABLE */
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE f32 rm_mat4_det(const mat4 m) {
@@ -2196,7 +2221,7 @@ RM_INLINE mat4 rm_mat4_inv(const mat4 m) {
 
     v = rm_vec4_scale_aniso(m.cols[0], dest.cols[0].x, dest.cols[1].x, dest.cols[2].x, dest.cols[3].x);
 
-    det = (f32)1 / rm_vec4_hadd(v);
+    det = 1.f / rm_vec4_hadd(v);
 
     return rm_mat4_scale(dest, det);
 }
