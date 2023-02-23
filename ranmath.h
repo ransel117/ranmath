@@ -38,6 +38,7 @@ extern "C" {
 #ifndef RM_SSE_ENABLE
 #if defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
 #define RM_SSE_ENABLE 1
+#define RM_VEC __m128
 #else
 #define RM_SSE_ENABLE 0
 #endif /* Check for sse2 intrinsics*/
@@ -46,6 +47,7 @@ extern "C" {
 #ifndef RM_NEON_ENABLE
 #if defined(__ARM_NEON)
 #define RM_NEON_ENABLE 1
+#define RM_VEC float32x4_t
 #else
 #define RM_NEON_ENABLE 0
 #endif /* Check for neon intrinsics */
@@ -378,22 +380,19 @@ extern "C" {
 #define rmm_store(v, a) _mm_store_ps(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
 #define rmm_set1(x) _mm_set_ps1(x)
-RM_INLINE f32 rmm_hadd(__m128 x) {
-    #if RM_COMPILER == RM_CL
-    return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
-    #else
-    return x[0] + x[1] + x[2] + x[3];
-    #endif /* Microsoft */
-}
-RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
-    /* [a0+a2 c0+c2 a1+a3 c1+c3 */
-    __m128 s1 = _mm_add_ps(_mm_unpacklo_ps(a,c),_mm_unpackhi_ps(a,c));
-    /* [b0+b2 d0+d2 b1+b3 d1+d3 */
-    __m128 s2 = _mm_add_ps(_mm_unpacklo_ps(b,d),_mm_unpackhi_ps(b,d));
-    /* [a0+a2 b0+b2 c0+c2 d0+d2]+
-    [a1+a3 b1+b3 c1+c3 d1+d3] */
-    return _mm_add_ps(_mm_unpacklo_ps(s1,s2),_mm_unpackhi_ps(s1,s2));
-}
+#define rmm_zero() _mm_setzero_ps()
+#define rmm_unpack_lo(a, b) _mm_unpacklo_ps(a, b)
+#define rmm_unpack_hi(a, b) _mm_unpackhi_ps(a, b)
+#define rmm_add(a, b) _mm_add_ps(a, b)
+#define rmm_sub(a, b) _mm_sub_ps(a, b)
+#define rmm_mul(a, b) _mm_mul_ps(a, b)
+#define rmm_div(a, b) _mm_div_ps(a, b)
+#define rmm_min(a, b) _mm_min_ps(a, b)
+#define rmm_max(a, b) _mm_max_ps(a, b)
+#define rmm_abs(x) _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), (x))
+#define rmm_cvts32_f32(x) _mm_cvtepi32_ps(x)
+#define rmm_cvtf32_s32(x) _mm_cvtps_epi32(x)
+#define rmm_cvttf32_s32(x) _mm_cvttps_epi32(x)
 #endif /* RM_SSE_ENABLE */
 #if RM_NEON_ENABLE
 #include <arm_neon.h>
@@ -402,8 +401,55 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define rmm_store(v, a) vst1q_f32(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) rmm_load(((vec4){x, y, z, w}))
 #define rmm_set1(x) vdupq_n_f32(x)
-
+#define rmm_zero() rmm_set1(0)
+#if defined(__aarch64__)
+#define rmm_unpack_lo(a, b) vzip1q_f32(a, b)
+#define rmm_unpack_hi(a, b) vzip2q_f32(a, b)
+#else
+#define rmm_unpack_lo(a, b) do {                         \
+    float32x2x2_t res;                                   \
+                                                         \
+    res = vzip_f32(vget_low_f32(a), vget_low_f32(b));    \
+                                                         \
+    return vcombine_f32(res.val[0], res.val[1]);         \
+} while(0);
+#define rmm_unpack_hi(a, b) do {                           \
+    float32x2x2_t res;                                     \
+                                                           \
+    res = vzip_f32(vget_high_f32(a), vget_high_f32(b));    \
+                                                           \
+    return vcombine_f32(res.val[0], res.val[1]);           \
+} while(0);
+#endif /* __aarch64__ */
+#define rmm_add(a, b) vaddq_f32(a, b)
+#define rmm_sub(a, b) vsubq_f32(a, b)
+#define rmm_mul(a, b) vmulq_f32(a, b)
+#define rmm_div(a, b) vdivq_f32(a, b)
+#define rmm_min(a, b) vminq_f32(a, b)
+#define rmm_max(a, b) vmaxq_f32(a, b)
+#define rmm_abs(x) vabsq_f32(x)
+#define rmm_cvts32_f32(x) vcvt_f32_s32(x)
+#define rmm_cvtf32_s32(x) vcvtn_s32_f32(x)
+#define rmm_cvttf32_s32(x) vcvt_s32_f32(x)
 #endif /* RM_NEON_ENABLE */
+
+RM_INLINE f32 rmm_hadd(RM_VEC x) {
+    #if RM_COMPILER == RM_CL && RM_SSE_ENABLE
+    return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
+    #else
+    return x[0] + x[1] + x[2] + x[3];
+    #endif /* Microsoft */
+}
+RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
+    RM_VEC s1, s2;
+
+    /* [a0+a2 c0+c2 a1+a3 c1+c3 */
+    s1 = rmm_add(rmm_unpack_lo(a, c), rmm_unpack_hi(a, c));
+    /* [b0+b2 d0+d2 b1+b3 d1+d3 */
+    s2 = rmm_add(rmm_unpack_lo(b, d), rmm_unpack_hi(b, d));
+    /* [a0+a2 b0+b2 c0+c2 d0+d2] + [a1+a3 b1+b3 c1+c3 d1+d3] */
+    return rmm_add(rmm_unpack_lo(s1, s2), rmm_unpack_hi(s1, s2));
+}
 
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
 #define RM_MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -1367,12 +1413,8 @@ RM_INLINE vec3 rm_vec4_copy3(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_abs(const vec4 v) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    __m128 mask;
-
-    mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
-
-    rmm_store(dest, _mm_and_ps(mask, rmm_load(v)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_abs(rmm_load(v)));
     #else
     dest = (vec4){rm_absf(v.x), rm_absf(v.y), rm_absf(v.z), rm_absf(v.w)};
     #endif /* RM_SSE_ENABLE */
@@ -1386,8 +1428,8 @@ RM_INLINE f32 rm_vec4_min(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_maxv(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_max_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_max(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z), rm_maxf(a.w, b.w)};
     #endif /* RM_SSE_ENABLE */
@@ -1395,15 +1437,15 @@ RM_INLINE vec4 rm_vec4_maxv(const vec4 a, const vec4 b) {
 }
 RM_INLINE vec4 rm_vec4_minv(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_min_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_min(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z), rm_minf(a.w, b.w)};
     #endif /* RM_SSE_ENABLE */
     return dest;
 }
 RM_INLINE f32 rm_vec4_hadd(const vec4 v) {
-    #if RM_SSE_ENABLE
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
     return rmm_hadd(rmm_load(v));
     #else
     return v.x + v.y + v.z + v.w;
@@ -1411,8 +1453,8 @@ RM_INLINE f32 rm_vec4_hadd(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_zero(void) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_setzero_ps());
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_zero());
     #else
     dest = RM_VEC4_FILL(0);
     #endif /* RM_SSE_ENABLE */
@@ -1420,7 +1462,7 @@ RM_INLINE vec4 rm_vec4_zero(void) {
 }
 RM_INLINE vec4 rm_vec4_one(void) {
     vec4 dest;
-    #if RM_SSE_ENABLE
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
     rmm_store(dest, rmm_set1(1));
     #else
     dest = RM_VEC4_FILL(1);
@@ -1429,7 +1471,7 @@ RM_INLINE vec4 rm_vec4_one(void) {
 }
 RM_INLINE vec4 rm_vec4_set(const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4 dest;
-    #if RM_SSE_ENABLE
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
     rmm_store(dest, rmm_set(x, y, z, w));
     #else
     dest = (vec4){x, y, z, w};
@@ -1438,7 +1480,7 @@ RM_INLINE vec4 rm_vec4_set(const f32 x, const f32 y, const f32 z, const f32 w) {
 }
 RM_INLINE vec4 rm_vec4_fill(const f32 x) {
     vec4 dest;
-    #if RM_SSE_ENABLE
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
     rmm_store(dest, rmm_set1(x));
     #else
     dest = RM_VEC4_FILL(x);
@@ -1447,7 +1489,7 @@ RM_INLINE vec4 rm_vec4_fill(const f32 x) {
 }
 RM_INLINE vec4 rm_vec4_make(const vec3 v, const f32 last) {
     vec4 dest;
-    #if RM_SSE_ENABLE
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
     rmm_store(dest, rmm_set(v.x, v.y, v.z, last));
     #else
     dest = (vec4){v.x, v.y, v.z, last};
@@ -1455,8 +1497,8 @@ RM_INLINE vec4 rm_vec4_make(const vec3 v, const f32 last) {
     return dest;
 }
 RM_INLINE f32 rm_vec4_dot(const vec4 a, const vec4 b) {
-    #if RM_SSE_ENABLE
-    return rmm_hadd(_mm_mul_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    return rmm_hadd(rmm_mul(rmm_load(a), rmm_load(b)));
     #else
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     #endif /* RM_SSE_ENABLE */
@@ -1475,8 +1517,8 @@ RM_INLINE f32 rm_vec4_norm_inf(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_add(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_add_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_add(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
     #endif /* RM_SSE_ENABLE */
@@ -1484,8 +1526,8 @@ RM_INLINE vec4 rm_vec4_add(const vec4 a, const vec4 b) {
 }
 RM_INLINE vec4 rm_vec4_adds(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_add_ps(rmm_load(v), rmm_set1(s)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_add(rmm_load(v), rmm_set1(s)));
     #else
     dest = (vec4){v.x + s, v.y + s, v.z + s, v.w + s};
     #endif /* RM_SSE_ENABLE */
@@ -1493,8 +1535,8 @@ RM_INLINE vec4 rm_vec4_adds(const vec4 v, const f32 s) {
 }
 RM_INLINE vec4 rm_vec4_sub(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_sub_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_sub(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
     #endif /* RM_SSE_ENABLE */
@@ -1502,8 +1544,8 @@ RM_INLINE vec4 rm_vec4_sub(const vec4 a, const vec4 b) {
 }
 RM_INLINE vec4 rm_vec4_subs(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_sub_ps(rmm_load(v), rmm_set1(s)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_sub(rmm_load(v), rmm_set1(s)));
     #else
     dest = (vec4){v.x - s, v.y - s, v.z - s, v.w - s};
     #endif /* RM_SSE_ENABLE */
@@ -1511,8 +1553,8 @@ RM_INLINE vec4 rm_vec4_subs(const vec4 v, const f32 s) {
 }
 RM_INLINE vec4 rm_vec4_mul(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
     #endif /* RM_SSE_ENABLE */
@@ -1520,8 +1562,8 @@ RM_INLINE vec4 rm_vec4_mul(const vec4 a, const vec4 b) {
 }
 RM_INLINE vec4 rm_vec4_scale(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(rmm_load(v), rmm_set1(s)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(s)));
     #else
     dest = (vec4){v.x * s, v.y * s, v.z * s, v.w * s};
     #endif /* RM_SSE_ENABLE */
@@ -1536,8 +1578,8 @@ RM_INLINE vec4 rm_vec4_scale_as(const vec4 v, const f32 s) {
 }
 RM_INLINE vec4 rm_vec4_scale_aniso(const vec4 v, const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(rmm_load(v), rmm_set(x, y, z, w)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set(x, y, z, w)));
     #else
     dest = (vec4){v.x * x, v.y * y, v.z * z, v.w * w};
     #endif /* RM_SSE_ENABLE */
@@ -1545,8 +1587,8 @@ RM_INLINE vec4 rm_vec4_scale_aniso(const vec4 v, const f32 x, const f32 y, const
 }
 RM_INLINE vec4 rm_vec4_div(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_div_ps(rmm_load(a), rmm_load(b)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_div(rmm_load(a), rmm_load(b)));
     #else
     dest = (vec4){a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w};
     #endif /* RM_SSE_ENABLE */
@@ -1554,8 +1596,8 @@ RM_INLINE vec4 rm_vec4_div(const vec4 a, const vec4 b) {
 }
 RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(rmm_load(v), rmm_set1((f32)1 / s)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1((f32)1 / s)));
     #else
     f32 x;
 
@@ -1567,8 +1609,8 @@ RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
 }
 RM_INLINE vec4 rm_vec4_negate(const vec4 v) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(rmm_load(v), rmm_set1(-1)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(-1)));
     #else
     dest = (vec4){-v.x, -v.y, -v.z, -v.w};
     #endif /* RM_SSE_ENABLE */
@@ -1582,12 +1624,12 @@ RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
     return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1 / norm);
 }
 RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
-    #if RM_SSE_ENABLE
-    __m128 x0;
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    RM_VEC x0;
 
-    x0 = _mm_sub_ps(rmm_load(a), rmm_load(b));
+    x0 = rmm_sub(rmm_load(a), rmm_load(b));
 
-    return rmm_hadd(_mm_mul_ps(x0, x0));
+    return rmm_hadd(rmm_mul(x0, x0));
     #else
     return rm_pow2f(a.x - b.x) + rm_pow2f(a.y - b.y) + rm_pow2f(a.z - b.z) + rm_pow2f(a.w - b.w);
     #endif /* RM_SSE_ENABLE */
@@ -1597,8 +1639,8 @@ RM_INLINE f32 rm_vec4_distance(const vec4 a, const vec4 b) {
 }
 RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_min_ps(_mm_max_ps(rmm_load(v), rmm_set1(min)), rmm_set1(max)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_min(rmm_max(rmm_load(v), rmm_set1(min)), rmm_set1(max)));
     #else
     f32 cx, cy, cz, cw;
 
@@ -1613,17 +1655,17 @@ RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
 }
 RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    __m128 x0, x1, x2;
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    RM_VEC x0, x1, x2;
 
     x1 = rmm_set1(min);
     x2 = rmm_set1(max - min);
 
-    x0 = _mm_sub_ps(rmm_load(v), x1);
-    x0 = _mm_add_ps(x2, _mm_sub_ps(x0, _mm_mul_ps(_mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_div_ps(x0, x2))), x2)));
-    x0 = _mm_sub_ps(x0, _mm_mul_ps(_mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_div_ps(x0, x2))), x2));
+    x0 = rmm_sub(rmm_load(v), x1);
+    x0 = rmm_add(x2, rmm_sub(x0, rmm_mul(rmm_cvts32_f32(rmm_cvttf32_s32(rmm_div(x0, x2))), x2)));
+    x0 = rmm_sub(x0, rmm_mul(rmm_cvts32_f32(rmm_cvttf32_s32(rmm_div(x0, x2))), x2));
 
-    rmm_store(dest, _mm_add_ps(x1, x0));
+    rmm_store(dest, rmm_add(x1, x0));
     #else
     f32 wx, wy, wz, ww;
 
@@ -1638,8 +1680,8 @@ RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
 }
 RM_INLINE vec4 rm_vec4_center(const vec4 a, const vec4 b) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(_mm_sub_ps(rmm_load(a), rmm_load(b)), rmm_set1(0.5)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_sub(rmm_load(a), rmm_load(b)), rmm_set1(0.5)));
     #else
     dest = rm_vec4_scale(rm_vec4_add(a, b), 0.5);
     #endif /* RM_SSE_ENABLE */
@@ -1692,8 +1734,8 @@ RM_INLINE f32 rm_mat2_trace(const mat2 m) {
 }
 RM_INLINE mat2 rm_mat2_scale(const mat2 m, const f32 s) {
     mat2 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest, _mm_mul_ps(rmm_load(m), rmm_set1(s)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest, rmm_mul(rmm_load(m), rmm_set1(s)));
     #else
     vec2 c1, c2;
 
@@ -1933,37 +1975,37 @@ RM_INLINE void rm_mat4_ins3(const mat3 a, mat4 b) {
 }
 RM_INLINE mat4 rm_mat4_mul(const mat4 a, const mat4 b) {
     mat4 dest;
-    #if RM_SSE_ENABLE
-    __m128 x0, x1, x2, x3, x4, x5;
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    RM_VEC x0, x1, x2, x3, x4, x5;
 
     x0 = rmm_load(a.cols[0]);
     x1 = rmm_load(a.cols[1]);
     x2 = rmm_load(a.cols[2]);
     x3 = rmm_load(a.cols[3]);
 
-    x4 = _mm_mul_ps(x0, rmm_set1(b.cols[0].x));
-    x4 = _mm_add_ps(x4, _mm_mul_ps(x1, rmm_set1(b.cols[0].y)));
-    x5 = _mm_mul_ps(x2, rmm_set1(b.cols[0].z));
-    x5 = _mm_add_ps(x5, _mm_mul_ps(x3, rmm_set1(b.cols[0].w)));
-    rmm_store(dest.cols[0], _mm_add_ps(x4, x5));
+    x4 = rmm_mul(x0, rmm_set1(b.cols[0].x));
+    x4 = rmm_add(x4, rmm_mul(x1, rmm_set1(b.cols[0].y)));
+    x5 = rmm_mul(x2, rmm_set1(b.cols[0].z));
+    x5 = rmm_add(x5, rmm_mul(x3, rmm_set1(b.cols[0].w)));
+    rmm_store(dest.cols[0], rmm_add(x4, x5));
 
-    x4 = _mm_mul_ps(x0, rmm_set1(b.cols[1].x));
-    x4 = _mm_add_ps(x4, _mm_mul_ps(x1, rmm_set1(b.cols[1].y)));
-    x5 = _mm_mul_ps(x2, rmm_set1(b.cols[1].z));
-    x5 = _mm_add_ps(x5, _mm_mul_ps(x3, rmm_set1(b.cols[1].w)));
-    rmm_store(dest.cols[1], _mm_add_ps(x4, x5));
+    x4 = rmm_mul(x0, rmm_set1(b.cols[1].x));
+    x4 = rmm_add(x4, rmm_mul(x1, rmm_set1(b.cols[1].y)));
+    x5 = rmm_mul(x2, rmm_set1(b.cols[1].z));
+    x5 = rmm_add(x5, rmm_mul(x3, rmm_set1(b.cols[1].w)));
+    rmm_store(dest.cols[1], rmm_add(x4, x5));
 
-    x4 = _mm_mul_ps(x0, rmm_set1(b.cols[2].x));
-    x4 = _mm_add_ps(x4, _mm_mul_ps(x1, rmm_set1(b.cols[2].y)));
-    x5 = _mm_mul_ps(x2, rmm_set1(b.cols[2].z));
-    x5 = _mm_add_ps(x5, _mm_mul_ps(x3, rmm_set1(b.cols[2].w)));
-    rmm_store(dest.cols[2], _mm_add_ps(x4, x5));
+    x4 = rmm_mul(x0, rmm_set1(b.cols[2].x));
+    x4 = rmm_add(x4, rmm_mul(x1, rmm_set1(b.cols[2].y)));
+    x5 = rmm_mul(x2, rmm_set1(b.cols[2].z));
+    x5 = rmm_add(x5, rmm_mul(x3, rmm_set1(b.cols[2].w)));
+    rmm_store(dest.cols[2], rmm_add(x4, x5));
 
-    x4 = _mm_mul_ps(x0, rmm_set1(b.cols[3].x));
-    x4 = _mm_add_ps(x4, _mm_mul_ps(x1, rmm_set1(b.cols[3].y)));
-    x5 = _mm_mul_ps(x2, rmm_set1(b.cols[3].z));
-    x5 = _mm_add_ps(x5, _mm_mul_ps(x3, rmm_set1(b.cols[3].w)));
-    rmm_store(dest.cols[3], _mm_add_ps(x4, x5));
+    x4 = rmm_mul(x0, rmm_set1(b.cols[3].x));
+    x4 = rmm_add(x4, rmm_mul(x1, rmm_set1(b.cols[3].y)));
+    x5 = rmm_mul(x2, rmm_set1(b.cols[3].z));
+    x5 = rmm_add(x5, rmm_mul(x3, rmm_set1(b.cols[3].w)));
+    rmm_store(dest.cols[3], rmm_add(x4, x5));
     #else
     vec4 c1, c2, c3, c4, tmp1, tmp2;
 
@@ -1989,15 +2031,15 @@ RM_INLINE mat4 rm_mat4_mul(const mat4 a, const mat4 b) {
 }
 RM_INLINE vec4 rm_mat4_mulv(const mat4 m, const vec4 v) {
     vec4 dest;
-    #if RM_SSE_ENABLE
-    __m128 x0, x1;
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    RM_VEC x0, x1;
 
-    x0 = _mm_mul_ps(rmm_load(m.cols[0]), rmm_set1(v.x));
-    x0 = _mm_add_ps(x0, _mm_mul_ps(rmm_load(m.cols[1]), rmm_set1(v.y)));
-    x1 = _mm_mul_ps(rmm_load(m.cols[2]), rmm_set1(v.z));
-    x1 = _mm_add_ps(x1, _mm_mul_ps(rmm_load(m.cols[3]), rmm_set1(v.w)));
+    x0 = rmm_mul(rmm_load(m.cols[0]), rmm_set1(v.x));
+    x0 = rmm_add(x0, rmm_mul(rmm_load(m.cols[1]), rmm_set1(v.y)));
+    x1 = rmm_mul(rmm_load(m.cols[2]), rmm_set1(v.z));
+    x1 = rmm_add(x1, rmm_mul(rmm_load(m.cols[3]), rmm_set1(v.w)));
 
-    rmm_store(dest, _mm_add_ps(x0, x1));
+    rmm_store(dest, rmm_add(x0, x1));
     #else
     vec4 tmp1, tmp2;
 
@@ -2047,15 +2089,15 @@ RM_INLINE mat4 rm_mat4_translate(const f32 x, const f32 y, const f32 z) {
 }
 RM_INLINE mat4 rm_mat4_scale(const mat4 m, const f32 s) {
     mat4 dest;
-    #if RM_SSE_ENABLE
-    __m128 x0;
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    RM_VEC x0;
 
     x0 = rmm_set1(s);
 
-    rmm_store(dest.cols[0], _mm_mul_ps(rmm_load(m.cols[0]), x0));
-    rmm_store(dest.cols[1], _mm_mul_ps(rmm_load(m.cols[1]), x0));
-    rmm_store(dest.cols[2], _mm_mul_ps(rmm_load(m.cols[2]), x0));
-    rmm_store(dest.cols[3], _mm_mul_ps(rmm_load(m.cols[3]), x0));
+    rmm_store(dest.cols[0], rmm_mul(rmm_load(m.cols[0]), x0));
+    rmm_store(dest.cols[1], rmm_mul(rmm_load(m.cols[1]), x0));
+    rmm_store(dest.cols[2], rmm_mul(rmm_load(m.cols[2]), x0));
+    rmm_store(dest.cols[3], rmm_mul(rmm_load(m.cols[3]), x0));
     #else
     vec4 c1, c2, c3, c4;
 
@@ -2070,10 +2112,10 @@ RM_INLINE mat4 rm_mat4_scale(const mat4 m, const f32 s) {
 }
 RM_INLINE mat4 rm_mat4_scale_aniso(const mat4 m, const f32 x, const f32 y, const f32 z) {
     mat4 dest;
-    #if RM_SSE_ENABLE
-    rmm_store(dest.cols[0], _mm_mul_ps(rmm_load(m.cols[0]), rmm_set1(x)));
-    rmm_store(dest.cols[1], _mm_mul_ps(rmm_load(m.cols[1]), rmm_set1(y)));
-    rmm_store(dest.cols[2], _mm_mul_ps(rmm_load(m.cols[2]), rmm_set1(z)));
+    #if RM_SSE_ENABLE || RM_NEON_ENABLE
+    rmm_store(dest.cols[0], rmm_mul(rmm_load(m.cols[0]), rmm_set1(x)));
+    rmm_store(dest.cols[1], rmm_mul(rmm_load(m.cols[1]), rmm_set1(y)));
+    rmm_store(dest.cols[2], rmm_mul(rmm_load(m.cols[2]), rmm_set1(z)));
     rmm_store(dest.cols[3], rmm_load(m.cols[3]));
     #else
     vec4 c1, c2, c3, c4;
