@@ -401,7 +401,7 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
 #define rmm_load(v) vld1q_f32(RM_VEC_CVT(v))
 #define rmm_store(v, a) vst1q_f32(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) rmm_load(((vec4){x, y, z, w}))
-#define rmm_set1(x) vld1q_dup_f32(x)
+#define rmm_set1(x) vdupq_f32(x)
 
 #endif /* RM_NEON_ENABLE */
 
