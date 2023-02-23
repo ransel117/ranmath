@@ -36,11 +36,19 @@ extern "C" {
 #define RM_CL 1
 
 #ifndef RM_SSE_ENABLE
-#if defined(__SSE2__) || defined(__SSE__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
+#if defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
 #define RM_SSE_ENABLE 1
 #else
 #define RM_SSE_ENABLE 0
-#endif /* Check for sse/sse2 */
+#endif /* Check for sse2 intrinsics*/
+#endif /* Check if already defined */
+
+#ifndef RM_NEON_ENABLE
+#if defined(__ARM_NEON)
+#define RM_NEON_ENABLE 1
+#else
+#define RM_NEON_ENABLE 0
+#endif /* Check for neon intrinsics */
 #endif /* Check if already defined */
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -387,6 +395,15 @@ RM_INLINE __m128 rmm_hadd4(__m128 a, __m128 b, __m128 c, __m128 d) {
     return _mm_add_ps(_mm_unpacklo_ps(s1,s2),_mm_unpackhi_ps(s1,s2));
 }
 #endif /* RM_SSE_ENABLE */
+#if RM_NEON_ENABLE
+#include <arm_neon.h>
+
+#define rmm_load(v) v1d1q_f32(RM_VEC_CVT(v))
+#define rmm_store(v, a) vst1q_f32(RM_VEC_CVT(v), a)
+#define rmm_set(x, y, z, w) rmm_load((vec4){x, y, z, w})
+#define rmm_set1(x) v1d1q_dup_f32(x)
+
+#endif /* RM_NEON_ENABLE */
 
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
 #define RM_MIN(a, b) (((a) < (b)) ? (a) : (b))
