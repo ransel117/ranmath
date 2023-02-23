@@ -26,7 +26,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* cpp */
+#endif /* __cplusplus */
 
 #include <stdint.h>
 #include <stddef.h>
@@ -373,13 +373,13 @@ RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f
 
 #ifdef __cplusplus
 }
-#endif /* cpp */
+#endif /* __cplusplus */
 #endif /* RANMATH_H */
 
 #ifdef RANMATH_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
-#endif /* cpp */
+#endif /* __cplusplus */
 
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
@@ -2277,5 +2277,5 @@ RM_INLINE mat4 rm_mat4_ortho(const f32 l, const f32 r, const f32 b, const f32 t,
 
 #ifdef __cplusplus
 }
-#endif /* cpp */
+#endif /* __cplusplus */
 #endif /* RANMATH_IMPLEMENTATION */
