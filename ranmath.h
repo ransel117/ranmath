@@ -106,12 +106,15 @@ typedef RM_ALIGN(4) struct {
 } vec4;
 typedef RM_ALIGN(16) struct {
     vec2 cols[2];
+    f32 raw[2][2];
 } mat2;
 typedef RM_ALIGN(16) struct {
     vec3 cols[3];
+    f32 raw[3][3];
 } mat3;
-typedef RM_ALIGN(16) struct {
+typedef RM_ALIGN(16) union {
     vec4 cols[4];
+    f32 raw[4][4];
 } mat4;
 
 /* ---------------- CONSTANTS ---------------- */
@@ -145,10 +148,6 @@ typedef RM_ALIGN(16) struct {
 #define RM_VEC2_CVT union {vec2 v; RM_ALIGN(4) f32 f[2];}
 #define RM_VEC3_CVT union {vec3 v; RM_ALIGN(4) f32 f[3];}
 #define RM_VEC4_CVT union {vec4 v; RM_ALIGN(4) f32 f[4];}
-
-#define RM_MAT2_CVT union {mat2 m; RM_ALIGN(16) f32 f[2][2];}
-#define RM_MAT3_CVT union {mat3 m; RM_ALIGN(16) f32 f[3][3];}
-#define RM_MAT4_CVT union {mat4 m; RM_ALIGN(16) f32 f[4][4];}
 
 RM_INLINE i32 rm_facti(const i32);
 RM_INLINE i64 rm_factl(const i64);
@@ -388,7 +387,6 @@ extern "C" {
 #define rmm_store(v, a) _mm_store_ps(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
 #define rmm_set1(x) _mm_set_ps1(x)
-#define rmm_zero() _mm_setzero_ps()
 #define rmm_unpack_lo(a, b) _mm_unpacklo_ps(a, b)
 #define rmm_unpack_hi(a, b) _mm_unpackhi_ps(a, b)
 #define rmm_add(a, b) _mm_add_ps(a, b)
@@ -398,6 +396,7 @@ extern "C" {
 #define rmm_min(a, b) _mm_min_ps(a, b)
 #define rmm_max(a, b) _mm_max_ps(a, b)
 #define rmm_abs(x) _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), (x))
+#define rmm_neg(x) rmm_sub(rmm_set1(0.0f), x)
 #define rmm_cvts32_f32(x) _mm_cvtepi32_ps(x)
 #define rmm_cvtf32_s32(x) _mm_cvtps_epi32(x)
 #define rmm_cvttf32_s32(x) _mm_cvttps_epi32(x)
@@ -410,7 +409,6 @@ extern "C" {
 #define rmm_store(v, a) vst1q_f32(RM_VEC_CVT(v), a)
 #define rmm_set(x, y, z, w) rmm_load(((vec4){x, y, z, w}))
 #define rmm_set1(x) vdupq_n_f32(x)
-#define rmm_zero() rmm_set1(0)
 #if defined(__aarch64__)
 #define rmm_unpack_lo(a, b) vzip1q_f32(a, b)
 #define rmm_unpack_hi(a, b) vzip2q_f32(a, b)
@@ -437,13 +435,14 @@ extern "C" {
 #define rmm_min(a, b) vminq_f32(a, b)
 #define rmm_max(a, b) vmaxq_f32(a, b)
 #define rmm_abs(x) vabsq_f32(x)
+#define rmm_neg(x) vnegq_f32(x)
 #define rmm_cvts32_f32(x) vcvtq_f32_s32(x)
 #define rmm_cvtf32_s32(x) vcvtnq_s32_f32(x)
 #define rmm_cvttf32_s32(x) vcvtq_s32_f32(x)
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE f32 rmm_hadd(RM_VEC x) {
-    #if RM_COMPILER == RM_CL && RM_SSE_ENABLE
+    #if RM_COMPILER == RM_CL
     return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
     #else
     return x[0] + x[1] + x[2] + x[3];
@@ -451,7 +450,6 @@ RM_INLINE f32 rmm_hadd(RM_VEC x) {
 }
 RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
     RM_VEC s1, s2;
-
     /* [a0+a2 c0+c2 a1+a3 c1+c3 */
     s1 = rmm_add(rmm_unpack_lo(a, c), rmm_unpack_hi(a, c));
     /* [b0+b2 d0+d2 b1+b3 d1+d3 */
@@ -654,7 +652,7 @@ RM_INLINE f32 rm_floorf(const f32 x) {
     ix = rm_truncf(x);
     inx = ix - 1;
 
-    return (x < 0) ? (inx == 0 ? -0.f : inx) : ix;
+    return (x < 0) ? (inx == 0 ? -0.0f : inx) : ix;
 }
 RM_INLINE f64 rm_floord(const f64 x) {
     if (x == 0) return x;
@@ -671,7 +669,7 @@ RM_INLINE f32 rm_ceilf(const f32 x) {
 
     ix = rm_truncf(x);
 
-    return (x < 0) ? (ix == 0 ? -0.f : ix) : ix + 1;
+    return (x < 0) ? (ix == 0 ? -0.0f : ix) : ix + 1;
 }
 RM_INLINE f64 rm_ceild(const f64 x) {
     if (x == 0) return x;
@@ -1106,7 +1104,7 @@ RM_INLINE vec2 rm_vec2_divs(const vec2 v, const f32 s) {
     f32 x;
     vec2 dest;
 
-    x = 1.f / s;
+    x = 1.0f / s;
 
     dest = rm_vec2_scale(v, x);
 
@@ -1340,7 +1338,7 @@ RM_INLINE vec3 rm_vec3_divs(const vec3 v, const f32 s) {
     f32 x;
     vec3 dest;
 
-    x = 1.f / s;
+    x = 1.0f / s;
 
     dest = rm_vec3_scale(v, x);
 
@@ -1473,47 +1471,37 @@ RM_INLINE f32 rm_vec4_hadd(const vec4 v) {
 }
 RM_INLINE vec4 rm_vec4_zero(void) {
     vec4 dest;
-    #if RM_SIMD
-    rmm_store(dest, rmm_zero());
-    #else
+
     dest = RM_VEC4_FILL(0);
-    #endif /* RM_SIMD */
+
     return dest;
 }
 RM_INLINE vec4 rm_vec4_one(void) {
     vec4 dest;
-    #if RM_SIMD
-    rmm_store(dest, rmm_set1(1));
-    #else
+
     dest = RM_VEC4_FILL(1);
-    #endif /* RM_SIMD */
+
     return dest;
 }
 RM_INLINE vec4 rm_vec4_set(const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4 dest;
-    #if RM_SIMD
-    rmm_store(dest, rmm_set(x, y, z, w));
-    #else
+
     dest = (vec4){x, y, z, w};
-    #endif /* RM_SIMD */
+
     return dest;
 }
 RM_INLINE vec4 rm_vec4_fill(const f32 x) {
     vec4 dest;
-    #if RM_SIMD
-    rmm_store(dest, rmm_set1(x));
-    #else
+
     dest = RM_VEC4_FILL(x);
-    #endif /* RM_SIMD */
+
     return dest;
 }
 RM_INLINE vec4 rm_vec4_make(const vec3 v, const f32 last) {
     vec4 dest;
-    #if RM_SIMD
-    rmm_store(dest, rmm_set(v.x, v.y, v.z, last));
-    #else
+
     dest = (vec4){v.x, v.y, v.z, last};
-    #endif /* RM_SIMD */
+
     return dest;
 }
 RM_INLINE f32 rm_vec4_dot(const vec4 a, const vec4 b) {
@@ -1617,11 +1605,11 @@ RM_INLINE vec4 rm_vec4_div(const vec4 a, const vec4 b) {
 RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
     vec4 dest;
     #if RM_SIMD
-    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(1.f / s)));
+    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(1.0f / s)));
     #else
     f32 x;
 
-    x = 1.f / s;
+    x = 1.0f / s;
 
     dest = rm_vec4_scale(v, x);
     #endif /* RM_SIMD */
@@ -1630,7 +1618,7 @@ RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
 RM_INLINE vec4 rm_vec4_negate(const vec4 v) {
     vec4 dest;
     #if RM_SIMD
-    rmm_store(dest, rmm_mul(rmm_load(v), rmm_set1(-1)));
+    rmm_store(dest, rmm_neg(rmm_load(v)));
     #else
     dest = (vec4){-v.x, -v.y, -v.z, -v.w};
     #endif /* RM_SIMD */
@@ -1641,7 +1629,7 @@ RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
 
     norm = rm_vec4_norm(v);
 
-    return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1.f / norm);
+    return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1.0f / norm);
 }
 RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
     #if RM_SIMD
@@ -1701,9 +1689,9 @@ RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
 RM_INLINE vec4 rm_vec4_center(const vec4 a, const vec4 b) {
     vec4 dest;
     #if RM_SIMD
-    rmm_store(dest, rmm_mul(rmm_sub(rmm_load(a), rmm_load(b)), rmm_set1(0.5)));
+    rmm_store(dest, rmm_mul(rmm_sub(rmm_load(a), rmm_load(b)), rmm_set1(0.5f)));
     #else
-    dest = rm_vec4_scale(rm_vec4_add(a, b), 0.5);
+    dest = rm_vec4_scale(rm_vec4_add(a, b), 0.5f);
     #endif /* RM_SIMD */
     return dest;
 }
@@ -1774,7 +1762,7 @@ RM_INLINE mat2 rm_mat2_inv(const mat2 m) {
     vec2 c1, c2, tmp;
     mat2 dest;
 
-    det = 1.f / m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x;
+    det = 1.0f / (m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x);
 
     c1 = rm_vec2_scale(m.cols[0], det);
     c2 = rm_vec2_scale(m.cols[1], det);
@@ -1798,20 +1786,15 @@ RM_INLINE void rm_mat2_swap_col(mat2 m, const u32 col1, const u32 col2) {
 }
 RM_INLINE void rm_mat2_swap_row(mat2 m, const u32 row1, const u32 row2) {
     f32 a, b;
-    RM_MAT2_CVT c;
 
-    c.m = rm_mat2_copy(m);
+    a = m.raw[0][row1];
+    b = m.raw[1][row1];
 
-    a = c.f[0][row1];
-    b = c.f[1][row1];
+    m.raw[0][row1] = m.raw[0][row2];
+    m.raw[1][row1] = m.raw[1][row2];
 
-    c.f[0][row1] = c.f[0][row2];
-    c.f[1][row1] = c.f[1][row2];
-
-    c.f[0][row2] = a;
-    c.f[1][row2] = b;
-
-    m = rm_mat2_copy(c.m);
+    m.raw[0][row2] = a;
+    m.raw[1][row2] = b;
 }
 RM_INLINE f32 rm_mat2_rmc(const vec2 r, const mat2 m, const vec2 c) {
     return rm_vec2_dot(r, rm_mat2_mulv(m, c));
@@ -1911,7 +1894,7 @@ RM_INLINE mat3 rm_mat3_inv(const mat3 m) {
 
     tmp = rm_vec3_scale_aniso(m.cols[0], dest.cols[0].x, dest.cols[1].x, dest.cols[2].x);
 
-    det = 1.f / rm_vec3_hadd(tmp);
+    det = 1.0f / rm_vec3_hadd(tmp);
 
     return rm_mat3_scale(dest, det);
 }
@@ -1926,23 +1909,16 @@ RM_INLINE void rm_mat3_swap_col(mat3 m, const u32 col1, const u32 col2) {
 }
 RM_INLINE void rm_mat3_swap_row(mat3 m, const u32 row1, const u32 row2) {
     vec3 tmp;
-    RM_MAT3_CVT c;
 
-    c.m = rm_mat3_copy(m);
+    tmp = (vec3){m.raw[0][row1], m.raw[1][row1], m.raw[2][row1]};
 
-    tmp.x = c.f[0][row1];
-    tmp.y = c.f[1][row1];
-    tmp.z = c.f[2][row1];
+    m.raw[0][row1] = m.raw[0][row2];
+    m.raw[1][row1] = m.raw[1][row2];
+    m.raw[2][row1] = m.raw[2][row2];
 
-    c.f[0][row1] = c.f[0][row2];
-    c.f[1][row1] = c.f[1][row2];
-    c.f[2][row1] = c.f[2][row2];
-
-    c.f[0][row2] = tmp.x;
-    c.f[1][row2] = tmp.y;
-    c.f[2][row2] = tmp.z;
-
-    m = rm_mat3_copy(c.m);
+    m.raw[0][row2] = tmp.x;
+    m.raw[1][row2] = tmp.y;
+    m.raw[2][row2] = tmp.z;
 }
 RM_INLINE f32 rm_mat3_rmc(const vec3 r, const mat3 m, const vec3 c) {
     return rm_vec3_dot(r, rm_mat3_mulv(m, c));
@@ -2221,7 +2197,7 @@ RM_INLINE mat4 rm_mat4_inv(const mat4 m) {
 
     v = rm_vec4_scale_aniso(m.cols[0], dest.cols[0].x, dest.cols[1].x, dest.cols[2].x, dest.cols[3].x);
 
-    det = 1.f / rm_vec4_hadd(v);
+    det = 1.0f / rm_vec4_hadd(v);
 
     return rm_mat4_scale(dest, det);
 }
@@ -2235,23 +2211,18 @@ RM_INLINE void rm_mat4_swap_col(mat4 m, const u32 col1, const u32 col2) {
 }
 RM_INLINE void rm_mat4_swap_row(mat4 m, const u32 row1, const u32 row2) {
     vec4 tmp;
-    RM_MAT4_CVT c;
 
-    c.m = rm_mat4_copy(m);
+    tmp = (vec4){m.raw[0][row1], m.raw[1][row1], m.raw[2][row1], m.raw[3][row1]};
 
-    tmp = (vec4){c.f[0][row1], c.f[1][row1], c.f[2][row1], c.f[3][row1]};
+    m.raw[0][row1] = m.raw[0][row2];
+    m.raw[1][row1] = m.raw[1][row2];
+    m.raw[2][row1] = m.raw[2][row2];
+    m.raw[3][row1] = m.raw[3][row2];
 
-    c.f[0][row1] = c.f[0][row2];
-    c.f[1][row1] = c.f[1][row2];
-    c.f[2][row1] = c.f[2][row2];
-    c.f[3][row1] = c.f[3][row2];
-
-    c.f[0][row2] = tmp.x;
-    c.f[1][row2] = tmp.y;
-    c.f[2][row2] = tmp.z;
-    c.f[3][row2] = tmp.w;
-
-    m = rm_mat4_copy(c.m);
+    m.raw[0][row2] = tmp.x;
+    m.raw[1][row2] = tmp.y;
+    m.raw[2][row2] = tmp.z;
+    m.raw[3][row2] = tmp.w;
 }
 RM_INLINE f32 rm_mat4_rmc(const vec4 r, const mat4 m, const vec4 c) {
     return rm_vec4_dot(r, rm_mat4_mulv(m, c));
@@ -2268,7 +2239,7 @@ RM_INLINE mat4 rm_mat4_ortho(const f32 l, const f32 r, const f32 b, const f32 t,
     c1 = (vec4){2 / (rl), 0, 0, 0};
     c2 = (vec4){0, 2 / (tb), 0, 0};
     c3 = (vec4){0, 0, -2 / (fn), 0};
-    c4 = (vec4){-(r + l) / (rl), -(t + b) / (tb), -(f + n) / (fn), 1};
+    c4 = (vec4){-(r + l) / rl, -(t + b) / tb, -(f + n) / fn, 1};
 
     dest = (mat4){{c1, c2, c3, c4}};
 
