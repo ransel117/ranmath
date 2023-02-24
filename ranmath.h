@@ -145,9 +145,9 @@ typedef RM_ALIGN(16) union {
 
 #define RM_VEC_CVT(v) ((f32*)&v)
 
-#define RM_VEC2_CVT union {vec2 v; RM_ALIGN(4) f32 f[2];}
-#define RM_VEC3_CVT union {vec3 v; RM_ALIGN(4) f32 f[3];}
-#define RM_VEC4_CVT union {vec4 v; RM_ALIGN(4) f32 f[4];}
+#define RM_VEC2_CVT union {vec2 v; RM_ALIGN(4) f32 raw[2];}
+#define RM_VEC3_CVT union {vec3 v; RM_ALIGN(4) f32 raw[3];}
+#define RM_VEC4_CVT union {vec4 v; RM_ALIGN(4) f32 raw[4];}
 
 RM_INLINE i32 rm_facti(const i32);
 RM_INLINE i64 rm_factl(const i64);
