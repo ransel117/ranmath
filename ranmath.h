@@ -59,7 +59,7 @@ extern "C" {
 #define RM_SIMD 0
 #endif /* Check for simd */
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__GNUC__) || defined(__clang__) || defined(__PCC__)
 /* GCC-compatible compiler (gcc, clang) */
 #define RM_COMPILER RM_CC
 #define RM_INLINE   static inline __attribute__((always_inline))
@@ -118,30 +118,31 @@ typedef RM_ALIGN(16) union {
 } mat4;
 
 /* ---------------- CONSTANTS ---------------- */
-#define RM_E        2.7182818284590452353602874713526624977572470936999595749669676277
-#define RM_LOG2E    1.4426950408889634073599246810018921374266459541529859341354494069
-#define Rm_LOG10E   0.4342944819032518276511289189166050822943970058036665661144537831
-#define RM_LN2      0.6931471805599453094172321214581765680755001343602552541206800094
-#define RM_LN10     2.3025850929940456840179914546843642076011014886287729760333279009
-#define RM_PI       3.1415926535897932384626433832795028841971693993751058209749445923
-#define RM_PI_2     1.5707963267948966192313216916397514420985846996875529104874722961
-#define RM_2PI      6.2831853071795864769252867665590057683943387987502116419498891846
-#define RM_PI2      9.8696044010893586188344909998761511353136994072407906264133493762
-#define RM_PI3      31.006276680299820175476315067101395202225288565885107694144538103
-#define RM_PI4      97.409091034002437236440332688705111249727585672685421691467859389
-#define RM_1_PI     0.3183098861837906715377675267450287240689192914809128974953346881
-#define RM_1_2PI    0.1591549430918953357688837633725143620344596457404564487476673440
-#define RM_SQRTPI   1.7724538509055160272981674833411451827975494561223871282138077898
-#define RM_1_SQRTPI 0.5641895835477562869480794515607725858440506293289988568440857217
-#define RM_2_SQRTPI 1.1283791670955125738961589031215451716881012586579977136881714434
-#define RM_SQRT2    1.4142135623730950488016887242096980785696718753769480731766797379
-#define RM_1_SQRT2  0.7071067811865475244008443621048490392848359376884740365883398689
-#define RM_MAKE_DEG 57.295779513082320876798154814105170332405472466564321549160243861
-#define RM_MAKE_RAD 0.0174532925199432957692369076848861271344287188854172545609719144
+#define RM_E           2.7182818284590452353602874713526624977572470936999595749669676277
+#define RM_LOG2E       1.4426950408889634073599246810018921374266459541529859341354494069
+#define Rm_LOG10E      0.4342944819032518276511289189166050822943970058036665661144537831
+#define RM_LN2         0.6931471805599453094172321214581765680755001343602552541206800094
+#define RM_LN10        2.3025850929940456840179914546843642076011014886287729760333279009
+#define RM_PI          3.1415926535897932384626433832795028841971693993751058209749445923
+#define RM_PI_2        1.5707963267948966192313216916397514420985846996875529104874722961
+#define RM_2PI         6.2831853071795864769252867665590057683943387987502116419498891846
+#define RM_PI2         9.8696044010893586188344909998761511353136994072407906264133493762
+#define RM_PI3         31.006276680299820175476315067101395202225288565885107694144538103
+#define RM_PI4         97.409091034002437236440332688705111249727585672685421691467859389
+#define RM_1_PI        0.3183098861837906715377675267450287240689192914809128974953346881
+#define RM_1_2PI       0.1591549430918953357688837633725143620344596457404564487476673440
+#define RM_SQRTPI      1.7724538509055160272981674833411451827975494561223871282138077898
+#define RM_1_SQRTPI    0.5641895835477562869480794515607725858440506293289988568440857217
+#define RM_2_SQRTPI    1.1283791670955125738961589031215451716881012586579977136881714434
+#define RM_SQRT2       1.4142135623730950488016887242096980785696718753769480731766797379
+#define RM_1_SQRT2     0.7071067811865475244008443621048490392848359376884740365883398689
+#define RM_MAKE_DEG    57.295779513082320876798154814105170332405472466564321549160243861
+#define RM_MAKE_RAD    0.0174532925199432957692369076848861271344287188854172545609719144
+#define RM_FLT_EPSILON 0.00000011920928955078125000000000
 
 /* ----------------- METHODS ----------------- */
-#define RM_F32_CVT union {f32 f; u32 i;}
-#define RM_F64_CVT union {f64 f; u64 i;}
+#define RM_F32_CVT union {f32 f; i32 i;}
+#define RM_F64_CVT union {f64 f; i64 i;}
 
 #define RM_VEC_CVT(v) ((f32*)&v)
 
@@ -149,62 +150,65 @@ typedef RM_ALIGN(16) union {
 #define RM_VEC3_CVT union {vec3 v; RM_ALIGN(4) f32 raw[3];}
 #define RM_VEC4_CVT union {vec4 v; RM_ALIGN(4) f32 raw[4];}
 
-RM_INLINE i32 rm_facti(const i32);
-RM_INLINE i64 rm_factl(const i64);
-RM_INLINE i32 rm_powi(const i32, const i32);
-RM_INLINE i64 rm_powl(const i64, const i64);
-RM_INLINE i32 rm_pow2i(const i32);
-RM_INLINE i64 rm_pow2l(const i64);
-RM_INLINE f32 rm_pow2f(const f32);
-RM_INLINE f64 rm_pow2d(const f64);
-RM_INLINE f32 rm_rsqrtf(const f32);
-RM_INLINE f64 rm_rsqrtd(const f64);
-RM_INLINE f32 rm_sqrtf(const f32);
-RM_INLINE f64 rm_sqrtd(const f64);
-RM_INLINE i32 rm_absi(const i32);
-RM_INLINE i64 rm_absl(const i64);
-RM_INLINE f32 rm_absf(const f32);
-RM_INLINE f64 rm_absd(const f64);
-RM_INLINE i32 rm_mini(const i32, const i32);
-RM_INLINE i64 rm_minl(const i64, const i64);
-RM_INLINE f32 rm_minf(const f32, const f32);
-RM_INLINE f64 rm_mind(const f64, const f64);
-RM_INLINE i32 rm_mini(const i32, const i32);
-RM_INLINE i64 rm_minl(const i64, const i64);
-RM_INLINE f32 rm_maxf(const f32, const f32);
-RM_INLINE f64 rm_maxd(const f64, const f64);
-RM_INLINE i32 rm_clampi(const i32, const i32, const i32);
-RM_INLINE i64 rm_clampl(const i64, const i64, const i64);
-RM_INLINE f32 rm_clampf(const f32, const f32, const f32);
-RM_INLINE f64 rm_clampd(const f64, const f64, const f64);
-RM_INLINE f32 rm_truncf(const f32);
-RM_INLINE f64 rm_truncd(const f64);
-RM_INLINE f32 rm_floorf(const f32);
-RM_INLINE f64 rm_floord(const f64);
-RM_INLINE f32 rm_ceilf(const f32);
-RM_INLINE f64 rm_ceild(const f64);
-RM_INLINE f32 rm_roundf(const f32);
-RM_INLINE f64 rm_roundd(const f64);
-RM_INLINE f32 rm_wrap_maxf(const f32, const f32);
-RM_INLINE f64 rm_wrap_maxd(const f64, const f64);
-RM_INLINE f32 rm_wrapf(const f32, const f32, const f32);
-RM_INLINE f64 rm_wrapd(const f64, const f64, const f64);
-RM_INLINE f32 rm_cosf(const f32);
-RM_INLINE f64 rm_cosd(const f64);
-RM_INLINE f32 rm_sinf(const f32);
-RM_INLINE f64 rm_sind(const f64);
-RM_INLINE f32 rm_tanf(const f32);
-RM_INLINE f64 rm_tand(const f64);
-RM_INLINE f32 rm_cotf(const f32);
-RM_INLINE f64 rm_cotd(const f64);
-RM_INLINE f32 rm_secf(const f32);
-RM_INLINE f64 rm_secd(const f64);
-RM_INLINE f32 rm_cscf(const f32);
-RM_INLINE f64 rm_cscd(const f64);
-RM_INLINE f32 rm_rad2degf(const f32);
-RM_INLINE f64 rm_rad2degd(const f64);
-RM_INLINE f32 rm_deg2radf(const f32);
-RM_INLINE f64 rm_deg2radd(const f64);
+RM_INLINE bool rm_aeq_ulpabsf(const f32, const f32, const f32, const i32);
+RM_INLINE bool rm_aeq_relabsf(const f32, const f32, const f32, const f32);
+RM_INLINE i32  rm_facti(const i32);
+RM_INLINE i64  rm_factl(const i64);
+RM_INLINE i32  rm_powi(const i32, const i32);
+RM_INLINE i64  rm_powl(const i64, const i64);
+RM_INLINE i32  rm_pow2i(const i32);
+RM_INLINE i64  rm_pow2l(const i64);
+RM_INLINE f32  rm_pow2f(const f32);
+RM_INLINE f64  rm_pow2d(const f64);
+RM_INLINE f32  rm_rsqrtf(const f32);
+RM_INLINE f64  rm_rsqrtd(const f64);
+RM_INLINE f32  rm_sqrtf(const f32);
+RM_INLINE f64  rm_sqrtd(const f64);
+RM_INLINE i32  rm_absi(const i32);
+RM_INLINE i64  rm_absl(const i64);
+RM_INLINE f32  rm_absf(const f32);
+RM_INLINE f64  rm_absd(const f64);
+RM_INLINE i32  rm_mini(const i32, const i32);
+RM_INLINE i64  rm_minl(const i64, const i64);
+RM_INLINE f32  rm_minf(const f32, const f32);
+RM_INLINE f64  rm_mind(const f64, const f64);
+RM_INLINE i32  rm_mini(const i32, const i32);
+RM_INLINE i64  rm_minl(const i64, const i64);
+RM_INLINE f32  rm_maxf(const f32, const f32);
+RM_INLINE f64  rm_maxd(const f64, const f64);
+RM_INLINE i32  rm_clampi(const i32, const i32, const i32);
+RM_INLINE i64  rm_clampl(const i64, const i64, const i64);
+RM_INLINE f32  rm_clampf(const f32, const f32, const f32);
+RM_INLINE f64  rm_clampd(const f64, const f64, const f64);
+RM_INLINE f32  rm_truncf(const f32);
+RM_INLINE f64  rm_truncd(const f64);
+RM_INLINE f32  rm_floorf(const f32);
+RM_INLINE f64  rm_floord(const f64);
+RM_INLINE f32  rm_ceilf(const f32);
+RM_INLINE f64  rm_ceild(const f64);
+RM_INLINE f32  rm_roundf(const f32);
+RM_INLINE f64  rm_roundd(const f64);
+RM_INLINE f32  rm_wrap_maxf(const f32, const f32);
+RM_INLINE f64  rm_wrap_maxd(const f64, const f64);
+RM_INLINE f32  rm_wrapf(const f32, const f32, const f32);
+RM_INLINE f64  rm_wrapd(const f64, const f64, const f64);
+RM_INLINE f32  rm_cosf(const f32);
+RM_INLINE f64  rm_cosd(const f64);
+RM_INLINE f32  rm_sinf(const f32);
+RM_INLINE f64  rm_sind(const f64);
+RM_INLINE f32  rm_tanf(const f32);
+RM_INLINE f64  rm_tand(const f64);
+RM_INLINE f32  rm_cotf(const f32);
+RM_INLINE f64  rm_cotd(const f64);
+RM_INLINE f32  rm_secf(const f32);
+RM_INLINE f64  rm_secd(const f64);
+RM_INLINE f32  rm_cscf(const f32);
+RM_INLINE f64  rm_cscd(const f64);
+RM_INLINE f32  rm_acosf(const f32);
+RM_INLINE f32  rm_rad2degf(const f32);
+RM_INLINE f64  rm_rad2degd(const f64);
+RM_INLINE f32  rm_deg2radf(const f32);
+RM_INLINE f64  rm_deg2radd(const f64);
 
 RM_INLINE vec2 rm_vec2_copy(const vec2);
 RM_INLINE vec2 rm_vec2_abs(const vec2);
@@ -380,6 +384,7 @@ RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f
 extern "C" {
 #endif /* __cplusplus */
 
+#if RM_SIMD
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
 
@@ -457,6 +462,7 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
     /* [a0+a2 b0+b2 c0+c2 d0+d2] + [a1+a3 b1+b3 c1+c3 d1+d3] */
     return rmm_add(rmm_unpack_lo(s1, s2), rmm_unpack_hi(s1, s2));
 }
+#endif /* RM_SIMD */
 
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
 #define RM_MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -476,11 +482,67 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 #define RM_MAT3_IDENTITY (mat3){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}
 #define RM_MAT4_IDENTITY (mat4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}}
 
+#define RM_MAX_ERROR (RM_FLT_EPSILON * 8)
+
+/* Stolen from: https://math.stackexchange.com/questions/3886552/bhaskara-approximation-of-cosx,
+* Claude Leibovici's answer
+*/
 #define RM_COS_APPR_A -0.132995644812022330410032839099700470577487194965079816065230286
 #define RM_COS_APPR_B  0.0032172781382535624048708288689972016965839213439467243797038973
 #define RM_COS_APPR_C  0.0336709157304375144254000370104015622020879871979042486728981326
 #define RM_COS_APPR_D  0.0004962828018660570906955733487210649504998482691550479603258607
 
+
+RM_INLINE bool rm_aeq_ulpabsf(const f32 a, const f32 b, const f32 max, const i32 max_ulps) {
+    if (rm_absf(a - b) <= max) return true;
+
+    RM_F32_CVT ua, ub;
+
+    ua.f = a;
+    ub.f = b;
+
+    // Different signs means they do not match.
+    if ((ua.i < 0) != (ub.i < 0)) return false;
+
+    // Find the difference in ULPs.
+    return (rm_absi(ua.i - ub.i) <= max_ulps);
+}
+RM_INLINE bool rm_aeq_relabsf(const f32 a, const f32 b, const f32 max, const f32 max_rel) {
+    f32 diff, aa, ab;
+
+    diff = rm_absf(a - b);
+    if (diff <= max) return true;
+
+    aa = rm_absf(a);
+    ab = rm_absf(b);
+
+    return (diff <= rm_maxf(aa, ab) * max_rel);
+}
+RM_INLINE bool rm_aeq_ulpabsd(const f64 a, const f64 b, const f64 max, const i32 max_ulps) {
+    if (rm_absf(a - b) <= max) return true;
+
+    RM_F64_CVT ua, ub;
+
+    ua.f = a;
+    ub.f = b;
+
+    // Different signs means they do not match.
+    if ((ua.i < 0) != (ub.i < 0)) return false;
+
+    // Find the difference in ULPs.
+    return (rm_absi(ua.i - ub.i) <= max_ulps);
+}
+RM_INLINE bool rm_aeq_relabsd(const f64 a, const f64 b, const f64 max, const f64 max_rel) {
+    f64 diff, aa, ab;
+
+    diff = rm_absf(a - b);
+    if (diff <= max) return true;
+
+    aa = rm_absf(a);
+    ab = rm_absf(b);
+
+    return (diff <= rm_maxf(aa, ab) * max_rel);
+}
 RM_INLINE i32 rm_facti(const i32 x) {
     if (x < 0) return -1;
 
@@ -661,7 +723,7 @@ RM_INLINE f64 rm_floord(const f64 x) {
     ix = rm_truncd(x);
     inx = ix - 1;
 
-    return (x < 0) ? (inx == 0 ? -0.0 : inx) : ix;
+    return (x < 0) ? inx : ix;
 }
 RM_INLINE f32 rm_ceilf(const f32 x) {
     if (x == 0) return x;
@@ -669,7 +731,7 @@ RM_INLINE f32 rm_ceilf(const f32 x) {
 
     ix = rm_truncf(x);
 
-    return (x < 0) ? (ix == 0 ? -0.0f : ix) : ix + 1;
+    return (x < 0) ? ix : ix + 1;
 }
 RM_INLINE f64 rm_ceild(const f64 x) {
     if (x == 0) return x;
@@ -677,7 +739,7 @@ RM_INLINE f64 rm_ceild(const f64 x) {
 
     ix = rm_truncd(x);
 
-    return (x < 0) ? (ix == 0 ? -0.0 : ix) : ix + 1;
+    return (x < 0) ? ix : ix + 1;
 }
 RM_INLINE f32 rm_roundf(const f32 x) {
     bool c1, c2;
@@ -940,6 +1002,33 @@ RM_INLINE f64 rm_cscd(const f64 x) {
     val *= i;
 
     return 1 / val;
+}
+RM_INLINE f32 rm_acosf(const f32 x) {
+    /*
+    if (rm_aeq_relabsf(1, x, RM_MAX_ERROR, RM_FLT_EPSILON)) return 0;
+    if (rm_aeq_relabsf(0, x, RM_MAX_ERROR, RM_FLT_EPSILON)) return RM_PI_2;
+    if (rm_aeq_relabsf(-1, x, RM_MAX_ERROR, RM_FLT_EPSILON)) return RM_PI;
+
+    f32 wx;
+
+    wx = rm_wrapf(x, -1, 1);
+
+    return wx;
+    */
+//    f64 a,b,c,x2,x4,x8, wx;
+//    wx = rm_wrap_maxf(x, RM_PI);
+//    /* 1/720 */
+//    a = 0.0013888888888888888888888888888888888888888888888888888888888888;
+//    /* 1/87178291200 */
+//    b = 1.1470745597729724713851697978682105666232650359634486618613e-11;
+//    /* 1/2432902008176640000 */
+//    c = 4.1103176233121648584779906184361403746103694959130570672133e-19;
+//    x2 = rm_pow2f(wx);
+//    x4 = rm_pow2f(x2);
+//    x8 = rm_pow2f(x4);
+//
+//    return 1 - a*x2*(x4-30*x2+360) - b*x8*(x4*x2-182*x4+24024*x2-2162160) + c*rm_pow2f(x8)*(x4-380*x2+116280);
+    return 0;
 }
 RM_INLINE f32 rm_rad2degf(const f32 x) {
     return RM_MAKE_DEG * x;
@@ -1876,7 +1965,7 @@ RM_INLINE f32 rm_mat3_det(const mat3 m) {
     return rm_vec3_hadd(tmp);
 }
 RM_INLINE mat3 rm_mat3_inv(const mat3 m) {
-    float det;
+    f32 det;
     vec3 tmp;
     mat3 dest;
 
