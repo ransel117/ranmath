@@ -1,5 +1,7 @@
 # ranmath
-Math library by me.
+Math library by me. 
+
+Will not be the most precise thing in the world but aiming to be within a reasonable amount of libc.
 
 Aiming to be a single header stb-style library.
 
@@ -21,5 +23,4 @@ Feel free to make contributions! Try to fit in with the current code base which 
 - add inverse of cos, sin, tan etc...
 - mat2 and mat4 SIMD
 - add other stuff
-- ARM NEON support?
 - optimize
