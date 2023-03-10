@@ -12,7 +12,15 @@ Include ranmath.h in your project:
 ```
 or
 ```
+#include "ranmath/ranmath.h"
+```
+or
+```
 #include <ranmath.h>
+```
+or
+```
+#include <ranmath/ranmath.h>
 ```
 
 ## Contribute
