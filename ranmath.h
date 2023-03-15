@@ -207,8 +207,8 @@ union RM_ALIGN(4) vec4_cvt {
 #define RM_MAKE_RAD_F  (f32)RM_MAKE_RAD
 #define RM_FLT_EPSILON 1.19210000093517010100185871124267578125E-7
 #define RM_DBL_EPSILON 2.220446049250313080847263336181640625000000000000E-16
-#define RM_NAN        (f64_cvt){.u = 0x7FFFFFFFFFFFFFFF}.f
-#define RM_NAN_F      (f32_cvt){.u = 0x7FFFFFFF}.f
+#define RM_NAN         (f64_cvt){.u = 0x7FFFFFFFFFFFFFFF}.f
+#define RM_NAN_F       (f32_cvt){.u = 0x7FFFFFFF}.f
 #define RM_PINF        (f64_cvt){.u = 0x7FF0000000000000}.f
 #define RM_PINF_F      (f32_cvt){.u = 0x7F800000}.f
 #define RM_NINF        (f64_cvt){.u = 0xFFF0000000000000}.f
@@ -487,7 +487,7 @@ extern "C" {
 
 #define rmm_load(v) vld1q_f32(v)
 #define rmm_store(v, a) vst1q_f32(v, a)
-#define rmm_set(x, y, z, w) rmm_load(((RM_VEC){x, y, z, w}))
+#define rmm_set(x, y, z, w) ((RM_VEC){x, y, z, w})
 #define rmm_set1(x) vdupq_n_f32(x)
 #if defined(__aarch64__)
 #define rmm_unpack_lo(a, b) vzip1q_f32(a, b)
@@ -520,6 +520,7 @@ extern "C" {
 #define rmm_cvtf32_s32(x) vcvtnq_s32_f32(x)
 #define rmm_cvttf32_s32(x) vcvtq_s32_f32(x)
 /* OBS!! this may not work and has not been tested: */
+#if 0
 #define rmm_shuffle(v, x, y, z, w) do {
     u32 control_element[4];
     uint8x8_t rl, rh;
@@ -543,6 +544,7 @@ extern "C" {
 
     return vcombine_f32(rl, rh);
 } while(0);
+#endif
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE f32 rmm_hadd(RM_VEC x) {
@@ -598,16 +600,16 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 #define RM_COS_APPR_D  0.0004962828018660570906955733487210649504998482691550479603258607
 
 RM_INLINE bool rm_eqf(const f32 a, const f32 b) {
-    return rm_absf(a - b) <= (f32_cvt){.u = 0x1A000019}.f;
+    return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= (f32_cvt){.u = 0x1A000019}.f;
 }
 RM_INLINE bool rm_eqd(const f64 a, const f64 b) {
-    return rm_absd(a - b) <= (f64_cvt){.u = 0x1E58000000000000}.f;
+    return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= (f64_cvt){.u = 0x1E58000000000000}.f;
 }
 RM_INLINE bool rm_eq_epsf(const f32 a, const f32 b) {
-    return rm_absf(a - b) <= RM_FLT_EPSILON;
+    return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= RM_FLT_EPSILON;
 }
 RM_INLINE bool rm_eq_epsd(const f64 a, const f64 b) {
-    return rm_absd(a - b) <= RM_DBL_EPSILON;
+    return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= RM_DBL_EPSILON;
 }
 RM_INLINE i32 rm_facti(const i32 x) {
     if (x < 0) return -1; /* ERROR */
@@ -711,22 +713,16 @@ RM_INLINE f64 rm_rsqrtd(const f64 x) {
 RM_INLINE f32 rm_sqrtf(const f32 x) {
     if (x < 0) return RM_NAN_F;
     if (x == 0 || x == 1) return x;
-    f32 rcp;
-
-    rcp = rm_rsqrtf(x);
 
     /* sqrt(x) = x * 1/sqrt(x) */
-    return x * rcp;
+    return x * rm_rsqrtf(x);
 }
 RM_INLINE f64 rm_sqrtd(const f64 x) {
     if (x < 0) return RM_NAN;
     if (x == 0 || x == 1) return x;
-    f64 rcp;
-
-    rcp = rm_rsqrtd(x);
 
     /* sqrt(x) = x * 1/sqrt(x) */
-    return x * rcp;
+    return x * rm_rsqrtd(x);
 }
 RM_INLINE i32 rm_absi(const i32 x) {
     return RM_ABS(x);
@@ -910,13 +906,13 @@ RM_INLINE f64 rm_cotd(const f64 x) {
     return rm_cosd(x) / rm_sind(x);
 }
 RM_INLINE f32 rm_secf(const f32 x) {
-    return 1.0 / rm_cosf(x);
+    return 1.0F / rm_cosf(x);
 }
 RM_INLINE f64 rm_secd(const f64 x) {
     return 1.0 / rm_cosd(x);
 }
 RM_INLINE f32 rm_cscf(const f32 x) {
-    return 1.0 / rm_sinf(x);
+    return 1.0F / rm_sinf(x);
 }
 RM_INLINE f64 rm_cscd(const f64 x) {
     return 1.0 / rm_sind(x);
@@ -1084,7 +1080,7 @@ RM_INLINE vec2 rm_vec2_scale_as(const vec2 v, const f32 s) {
 
     norm = rm_vec2_norm(v);
 
-    return (norm == 0) ? rm_vec2_zero() : rm_vec2_scale(v, s / norm);
+    return (rm_eqf(norm, 0.0F)) ? rm_vec2_zero() : rm_vec2_scale(v, s / norm);
 }
 RM_INLINE vec2 rm_vec2_scale_aniso(const vec2 v, const f32 x, const f32 y) {
     vec2 dest;
@@ -1119,7 +1115,7 @@ RM_INLINE vec2 rm_vec2_normalize(const vec2 v) {
 
     norm = rm_vec2_norm(v);
 
-    return (norm == 0) ? rm_vec2_zero() : rm_vec2_scale(v, 1.0F / norm);
+    return (rm_eqf(norm, 0.0F)) ? rm_vec2_zero() : rm_vec2_scale(v, 1.0F / norm);
 }
 RM_INLINE vec2 rm_vec2_rotate(const vec2 v, const f32 a) {
     f32 c, s;
@@ -1307,7 +1303,7 @@ RM_INLINE vec3 rm_vec3_scale_as(const vec3 v, const f32 s) {
 
     norm = rm_vec3_norm(v);
 
-    return (norm == 0) ? rm_vec3_zero() : rm_vec3_scale(v, s / norm);
+    return (rm_eqf(norm, 0.0F)) ? rm_vec3_zero() : rm_vec3_scale(v, s / norm);
 }
 RM_INLINE vec3 rm_vec3_scale_aniso(const vec3 v, const f32 x, const f32 y, const f32 z) {
     vec3 dest;
@@ -1342,7 +1338,7 @@ RM_INLINE vec3 rm_vec3_normalize(const vec3 v) {
 
     norm = rm_vec3_norm(v);
 
-    return (norm == 0) ? rm_vec3_zero() : rm_vec3_scale(v, 1.0F / norm);
+    return (rm_eqf(norm, 0.0F)) ? rm_vec3_zero() : rm_vec3_scale(v, 1.0F / norm);
 }
 RM_INLINE vec3 rm_vec3_rotate(const vec3 v, const f32 a, const vec3 axis) {
     f32 c, s;
@@ -1600,7 +1596,7 @@ RM_INLINE vec4 rm_vec4_scale_as(const vec4 v, const f32 s) {
 
     norm = rm_vec4_norm(v);
 
-    return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, s / norm);
+    return (rm_eqf(norm, 0)) ? rm_vec4_zero() : rm_vec4_scale(v, s / norm);
 }
 RM_INLINE vec4 rm_vec4_scale_aniso(const vec4 v, const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4_cvt dest;
@@ -1658,7 +1654,7 @@ RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
 
     norm = rm_vec4_norm(v);
 
-    return (norm == 0) ? rm_vec4_zero() : rm_vec4_scale(v, 1.0F / norm);
+    return (rm_eqf(norm, 0)) ? rm_vec4_zero() : rm_vec4_scale(v, 1.0F / norm);
 }
 RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
     #if RM_SIMD
@@ -2117,6 +2113,7 @@ RM_INLINE mat4 rm_mat4_translate(const f32 x, const f32 y, const f32 z) {
 }
 RM_INLINE mat4 rm_mat4_translatev3(const vec3 v) {
     mat4 dest;
+
     dest = rm_mat4_identity();
     dest.cols[3] = rm_vec4_make(v, dest.cols[3].w);
 
