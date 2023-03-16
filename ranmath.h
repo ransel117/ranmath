@@ -209,10 +209,8 @@ union RM_ALIGN(4) vec4_cvt {
 #define RM_DBL_EPSILON 2.220446049250313080847263336181640625000000000000E-16
 #define RM_NAN         (f64_cvt){.u = 0x7FFFFFFFFFFFFFFF}.f
 #define RM_NAN_F       (f32_cvt){.u = 0x7FFFFFFF}.f
-#define RM_PINF        (f64_cvt){.u = 0x7FF0000000000000}.f
-#define RM_PINF_F      (f32_cvt){.u = 0x7F800000}.f
-#define RM_NINF        (f64_cvt){.u = 0xFFF0000000000000}.f
-#define RM_NINF_F      (f32_cvt){.u = 0xFF800000}.f
+#define RM_INF        (f64_cvt){.u = 0x7FF0000000000000}.f
+#define RM_INF_F      (f32_cvt){.u = 0x7F800000}.f
 
 /* ----------------- METHODS ----------------- */
 RM_INLINE bool rm_eqf(const f32, const f32);
@@ -675,7 +673,7 @@ RM_INLINE f64 rm_pow2d(const f64 x) {
 }
 RM_INLINE f32 rm_rsqrtf(const f32 x) {
     if (x < 0) return RM_NAN_F;
-    if (x == 0) return RM_PINF_F;
+    if (x == 0) return RM_INF_F;
     f32_cvt c;
     f32 xh;
 
@@ -693,7 +691,7 @@ RM_INLINE f32 rm_rsqrtf(const f32 x) {
 }
 RM_INLINE f64 rm_rsqrtd(const f64 x) {
     if (x < 0) return RM_NAN;
-    if (x == 0) return RM_PINF;
+    if (x == 0) return RM_INF;
     f64_cvt c;
     f64 xh;
 
