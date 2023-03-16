@@ -461,37 +461,37 @@ extern "C" {
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
 
-#define rmm_load(v) _mm_load_ps(v)
-#define rmm_store(v, a) _mm_store_ps(v, a)
-#define rmm_set(x, y, z, w) _mm_set_ps(w, z, y, x)
-#define rmm_set1(x) _mm_set_ps1(x)
-#define rmm_unpack_lo(a, b) _mm_unpacklo_ps(a, b)
-#define rmm_unpack_hi(a, b) _mm_unpackhi_ps(a, b)
-#define rmm_add(a, b) _mm_add_ps(a, b)
-#define rmm_sub(a, b) _mm_sub_ps(a, b)
-#define rmm_mul(a, b) _mm_mul_ps(a, b)
-#define rmm_div(a, b) _mm_div_ps(a, b)
-#define rmm_min(a, b) _mm_min_ps(a, b)
-#define rmm_max(a, b) _mm_max_ps(a, b)
-#define rmm_abs(x) _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), x)
-#define rmm_neg(x) rmm_sub(rmm_set1(0.0F), x)
-#define rmm_cvts32_f32(x) _mm_cvtepi32_ps(x)
-#define rmm_cvtf32_s32(x) _mm_cvtps_epi32(x)
-#define rmm_cvttf32_s32(x) _mm_cvttps_epi32(x)
-#define rmm_shuffle(v, x, y, z, w) _mm_shuffle_ps(v, v, _MM_SHUFFLE(w, z, y, x))
-#define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps(v, u, _MM_SHUFFLE(x, y, z, w))
+#define rmm_load(v) _mm_load_ps((v))
+#define rmm_store(v, a) _mm_store_ps((v), (a))
+#define rmm_set(x, y, z, w) _mm_set_ps((w), (z), (y), (x))
+#define rmm_set1(x) _mm_set_ps1((x))
+#define rmm_unpack_lo(a, b) _mm_unpacklo_ps((a), (b))
+#define rmm_unpack_hi(a, b) _mm_unpackhi_ps((a), (b))
+#define rmm_add(a, b) _mm_add_ps((a), (b))
+#define rmm_sub(a, b) _mm_sub_ps((a), (b))
+#define rmm_mul(a, b) _mm_mul_ps((a), (b))
+#define rmm_div(a, b) _mm_div_ps((a), (b))
+#define rmm_min(a, b) _mm_min_ps((a), (b))
+#define rmm_max(a, b) _mm_max_ps((a), (b))
+#define rmm_abs(x) _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), (x))
+#define rmm_neg(x) rmm_sub(rmm_set1(0.0F), (x))
+#define rmm_cvts32_f32(x) _mm_cvtepi32_ps((x))
+#define rmm_cvtf32_s32(x) _mm_cvtps_epi32((x))
+#define rmm_cvttf32_s32(x) _mm_cvttps_epi32((x))
+#define rmm_shuffle(v, x, y, z, w) _mm_shuffle_ps((v), (v), _MM_SHUFFLE((w), (z), (y), (x)))
+#define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps((v), (u), _MM_SHUFFLE((w), (z), (y), (x)))
 #endif /* RM_SSE_ENABLE */
 
 #if RM_NEON_ENABLE
 #include <arm_neon.h>
 
-#define rmm_load(v) vld1q_f32(v)
-#define rmm_store(v, a) vst1q_f32(v, a)
-#define rmm_set(x, y, z, w) ((RM_VEC){x, y, z, w})
-#define rmm_set1(x) vdupq_n_f32(x)
+#define rmm_load(v) vld1q_f32((v))
+#define rmm_store(v, a) vst1q_f32((v), (a))
+#define rmm_set(x, y, z, w) ((RM_VEC){(x), (y), (z), (w)})
+#define rmm_set1(x) vdupq_n_f32((x))
 #if defined(__aarch64__)
-#define rmm_unpack_lo(a, b) vzip1q_f32(a, b)
-#define rmm_unpack_hi(a, b) vzip2q_f32(a, b)
+#define rmm_unpack_lo(a, b) vzip1q_f32((a), (b))
+#define rmm_unpack_hi(a, b) vzip2q_f32((a), (b))
 #else
 #define rmm_unpack_lo(a, b) do {                         \
     float32x2x2_t res;                                   \
@@ -508,17 +508,17 @@ extern "C" {
     return vcombine_f32(res.val[0], res.val[1]);           \
 } while(0);
 #endif /* __aarch64__ */
-#define rmm_add(a, b) vaddq_f32(a, b)
-#define rmm_sub(a, b) vsubq_f32(a, b)
-#define rmm_mul(a, b) vmulq_f32(a, b)
-#define rmm_div(a, b) vdivq_f32(a, b)
-#define rmm_min(a, b) vminq_f32(a, b)
-#define rmm_max(a, b) vmaxq_f32(a, b)
-#define rmm_abs(x) vabsq_f32(x)
-#define rmm_neg(x) vnegq_f32(x)
-#define rmm_cvts32_f32(x) vcvtq_f32_s32(x)
-#define rmm_cvtf32_s32(x) vcvtnq_s32_f32(x)
-#define rmm_cvttf32_s32(x) vcvtq_s32_f32(x)
+#define rmm_add(a, b) vaddq_f32((a), (b))
+#define rmm_sub(a, b) vsubq_f32((a), (b))
+#define rmm_mul(a, b) vmulq_f32((a), (b))
+#define rmm_div(a, b) vdivq_f32((a), (b))
+#define rmm_min(a, b) vminq_f32((a), (b))
+#define rmm_max(a, b) vmaxq_f32((a), (b))
+#define rmm_abs(x) vabsq_f32((x))
+#define rmm_neg(x) vnegq_f32((x))
+#define rmm_cvts32_f32(x) vcvtq_f32_s32((x))
+#define rmm_cvtf32_s32(x) vcvtnq_s32_f32((x))
+#define rmm_cvttf32_s32(x) vcvtq_s32_f32((x))
 /* OBS!! this may not work and has not been tested: */
 #if 0
 #define rmm_shuffle(v, x, y, z, w) do {
@@ -569,8 +569,8 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 }
 
 #define rmm_trunc(x) rmm_cvts32_f32(rmm_cvttf32_s32((x)))
-#define rmm_mod(a, b) rmm_sub(a, rmm_mul(rmm_trunc(rmm_div(a, b)), b))
-#define rmm_fmadd(a, b, c) rmm_add(rmm_mul(a, b), c)
+#define rmm_mod(a, b) rmm_sub((a), rmm_mul(rmm_trunc(rmm_div((a), (b))), (b)))
+#define rmm_fmadd(a, b, c) rmm_add(rmm_mul((a), (b)), (c))
 #endif /* RM_SIMD */
 
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
@@ -580,13 +580,13 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 #define RM_POW2(x) ((x) * (x))
 #define RM_POW4(x) (RM_POW2(RM_POW2((x))))
 
-#define RM_VEC2_FILL(x) (vec2){x, x}
-#define RM_VEC3_FILL(x) (vec3){x, x, x}
-#define RM_VEC4_FILL(x) (vec4){x, x, x, x}
+#define RM_VEC2_FILL(x) (vec2){(x), (x)}
+#define RM_VEC3_FILL(x) (vec3){(x), (x), (x)}
+#define RM_VEC4_FILL(x) (vec4){(x), (x), (x), (x)}
 
-#define RM_MAT2_FILL(x) (mat2){{RM_VEC2_FILL(x), RM_VEC2_FILL(x)}}
-#define RM_MAT3_FILL(x) (mat3){{RM_VEC3_FILL(x), RM_VEC3_FILL(x), RM_VEC3_FILL(x)}}
-#define RM_MAT4_FILL(x) (mat4){{RM_VEC4_FILL(x), RM_VEC4_FILL(x), RM_VEC4_FILL(x), RM_VEC4_FILL(x)}}
+#define RM_MAT2_FILL(x) (mat2){{RM_VEC2_FILL((x)), RM_VEC2_FILL((x))}}
+#define RM_MAT3_FILL(x) (mat3){{RM_VEC3_FILL((x)), RM_VEC3_FILL((x)), RM_VEC3_FILL((x))}}
+#define RM_MAT4_FILL(x) (mat4){{RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x))}}
 
 #define RM_MAT2_IDENTITY (mat2){{{1, 0}, {0, 1}}}
 #define RM_MAT3_IDENTITY (mat3){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}
@@ -676,7 +676,7 @@ RM_INLINE f64 rm_pow2d(const f64 x) {
 }
 RM_INLINE f32 rm_rsqrtf(const f32 x) {
     if (x < 0) return RM_NAN_F;
-    if (x == 0) return RM_INF_F;
+    if (rm_eqf(x, 0)) return RM_INF_F;
     f32_cvt c;
     f32 xh;
 
@@ -694,7 +694,7 @@ RM_INLINE f32 rm_rsqrtf(const f32 x) {
 }
 RM_INLINE f64 rm_rsqrtd(const f64 x) {
     if (x < 0) return RM_NAN;
-    if (x == 0) return RM_INF;
+    if (rm_eqd(x, 0)) return RM_INF;
     f64_cvt c;
     f64 xh;
 
