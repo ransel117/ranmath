@@ -111,12 +111,12 @@ typedef union RM_ALIGN(16) mat2 mat2;
 typedef union RM_ALIGN(16) mat3 mat3;
 typedef union RM_ALIGN(16) mat4 mat4;
 
-union f32_cvt {
+union RM_ALIGN(4) f32_cvt {
     f32 f;
     i32 i;
     u32 u;
 };
-union f64_cvt {
+union RM_ALIGN(8) f64_cvt {
     f64 f;
     i64 i;
     u64 u;
@@ -209,8 +209,8 @@ union RM_ALIGN(4) vec4_cvt {
 #define RM_DBL_EPSILON 2.220446049250313080847263336181640625000000000000E-16
 #define RM_NAN         (f64_cvt){.u = 0x7FFFFFFFFFFFFFFF}.f
 #define RM_NAN_F       (f32_cvt){.u = 0x7FFFFFFF}.f
-#define RM_INF        (f64_cvt){.u = 0x7FF0000000000000}.f
-#define RM_INF_F      (f32_cvt){.u = 0x7F800000}.f
+#define RM_INF         (f64_cvt){.u = 0x7FF0000000000000}.f
+#define RM_INF_F       (f32_cvt){.u = 0x7F800000}.f
 
 /* ----------------- METHODS ----------------- */
 RM_INLINE bool rm_eqf(const f32, const f32);
@@ -456,6 +456,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if RM_SIMD
+#define _MM_SHUFFLE(x, y, z, w) (((w) << 6) | ((z) << 4) | ((y) << 2) | ((x)))
+
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
 
@@ -477,7 +479,7 @@ extern "C" {
 #define rmm_cvtf32_s32(x) _mm_cvtps_epi32(x)
 #define rmm_cvttf32_s32(x) _mm_cvttps_epi32(x)
 #define rmm_shuffle(v, x, y, z, w) _mm_shuffle_ps(v, v, _MM_SHUFFLE(w, z, y, x))
-#define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps(v, u, _MM_SHUFFLE(w, z, y, x))
+#define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps(v, u, _MM_SHUFFLE(x, y, z, w))
 #endif /* RM_SSE_ENABLE */
 
 #if RM_NEON_ENABLE
@@ -568,6 +570,7 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 
 #define rmm_trunc(x) rmm_cvts32_f32(rmm_cvttf32_s32((x)))
 #define rmm_mod(a, b) rmm_sub(a, rmm_mul(rmm_trunc(rmm_div(a, b)), b))
+#define rmm_fmadd(a, b, c) rmm_add(rmm_mul(a, b), c)
 #endif /* RM_SIMD */
 
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
@@ -1748,28 +1751,42 @@ RM_INLINE mat2 rm_mat2_zero(void) {
     return RM_MAT2_FILL(0);
 }
 RM_INLINE mat2 rm_mat2_mul(const mat2 a, const mat2 b) {
-    vec2 c1, c2;
     mat2 dest;
+    #if RM_SIMD
+    RM_VEC x0, x1, x2;
+
+    x0 = rmm_load(a.rawv);
+    x1 = rmm_load(b.rawv);
+
+    x2 = rmm_shuffle(x1, 0, 0, 2, 2);
+    x1 = rmm_shuffle(x1, 1, 1, 3, 3);
+
+    rmm_store(dest.rawv, rmm_fmadd(rmm_unpack_lo(x0, x0), x2, rmm_mul(rmm_unpack_hi(x0, x0), x1)));
+    #else
+    vec2 c1, c2;
 
     c1 = rm_vec2_add(rm_vec2_scale(a.cols[0], b.cols[0].x), rm_vec2_scale(a.cols[1], b.cols[0].y));
     c2 = rm_vec2_add(rm_vec2_scale(a.cols[0], b.cols[1].x), rm_vec2_scale(a.cols[1], b.cols[1].y));
 
     dest = (mat2){{c1, c2}};
-
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE vec2 rm_mat2_mulv(const mat2 m, const vec2 v) {
     return rm_vec2_add(rm_vec2_scale(m.cols[0], v.x), rm_vec2_scale(m.cols[1], v.y));
 }
 RM_INLINE mat2 rm_mat2_transpose(const mat2 m) {
-    vec2 c1, c2;
     mat2 dest;
+    #if RM_SIMD
+    rmm_store(dest.rawv, rmm_shuffle(rmm_load(m.rawv), 0, 2, 1, 3));
+    #else
+    vec2 c1, c2;
 
     c1 = (vec2){m.cols[0].x, m.cols[1].x};
     c2 = (vec2){m.cols[0].y, m.cols[1].y};
 
     dest = (mat2){{c1, c2}};
-
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE f32 rm_mat2_trace(const mat2 m) {
@@ -1794,21 +1811,19 @@ RM_INLINE f32 rm_mat2_det(const mat2 m) {
 }
 RM_INLINE mat2 rm_mat2_inv(const mat2 m) {
     f32 det;
-    vec2 c1, c2, tmp;
     mat2 dest;
 
     det = 1.0F / (m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x);
+    #if RM_SIMD
+    rmm_store(dest.rawv, rmm_mul(rmm_shuffle(rmm_load(m.rawv), 3, 1, 2, 0), rmm_set(det, -det, -det, det)));
+    #else
+    vec2 c1, c2;
 
-    c1 = rm_vec2_scale(m.cols[0], det);
-    c2 = rm_vec2_scale(m.cols[1], det);
-
-    tmp = rm_vec2_copy(c1);
-
-    c1 = (vec2){c2.y, -tmp.y};
-    c2 = (vec2){-c2.x, tmp.x};
+    c1 = (vec2){ m.rawv[3] * det, -m.rawv[1] * det};
+    c2 = (vec2){-m.rawv[2] * det,  m.rawv[0] * det};
 
     dest = (mat2){{c1, c2}};
-
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE void rm_mat2_swap_col(mat2 m, const u32 col1, const u32 col2) {
@@ -2063,10 +2078,8 @@ RM_INLINE vec4 rm_mat4_mulv(const mat4 m, const vec4 v) {
     #if RM_SIMD
     RM_VEC x0, x1;
 
-    x0 = rmm_mul(rmm_load(m.raw[0]), rmm_set1(v.x));
-    x0 = rmm_add(x0, rmm_mul(rmm_load(m.raw[1]), rmm_set1(v.y)));
-    x1 = rmm_mul(rmm_load(m.raw[2]), rmm_set1(v.z));
-    x1 = rmm_add(x1, rmm_mul(rmm_load(m.raw[3]), rmm_set1(v.w)));
+    x0 = rmm_add(rmm_mul(rmm_load(m.raw[0]), rmm_set1(v.x)), rmm_mul(rmm_load(m.raw[1]), rmm_set1(v.y)));
+    x1 = rmm_add(rmm_mul(rmm_load(m.raw[2]), rmm_set1(v.z)), rmm_mul(rmm_load(m.raw[3]), rmm_set1(v.w)));
 
     rmm_store(dest.raw, rmm_add(x0, x1));
     #else
