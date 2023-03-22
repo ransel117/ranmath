@@ -402,8 +402,8 @@ RM_INLINE f32  rm_mat2_trace(const mat2);
 RM_INLINE mat2 rm_mat2_scale(const mat2, const f32);
 RM_INLINE f32  rm_mat2_det(const mat2);
 RM_INLINE mat2 rm_mat2_inv(const mat2);
-RM_INLINE void rm_mat2_swap_col(mat2, const u32, const u32);
-RM_INLINE void rm_mat2_swap_row(mat2, const u32, const u32);
+RM_INLINE mat2 rm_mat2_swap_col(const mat2, const u32, const u32);
+RM_INLINE mat2 rm_mat2_swap_row(const mat2, const u32, const u32);
 RM_INLINE f32  rm_mat2_rmc(const vec2, const mat2, const vec2);
 
 RM_INLINE mat3 rm_mat3_copy(const mat3);
@@ -417,8 +417,8 @@ RM_INLINE f32  rm_mat3_trace(const mat3);
 RM_INLINE mat3 rm_mat3_scale(const mat3, const f32);
 RM_INLINE f32  rm_mat3_det(const mat3);
 RM_INLINE mat3 rm_mat3_inv(const mat3);
-RM_INLINE void rm_mat3_swap_col(mat3, const u32, const u32);
-RM_INLINE void rm_mat3_swap_row(mat3, const u32, const u32);
+RM_INLINE mat3 rm_mat3_swap_col(const mat3, const u32, const u32);
+RM_INLINE mat3 rm_mat3_swap_row(const mat3, const u32, const u32);
 RM_INLINE f32  rm_mat3_rmc(const vec3, const mat3, const vec3);
 
 RM_INLINE mat4 rm_mat4_copy(const mat4);
@@ -440,8 +440,8 @@ RM_INLINE mat4 rm_mat4_scale(const mat4, const f32);
 RM_INLINE mat4 rm_mat4_scale_aniso(const mat4, const f32, const f32, const f32);
 RM_INLINE f32  rm_mat4_det(const mat4);
 RM_INLINE mat4 rm_mat4_inv(const mat4);
-RM_INLINE void rm_mat4_swap_col(mat4, const u32, const u32);
-RM_INLINE void rm_mat4_swap_row(mat4, const u32, const u32);
+RM_INLINE mat4 rm_mat4_swap_col(const mat4, const u32, const u32);
+RM_INLINE mat4 rm_mat4_swap_row(const mat4, const u32, const u32);
 RM_INLINE f32  rm_mat4_rmc(const vec4, const mat4, const vec4);
 RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f32, const f32);
 
@@ -461,25 +461,26 @@ extern "C" {
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
 
-#define rmm_load(v) _mm_load_ps((v))
-#define rmm_store(v, a) _mm_store_ps((v), (a))
-#define rmm_set(x, y, z, w) _mm_set_ps((w), (z), (y), (x))
-#define rmm_set1(x) _mm_set_ps1((x))
-#define rmm_unpack_lo(a, b) _mm_unpacklo_ps((a), (b))
-#define rmm_unpack_hi(a, b) _mm_unpackhi_ps((a), (b))
-#define rmm_add(a, b) _mm_add_ps((a), (b))
-#define rmm_sub(a, b) _mm_sub_ps((a), (b))
-#define rmm_mul(a, b) _mm_mul_ps((a), (b))
-#define rmm_div(a, b) _mm_div_ps((a), (b))
-#define rmm_min(a, b) _mm_min_ps((a), (b))
-#define rmm_max(a, b) _mm_max_ps((a), (b))
-#define rmm_abs(x) _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), (x))
-#define rmm_neg(x) rmm_sub(rmm_set1(0.0F), (x))
-#define rmm_cvts32_f32(x) _mm_cvtepi32_ps((x))
-#define rmm_cvtf32_s32(x) _mm_cvtps_epi32((x))
-#define rmm_cvttf32_s32(x) _mm_cvttps_epi32((x))
-#define rmm_shuffle(v, x, y, z, w) _mm_shuffle_ps((v), (v), _MM_SHUFFLE((w), (z), (y), (x)))
+#define rmm_load(v)                    _mm_load_ps((v))
+#define rmm_store(v, a)                _mm_store_ps((v), (a))
+#define rmm_set(x, y, z, w)            _mm_set_ps((w), (z), (y), (x))
+#define rmm_set1(x)                    _mm_set_ps1((x))
+#define rmm_unpack_lo(a, b)            _mm_unpacklo_ps((a), (b))
+#define rmm_unpack_hi(a, b)            _mm_unpackhi_ps((a), (b))
+#define rmm_add(a, b)                  _mm_add_ps((a), (b))
+#define rmm_sub(a, b)                  _mm_sub_ps((a), (b))
+#define rmm_mul(a, b)                  _mm_mul_ps((a), (b))
+#define rmm_div(a, b)                  _mm_div_ps((a), (b))
+#define rmm_min(a, b)                  _mm_min_ps((a), (b))
+#define rmm_max(a, b)                  _mm_max_ps((a), (b))
+#define rmm_abs(x)                     _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), (x))
+#define rmm_neg(x)                     rmm_sub(rmm_set1(0.0F), (x))
+#define rmm_cvts32_f32(x)              _mm_cvtepi32_ps((x))
+#define rmm_cvtf32_s32(x)              _mm_cvtps_epi32((x))
+#define rmm_cvttf32_s32(x)             _mm_cvttps_epi32((x))
+#define rmm_shuffle(v, x, y, z, w)     _mm_shuffle_ps((v), (v), _MM_SHUFFLE((w), (z), (y), (x)))
 #define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps((v), (u), _MM_SHUFFLE((w), (z), (y), (x)))
+#define rmm_fmadd(a, b, c)             rmm_add(rmm_mul((a), (b)), (c))
 #endif /* RM_SSE_ENABLE */
 
 #if RM_NEON_ENABLE
@@ -493,20 +494,20 @@ extern "C" {
 #define rmm_unpack_lo(a, b) vzip1q_f32((a), (b))
 #define rmm_unpack_hi(a, b) vzip2q_f32((a), (b))
 #else
-#define rmm_unpack_lo(a, b) do {                         \
-    float32x2x2_t res;                                   \
-                                                         \
-    res = vzip_f32(vget_low_f32(a), vget_low_f32(b));    \
-                                                         \
-    return vcombine_f32(res.val[0], res.val[1]);         \
-} while(0);
-#define rmm_unpack_hi(a, b) do {                           \
-    float32x2x2_t res;                                     \
-                                                           \
-    res = vzip_f32(vget_high_f32(a), vget_high_f32(b));    \
-                                                           \
-    return vcombine_f32(res.val[0], res.val[1]);           \
-} while(0);
+RM_INLINE RM_VEC rmm_unpack_lo(RM_VEC a, RM_VEC b) {
+    float32x2x2_t res;
+
+    res = vzip_f32(vget_low_f32(a), vget_low_f32(b));
+
+    return vcombine_f32(res.val[0], res.val[1]);
+}
+RM_INLINE RM_VEC rmm_unpack_hi(RM_VEC a, RM_VEC b) {
+    float32x2x2_t res;
+
+    res = vzip_f32(vget_high_f32(a), vget_high_f32(b));
+
+    return vcombine_f32(res.val[0], res.val[1]);
+}
 #endif /* __aarch64__ */
 #define rmm_add(a, b) vaddq_f32((a), (b))
 #define rmm_sub(a, b) vsubq_f32((a), (b))
@@ -519,32 +520,21 @@ extern "C" {
 #define rmm_cvts32_f32(x) vcvtq_f32_s32((x))
 #define rmm_cvtf32_s32(x) vcvtnq_s32_f32((x))
 #define rmm_cvttf32_s32(x) vcvtq_s32_f32((x))
-/* OBS!! this may not work and has not been tested: */
-#if 0
-#define rmm_shuffle(v, x, y, z, w) do {
-    u32 control_element[4];
-    uint8x8_t rl, rh;
-    uint32x2_t idx;
-    int8x8x2_t tbl;
+RM_INLINE RM_VEC rmm_shuffle(RM_VEC v, u32 x, u32 y, u32 z, u32 w) {
+    uint32_t imm;
 
-    control_element[0] = 0x03020100; /* RM_SWIZZLE_X */
-    control_element[1] = 0x07060504; /* RM_SWIZZLE_Y */
-    control_element[2] = 0x0B0A0908; /* RM_SWIZZLE_Z */
-    control_element[3] = 0x0F0E0D0C; /* RM_SWIZZLE_W */
+    imm = _MM_SHUFFLE(w, z, y, x);
 
+    return rmm_set(v[imm & 0x3], v[(imm >> 2) & 0x3], v[(imm >> 4) & 0x3], v[(imm >> 6) & 0x3]);
+}
+RM_INLINE RM_VEC rmm_shuffle2(RM_VEC v, RM_VEC u, u32 x, u32 y, u32 z, u32 w) {
+    uint32_t imm;
 
-    tbl.val[0] = vget_low_f32(v);
-    tbl.val[1] = vget_high_f32(v);
+    imm = _MM_SHUFFLE(w, z, y, x);
 
-    idx = vcreate_u32(((u64)control_element[x]) | (((u64)control_element[y]) << 32));
-    rl = vtbl2_u8(tbl, idx);
-
-    idx = vcreate_u32(((u64)control_element[z]) | (((u64)control_element[w]) << 32));
-    rh = vtbl2_u8(tbl, idx);
-
-    return vcombine_f32(rl, rh);
-} while(0);
-#endif
+    return rmm_set(v[imm & 0x3], v[(imm >> 2) & 0x3], u[(imm >> 4) & 0x3], u[(imm >> 6) & 0x3]);
+}
+#define rmm_fmadd(a, b, c) vfmaq_f32((a), (b), (c))
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE f32 rmm_hadd(RM_VEC x) {
@@ -570,7 +560,7 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 
 #define rmm_trunc(x) rmm_cvts32_f32(rmm_cvttf32_s32((x)))
 #define rmm_mod(a, b) rmm_sub((a), rmm_mul(rmm_trunc(rmm_div((a), (b))), (b)))
-#define rmm_fmadd(a, b, c) rmm_add(rmm_mul((a), (b)), (c))
+#define rmm_fmadds(a, b, c) rmm_fmadd((a), (b), rmm_set1((c)))
 #endif /* RM_SIMD */
 
 #define RM_ABS(x) (((x) < 0) ? -(x) : (x))
@@ -954,7 +944,7 @@ RM_INLINE f64 rm_deg2radd(const f64 x) {
 RM_INLINE vec2 rm_vec2_copy(const vec2 v) {
     vec2 dest;
 
-    dest = v;
+    dest = (vec2){v.x, v.y};
 
     return dest;
 }
@@ -1156,7 +1146,7 @@ RM_INLINE vec2 rm_vec2_center(const vec2 a, const vec2 b) {
 RM_INLINE vec3 rm_vec3_copy(const vec3 v) {
     vec3 dest;
 
-    dest = v;
+    dest = (vec3){v.x, v.y, v.z};
 
     return dest;
 }
@@ -1391,7 +1381,7 @@ RM_INLINE vec3 rm_vec3_center(const vec3 a, const vec3 b) {
 RM_INLINE vec4 rm_vec4_copy(const vec4 v) {
     vec4 dest;
 
-    dest = v;
+    dest = (vec4){v.x, v.y, v.z, v.w};
 
     return dest;
 }
@@ -1732,9 +1722,12 @@ RM_INLINE vec4 rm_vec4_center(const vec4 a, const vec4 b) {
 
 RM_INLINE mat2 rm_mat2_copy(const mat2 m) {
     mat2 dest;
-
-    dest = m;
-
+    #if RM_SIMD
+    rmm_store(dest.rawv, rmm_load(m.rawv));
+    #else
+    dest.cols[0] = rm_vec2_copy(m.cols[0]);
+    dest.cols[1] = rm_vec2_copy(m.cols[1]);
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE mat2 rm_mat2_identity(void) {
@@ -1826,24 +1819,28 @@ RM_INLINE mat2 rm_mat2_inv(const mat2 m) {
     #endif /* RM_SIMD */
     return dest;
 }
-RM_INLINE void rm_mat2_swap_col(mat2 m, const u32 col1, const u32 col2) {
-    vec2 tmp;
+RM_INLINE mat2 rm_mat2_swap_col(const mat2 m, const u32 col1, const u32 col2) {
+    mat2 dest;
 
-    tmp = rm_vec2_copy(m.cols[col1]);
+    dest = rm_mat2_copy(m);
 
-    m.cols[col1] = rm_vec2_copy(m.cols[col2]);
-    m.cols[col2] = rm_vec2_copy(tmp);
+    dest.cols[col1] = rm_vec2_copy(m.cols[col2]);
+    dest.cols[col2] = rm_vec2_copy(m.cols[col1]);
+
+    return dest;
 }
-RM_INLINE void rm_mat2_swap_row(mat2 m, const u32 row1, const u32 row2) {
-    vec2 tmp;
+RM_INLINE mat2 rm_mat2_swap_row(const mat2 m, const u32 row1, const u32 row2) {
+    mat2 dest;
 
-    tmp = (vec2){m.raw[0][row1], m.raw[1][row1]};
+    dest = rm_mat2_copy(m);
 
-    m.raw[0][row1] = m.raw[0][row2];
-    m.raw[1][row1] = m.raw[1][row2];
+    dest.raw[0][row1] = m.raw[0][row2];
+    dest.raw[0][row2] = m.raw[0][row1];
 
-    m.raw[0][row2] = tmp.x;
-    m.raw[1][row2] = tmp.y;
+    dest.raw[1][row1] = m.raw[1][row2];
+    dest.raw[1][row2] = m.raw[1][row1];
+
+    return dest;
 }
 RM_INLINE f32 rm_mat2_rmc(const vec2 r, const mat2 m, const vec2 c) {
     return rm_vec2_dot(r, rm_mat2_mulv(m, c));
@@ -1852,7 +1849,9 @@ RM_INLINE f32 rm_mat2_rmc(const vec2 r, const mat2 m, const vec2 c) {
 RM_INLINE mat3 rm_mat3_copy(const mat3 m) {
     mat3 dest;
 
-    dest = m;
+    dest.cols[0] = rm_vec3_copy(m.cols[0]);
+    dest.cols[1] = rm_vec3_copy(m.cols[1]);
+    dest.cols[2] = rm_vec3_copy(m.cols[2]);
 
     return dest;
 }
@@ -1951,26 +1950,30 @@ RM_INLINE mat3 rm_mat3_inv(const mat3 m) {
 
     return rm_mat3_scale(dest, det);
 }
-RM_INLINE void rm_mat3_swap_col(mat3 m, const u32 col1, const u32 col2) {
-    vec3 tmp;
+RM_INLINE mat3 rm_mat3_swap_col(const mat3 m, const u32 col1, const u32 col2) {
+    mat3 dest;
 
-    tmp = rm_vec3_copy(m.cols[col1]);
+    dest = rm_mat3_copy(m);
 
-    m.cols[col1] = rm_vec3_copy(m.cols[col2]);
-    m.cols[col2] = rm_vec3_copy(tmp);
+    dest.cols[col1] = rm_vec3_copy(m.cols[col2]);
+    dest.cols[col2] = rm_vec3_copy(m.cols[col1]);
+
+    return dest;
 }
-RM_INLINE void rm_mat3_swap_row(mat3 m, const u32 row1, const u32 row2) {
-    vec3 tmp;
+RM_INLINE mat3 rm_mat3_swap_row(const mat3 m, const u32 row1, const u32 row2) {
+    mat3 dest;
 
-    tmp = (vec3){m.raw[0][row1], m.raw[1][row1], m.raw[2][row1]};
+    dest = rm_mat3_copy(m);
 
-    m.raw[0][row1] = m.raw[0][row2];
-    m.raw[1][row1] = m.raw[1][row2];
-    m.raw[2][row1] = m.raw[2][row2];
+    dest.raw[0][row1] = m.raw[0][row2];
+    dest.raw[1][row1] = m.raw[1][row2];
+    dest.raw[2][row1] = m.raw[2][row2];
 
-    m.raw[0][row2] = tmp.x;
-    m.raw[1][row2] = tmp.y;
-    m.raw[2][row2] = tmp.z;
+    dest.raw[0][row2] = m.raw[0][row1];
+    dest.raw[1][row2] = m.raw[1][row1];
+    dest.raw[2][row2] = m.raw[2][row1];
+
+    return dest;
 }
 RM_INLINE f32 rm_mat3_rmc(const vec3 r, const mat3 m, const vec3 c) {
     return rm_vec3_dot(r, rm_mat3_mulv(m, c));
@@ -1978,9 +1981,17 @@ RM_INLINE f32 rm_mat3_rmc(const vec3 r, const mat3 m, const vec3 c) {
 
 RM_INLINE mat4 rm_mat4_copy(const mat4 m) {
     mat4 dest;
-
-    dest = m;
-
+    #if RM_SIMD
+    rmm_store(dest.raw[0], rmm_load(m.raw[0]));
+    rmm_store(dest.raw[1], rmm_load(m.raw[1]));
+    rmm_store(dest.raw[2], rmm_load(m.raw[2]));
+    rmm_store(dest.raw[3], rmm_load(m.raw[3]));
+    #else
+    dest.cols[0] = rm_vec4_copy(m.cols[0]);
+    dest.cols[1] = rm_vec4_copy(m.cols[1]);
+    dest.cols[2] = rm_vec4_copy(m.cols[2]);
+    dest.cols[3] = rm_vec4_copy(m.cols[3]);
+    #endif /* RM_SIMD */
     return dest;
 }
 RM_INLINE mat4 rm_mat4_identity(void) {
@@ -2247,28 +2258,32 @@ RM_INLINE mat4 rm_mat4_inv(const mat4 m) {
 
     return rm_mat4_scale(dest, det);
 }
-RM_INLINE void rm_mat4_swap_col(mat4 m, const u32 col1, const u32 col2) {
-    vec4 tmp;
+RM_INLINE mat4 rm_mat4_swap_col(const mat4 m, const u32 col1, const u32 col2) {
+    mat4 dest;
 
-    tmp = rm_vec4_copy(m.cols[col1]);
+    dest = rm_mat4_copy(m);
 
-    m.cols[col1] = rm_vec4_copy(m.cols[col2]);
-    m.cols[col2] = rm_vec4_copy(tmp);
+    dest.cols[col1] = rm_vec4_copy(m.cols[col2]);
+    dest.cols[col2] = rm_vec4_copy(m.cols[col1]);
+
+    return dest;
 }
-RM_INLINE void rm_mat4_swap_row(mat4 m, const u32 row1, const u32 row2) {
-    vec4 tmp;
+RM_INLINE mat4 rm_mat4_swap_row(const mat4 m, const u32 row1, const u32 row2) {
+    mat4 dest;
 
-    tmp = (vec4){m.raw[0][row1], m.raw[1][row1], m.raw[2][row1], m.raw[3][row1]};
+    dest = rm_mat4_copy(m);
 
-    m.raw[0][row1] = m.raw[0][row2];
-    m.raw[1][row1] = m.raw[1][row2];
-    m.raw[2][row1] = m.raw[2][row2];
-    m.raw[3][row1] = m.raw[3][row2];
+    dest.raw[0][row1] = m.raw[0][row2];
+    dest.raw[1][row1] = m.raw[1][row2];
+    dest.raw[2][row1] = m.raw[2][row2];
+    dest.raw[3][row1] = m.raw[3][row2];
 
-    m.raw[0][row2] = tmp.x;
-    m.raw[1][row2] = tmp.y;
-    m.raw[2][row2] = tmp.z;
-    m.raw[3][row2] = tmp.w;
+    dest.raw[0][row2] = m.raw[0][row1];
+    dest.raw[1][row2] = m.raw[1][row1];
+    dest.raw[2][row2] = m.raw[2][row1];
+    dest.raw[3][row2] = m.raw[3][row1];
+
+    return dest;
 }
 RM_INLINE f32 rm_mat4_rmc(const vec4 r, const mat4 m, const vec4 c) {
     return rm_vec4_dot(r, rm_mat4_mulv(m, c));
