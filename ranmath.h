@@ -455,6 +455,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if RM_SIMD
+#ifdef _MM_SHUFFLE
+#undef _MM_SHUFFLE
+#endif /* Check if already defined so it's not redefined */
+
 #define _MM_SHUFFLE(x, y, z, w) (((w) << 6) | ((z) << 4) | ((y) << 2) | ((x)))
 
 #if RM_SSE_ENABLE
