@@ -45,7 +45,6 @@ extern "C" {
 #ifndef RM_SSE_ENABLE
 #if defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
 #define RM_SSE_ENABLE 1
-#define RM_VEC __m128
 #else
 #define RM_SSE_ENABLE 0
 #endif /* Check for sse2 intrinsics*/
@@ -54,7 +53,6 @@ extern "C" {
 #ifndef RM_NEON_ENABLE
 #if defined(__ARM_NEON) || defined(__ARM_NEON__)
 #define RM_NEON_ENABLE 1
-#define RM_VEC float32x4_t
 #else
 #define RM_NEON_ENABLE 0
 #endif /* Check for neon intrinsics */
@@ -257,6 +255,7 @@ RM_INLINE f32 rm_wrap_maxf(const f32, const f32);
 RM_INLINE f64 rm_wrap_maxd(const f64, const f64);
 RM_INLINE f32 rm_wrapf(const f32, const f32, const f32);
 RM_INLINE f64 rm_wrapd(const f64, const f64, const f64);
+/* All trig functions have been approximated using lolremez; https://github.com/samhocevar/lolremez */
 RM_INLINE f32 rm_cosf(const f32);
 RM_INLINE f64 rm_cosd(const f64);
 RM_INLINE f32 rm_sinf(const f32);
@@ -269,11 +268,11 @@ RM_INLINE f32 rm_secf(const f32);
 RM_INLINE f64 rm_secd(const f64);
 RM_INLINE f32 rm_cscf(const f32);
 RM_INLINE f64 rm_cscd(const f64);
-/* OBS!! inverse trig functions are not implemented yet */
 RM_INLINE f32 rm_acosf(const f32);
 RM_INLINE f64 rm_acosd(const f64);
 RM_INLINE f32 rm_asinf(const f32);
 RM_INLINE f64 rm_asind(const f64);
+/* OBS!! inverse tan functions are not implemented yet */
 RM_INLINE f32 rm_atanf(const f32);
 RM_INLINE f64 rm_atand(const f64);
 RM_INLINE f32 rm_rad2degf(const f32);
@@ -461,6 +460,8 @@ extern "C" {
 #if RM_SSE_ENABLE
 #include <emmintrin.h>
 
+#define RM_VEC __m128
+
 #define rmm_load(v)                    _mm_load_ps((v))
 #define rmm_store(v, a)                _mm_store_ps((v), (a))
 #define rmm_set(x, y, z, w)            _mm_set_ps((w), (z), (y), (x))
@@ -485,6 +486,8 @@ extern "C" {
 
 #if RM_NEON_ENABLE
 #include <arm_neon.h>
+
+#define RM_VEC float32x4_t
 
 #define rmm_load(v) vld1q_f32((v))
 #define rmm_store(v, a) vst1q_f32((v), (a))
@@ -581,14 +584,6 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 #define RM_MAT2_IDENTITY (mat2){{{1, 0}, {0, 1}}}
 #define RM_MAT3_IDENTITY (mat3){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}
 #define RM_MAT4_IDENTITY (mat4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}}
-
-/* Stolen from: https://math.stackexchange.com/questions/3886552/bhaskara-approximation-of-cosx,
-* Claude Leibovici's answer (precalculated)
-*/
-#define RM_COS_APPR_A -0.132995644812022330410032839099700470577487194965079816065230286
-#define RM_COS_APPR_B  0.0032172781382535624048708288689972016965839213439467243797038973
-#define RM_COS_APPR_C  0.0336709157304375144254000370104015622020879871979042486728981326
-#define RM_COS_APPR_D  0.0004962828018660570906955733487210649504998482691550479603258607
 
 RM_INLINE bool rm_eqf(const f32 a, const f32 b) {
     return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= (f32_cvt){.u = 0x1A000019}.f;
@@ -852,37 +847,116 @@ RM_INLINE f64 rm_wrapd(const f64 val, const f64 min, const f64 max) {
     return min + rm_modd(tmax + rm_modd(val - min, tmax), tmax);
 }
 RM_INLINE f32 rm_cosf(const f32 x) {
-    f32 i, i2, i4;
-    f64 val;
+    f32 u, wx;
 
-    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
-    i2 = rm_pow2f(i);
-    i4 = rm_pow2f(i2);
+    wx = rm_wrapf(x, -RM_PI_2, RM_PI_2);
 
-    val = 1.0 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
-    val /= 1.0 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
-    val *= i;
+    u = 3.9912655e-19;
+    u = u * wx + 3.4017639e-60;
+    u = u * wx - 1.5612263e-16;
+    u = u * wx - 3.6215036e-59;
+    u = u * wx + 4.7794544e-14;
+    u = u * wx + 1.6072316e-58;
+    u = u * wx - 1.1470745e-11;
+    u = u * wx - 3.8464376e-58;
+    u = u * wx + 2.0876757e-9;
+    u = u * wx + 5.3567968e-58;
+    u = u * wx - 2.7557319e-7;
+    u = u * wx - 4.3586531e-58;
+    u = u * wx + 2.4801587e-5;
+    u = u * wx + 1.9621065e-58;
+    u = u * wx - 1.3888889e-3;
+    u = u * wx - 4.2462988e-59;
+    u = u * wx + 4.1666667e-2;
+    u = u * wx + 3.1625168e-60;
+    u = u * wx - 5e-1;
+    u = u * wx - 3.4703906e-62;
 
-    return -val;
+    return u * wx + 1;
 }
 RM_INLINE f64 rm_cosd(const f64 x) {
-    f64 i, i2, i4, val;
+    f64 u, wx;
 
-    i = RM_PI_2 - rm_absd(rm_wrap_maxd(x, RM_2PI) - RM_PI);
-    i2 = rm_pow2d(i);
-    i4 = rm_pow2d(i2);
+    wx = rm_wrapd(x, -RM_PI_2, RM_PI_2);
 
-    val = 1.0 + (RM_COS_APPR_A * i2) + (RM_COS_APPR_B * i4);
-    val /= 1.0 + (RM_COS_APPR_C * i2) + (RM_COS_APPR_D * i4);
-    val *= i;
+    u = 3.9912654640896781e-19;
+    u = u * wx - 4.1710881683800016e-125;
+    u = u * wx - 1.5612263430418807e-16;
+    u = u * wx + 3.8957082436971847e-124;
+    u = u * wx + 4.7794543940744223e-14;
+    u = u * wx - 1.4652529662436867e-123;
+    u = u * wx - 1.1470745126775755e-11;
+    u = u * wx + 2.808049472737082e-123;
+    u = u * wx + 2.0876756981654129e-9;
+    u = u * wx - 2.7937224805916421e-123;
+    u = u * wx - 2.7557319223933226e-7;
+    u = u * wx + 1.1463488482390069e-123;
+    u = u * wx + 2.4801587301587023e-5;
+    u = u * wx + 2.0548341185690209e-124;
+    u = u * wx - 1.3888888888888888e-3;
+    u = u * wx - 3.0786655408737294e-124;
+    u = u * wx + 4.1666666666666667e-2;
+    u = u * wx + 4.7364651421471611e-125;
+    u = u * wx - 5e-1;
+    u = u * wx + 7.9712727418282653e-126;
 
-    return -val;
+    return u * wx + 1;
 }
 RM_INLINE f32 rm_sinf(const f32 x) {
-    return -rm_cosf(x + RM_PI_2);
+    f32 u, wx;
+
+    wx = rm_wrapf(x, -RM_PI_2, RM_PI_2);
+
+    u = 1.0476743e-30f;
+    u = u * wx - 7.9707938e-18;
+    u = u * wx - 1.2277326e-29;
+    u = u * wx + 2.8100771e-15;
+    u = u * wx + 6.0976052e-29;
+    u = u * wx - 7.647121e-13;
+    u = u * wx - 1.671426e-28;
+    u = u * wx + 1.6059043e-10;
+    u = u * wx + 2.7589978e-28;
+    u = u * wx - 2.5052108e-8;
+    u = u * wx - 2.8075441e-28;
+    u = u * wx + 2.7557319e-6;
+    u = u * wx + 1.7314312e-28;
+    u = u * wx - 1.984127e-4;
+    u = u * wx - 6.1014107e-29;
+    u = u * wx + 8.3333333e-3;
+    u = u * wx + 1.08533e-29;
+    u = u * wx - 1.6666667e-1;
+    u = u * wx - 7.4359789e-31;
+    u = u * wx + 1;
+
+    return u * wx + 8.3360846e-33;
 }
 RM_INLINE f64 rm_sind(const f64 x) {
-    return -rm_cosd(x + RM_PI_2);
+    f64 u, wx;
+
+    wx = rm_wrapd(x, -RM_PI_2, RM_PI_2);
+
+    u = 7.6801785633015737e-73;
+    u = u * wx - 7.970793758390793e-18;
+    u = u * wx - 9.0001307111075785e-72;
+    u = u * wx + 2.8100771049480405e-15;
+    u = u * wx + 4.4699671877848799e-71;
+    u = u * wx - 7.6471209575736836e-13;
+    u = u * wx - 1.2252711255426201e-70;
+    u = u * wx + 1.605904302324813e-10;
+    u = u * wx + 2.0225365545381623e-70;
+    u = u * wx - 2.50521083756661e-8;
+    u = u * wx - 2.0581243740559842e-70;
+    u = u * wx + 2.7557319223912249e-6;
+    u = u * wx + 1.26925903237337e-70;
+    u = u * wx - 1.9841269841269508e-4;
+    u = u * wx - 4.4727569126625767e-71;
+    u = u * wx + 8.3333333333333325e-3;
+    u = u * wx + 7.9562209355903606e-72;
+    u = u * wx - 1.6666666666666667e-1;
+    u = u * wx - 5.4510878492684119e-73;
+    u = u * wx + 1;
+
+    return u * wx + 6.1109277161354271e-75;
 }
 RM_INLINE f32 rm_tanf(const f32 x) {
     return rm_sinf(x) / rm_cosf(x);
@@ -908,19 +982,118 @@ RM_INLINE f32 rm_cscf(const f32 x) {
 RM_INLINE f64 rm_cscd(const f64 x) {
     return 1.0 / rm_sind(x);
 }
-/* UNIMPLEMENTED: DON'T USE */
 RM_INLINE f32 rm_acosf(const f32 x) {
-    return 0;
+    f32 u, wx;
+
+    wx = rm_wrapf(x, -1, 1);
+
+    u = 3.2746921e-10;
+    u = u * wx - 4.4469136e+3;
+    u = u * wx - 1.699231e-9;
+    u = u * wx + 2.0796239e+4;
+    u = u * wx + 3.7578104e-9;
+    u = u * wx - 4.0958535e+4;
+    u = u * wx - 4.6153898e-9;
+    u = u * wx + 4.4122843e+4;
+    u = u * wx + 3.4378718e-9;
+    u = u * wx - 2.8251035e+4;
+    u = u * wx - 1.5913952e-9;
+    u = u * wx + 1.0933702e+4;
+    u = u * wx + 4.505914e-10;
+    u = u * wx - 2.4859131e+3;
+    u = u * wx - 7.3686135e-11;
+    u = u * wx + 3.0608094e+2;
+    u = u * wx + 6.1595331e-12;
+    u = u * wx - 1.7306201e+1;
+    u = u * wx - 2.0129396e-13;
+    u = u * wx - 7.1853541e-1;
+
+    return u * wx + 1.5707963;
 }
 RM_INLINE f64 rm_acosd(const f64 x) {
-    return 0;
+    f64 u, wx;
+
+    wx = rm_wrapd(x, -1, 1);
+
+    u = -5.4130790091039394e-28;
+    u = u * wx - 4.4480837030957942e+3;
+    u = u * wx + 2.8088414585483633e-27;
+    u = u * wx + 2.0801769015729236e+4;
+    u = u * wx - 6.2117021682647652e-27;
+    u = u * wx - 4.0969537399240268e+4;
+    u = u * wx + 7.6293071798295526e-27;
+    u = u * wx + 4.4134814439494655e+4;
+    u = u * wx - 5.6828654884956575e-27;
+    u = u * wx - 2.8258775791130758e+4;
+    u = u * wx + 2.630611595430223e-27;
+    u = u * wx + 1.093672698677737e+4;
+    u = u * wx - 7.448393617335392e-28;
+    u = u * wx - 2.4866073426040822e+3;
+    u = u * wx + 1.2180540096175114e-28;
+    u = u * wx + 3.0616723894904099e+2;
+    u = u * wx - 1.018191887981769e-29;
+    u = u * wx - 1.7311077585808664e+1;
+    u = u * wx + 3.3274663966689927e-31;
+    u = u * wx - 7.1845459696544851e-1;
+
+    return u * wx + 1.5707963267948966;
 }
 RM_INLINE f32 rm_asinf(const f32 x) {
-    return 0;
+    f32 u, wx;
+
+    wx = rm_wrapf(x, -1, 1);
+
+    u = -2.0602686e-10;
+    u = u * wx + 4.4469136e+3;
+    u = u * wx + 1.0690691e-9;
+    u = u * wx - 2.0796239e+4;
+    u = u * wx - 2.364222e-9;
+    u = u * wx + 4.0958535e+4;
+    u = u * wx + 2.903767e-9;
+    u = u * wx - 4.4122843e+4;
+    u = u * wx - 2.162933e-9;
+    u = u * wx + 2.8251035e+4;
+    u = u * wx + 1.0012244e-9;
+    u = u * wx - 1.0933702e+4;
+    u = u * wx - 2.8348904e-10;
+    u = u * wx + 2.4859131e+3;
+    u = u * wx + 4.6359544e-11;
+    u = u * wx - 3.0608094e+2;
+    u = u * wx - 3.8752629e-12;
+    u = u * wx + 1.7306201e+1;
+    u = u * wx + 1.2664386e-13;
+    u = u * wx + 7.1853541e-1;
+    return u * wx - 6.8948906e-16;
 }
 RM_INLINE f64 rm_asind(const f64 x) {
-    return 0;
+    f64 u, wx;
+
+    wx = rm_wrapd(x, -1, 1);
+
+    u = 1.1974955090042064e-28;
+    u = u * wx + 4.4480837030957942e+3;
+    u = u * wx - 6.2137926057600319e-28;
+    u = u * wx - 2.0801769015729236e+4;
+    u = u * wx + 1.3741690149466498e-27;
+    u = u * wx + 4.0969537399240268e+4;
+    u = u * wx - 1.6877753066774072e-27;
+    u = u * wx - 4.4134814439494655e+4;
+    u = u * wx + 1.2571783802348478e-27;
+    u = u * wx + 2.8258775791130758e+4;
+    u = u * wx - 5.8195078367857512e-28;
+    u = u * wx - 1.093672698677737e+4;
+    u = u * wx + 1.6477531347785027e-28;
+    u = u * wx + 2.4866073426040822e+3;
+    u = u * wx - 2.6946109668607808e-29;
+    u = u * wx - 3.0616723894904099e+2;
+    u = u * wx + 2.2524707492945266e-30;
+    u = u * wx + 1.7311077585808664e+1;
+    u = u * wx - 7.3611082706755614e-32;
+    u = u * wx + 7.1845459696544851e-1;
+
+    return u * wx + 4.0076297309073265e-34;
 }
+/* UNIMPLEMENTED: DON'T USE */
 RM_INLINE f32 rm_atanf(const f32 x) {
     return 0;
 }
