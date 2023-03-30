@@ -219,6 +219,9 @@ RM_INLINE i32 rm_facti(const i32);
 RM_INLINE i64 rm_factl(const i64);
 RM_INLINE i32 rm_powi(const i32, const i32);
 RM_INLINE i64 rm_powl(const i64, const i64);
+/* FP pow functions are not implemented yet */
+RM_INLINE f32 rm_powf(const f32, const f32);
+RM_INLINE f64 rm_powd(const f64, const f64);
 RM_INLINE i32 rm_pow2i(const i32);
 RM_INLINE i64 rm_pow2l(const i64);
 RM_INLINE f32 rm_pow2f(const f32);
@@ -272,9 +275,10 @@ RM_INLINE f32 rm_acosf(const f32);
 RM_INLINE f64 rm_acosd(const f64);
 RM_INLINE f32 rm_asinf(const f32);
 RM_INLINE f64 rm_asind(const f64);
-/* OBS!! inverse tan functions are not implemented yet */
 RM_INLINE f32 rm_atanf(const f32);
 RM_INLINE f64 rm_atand(const f64);
+RM_INLINE f32 rm_atan2f(const f32, const f32);
+RM_INLINE f64 rm_atan2d(const f64, const f64);
 RM_INLINE f32 rm_rad2degf(const f32);
 RM_INLINE f64 rm_rad2degd(const f64);
 RM_INLINE f32 rm_deg2radf(const f32);
@@ -493,10 +497,10 @@ extern "C" {
 
 #define RM_VEC float32x4_t
 
-#define rmm_load(v) vld1q_f32((v))
-#define rmm_store(v, a) vst1q_f32((v), (a))
-#define rmm_set(x, y, z, w) ((RM_VEC){(x), (y), (z), (w)})
-#define rmm_set1(x) vdupq_n_f32((x))
+#define rmm_load(v)         vld1q_f32((v))
+#define rmm_store(v, a)     vst1q_f32((v), (a))
+#define rmm_set(x, y, z, w) (RM_VEC){(x), (y), (z), (w)}
+#define rmm_set1(x)         vdupq_n_f32((x))
 #if defined(__aarch64__)
 #define rmm_unpack_lo(a, b) vzip1q_f32((a), (b))
 #define rmm_unpack_hi(a, b) vzip2q_f32((a), (b))
@@ -516,17 +520,17 @@ RM_INLINE RM_VEC rmm_unpack_hi(RM_VEC a, RM_VEC b) {
     return vcombine_f32(res.val[0], res.val[1]);
 }
 #endif /* __aarch64__ */
-#define rmm_add(a, b) vaddq_f32((a), (b))
-#define rmm_sub(a, b) vsubq_f32((a), (b))
-#define rmm_mul(a, b) vmulq_f32((a), (b))
-#define rmm_div(a, b) vdivq_f32((a), (b))
-#define rmm_min(a, b) vminq_f32((a), (b))
-#define rmm_max(a, b) vmaxq_f32((a), (b))
-#define rmm_abs(x) vabsq_f32((x))
-#define rmm_neg(x) vnegq_f32((x))
-#define rmm_cvts32_f32(x) vcvtq_f32_s32((x))
-#define rmm_cvtf32_s32(x) vcvtnq_s32_f32((x))
-#define rmm_cvttf32_s32(x) vcvtq_s32_f32((x))
+#define rmm_add(a, b)       vaddq_f32((a), (b))
+#define rmm_sub(a, b)       vsubq_f32((a), (b))
+#define rmm_mul(a, b)       vmulq_f32((a), (b))
+#define rmm_div(a, b)       vdivq_f32((a), (b))
+#define rmm_min(a, b)       vminq_f32((a), (b))
+#define rmm_max(a, b)       vmaxq_f32((a), (b))
+#define rmm_abs(x)          vabsq_f32((x))
+#define rmm_neg(x)          vnegq_f32((x))
+#define rmm_cvts32_f32(x)   vcvtq_f32_s32((x))
+#define rmm_cvtf32_s32(x)   vcvtnq_s32_f32((x))
+#define rmm_cvttf32_s32(x)  vcvtq_s32_f32((x))
 RM_INLINE RM_VEC rmm_shuffle(RM_VEC v, u32 x, u32 y, u32 z, u32 w) {
     uint32_t imm;
 
@@ -541,7 +545,7 @@ RM_INLINE RM_VEC rmm_shuffle2(RM_VEC v, RM_VEC u, u32 x, u32 y, u32 z, u32 w) {
 
     return rmm_set(v[imm & 0x3], v[(imm >> 2) & 0x3], u[(imm >> 4) & 0x3], u[(imm >> 6) & 0x3]);
 }
-#define rmm_fmadd(a, b, c) vfmaq_f32((a), (b), (c))
+#define rmm_fmadd(a, b, c)  vfmaq_f32((a), (b), (c))
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE f32 rmm_hadd(RM_VEC x) {
@@ -565,25 +569,25 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
     return rmm_add(rmm_unpack_lo(s1, s2), rmm_unpack_hi(s1, s2));
 }
 
-#define rmm_trunc(x) rmm_cvts32_f32(rmm_cvttf32_s32((x)))
-#define rmm_mod(a, b) rmm_sub((a), rmm_mul(rmm_trunc(rmm_div((a), (b))), (b)))
+#define rmm_trunc(x)        rmm_cvts32_f32(rmm_cvttf32_s32((x)))
+#define rmm_mod(a, b)       rmm_sub((a), rmm_mul(rmm_trunc(rmm_div((a), (b))), (b)))
 #define rmm_fmadds(a, b, c) rmm_fmadd((a), (b), rmm_set1((c)))
 #endif /* RM_SIMD */
 
-#define RM_ABS(x) (((x) < 0) ? -(x) : (x))
-#define RM_MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define RM_MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define RM_ABS(x)               (((x) < 0) ? -(x) : (x))
+#define RM_MIN(a, b)            (((a) < (b)) ? (a) : (b))
+#define RM_MAX(a, b)            (((a) > (b)) ? (a) : (b))
 #define RM_CLAMP(val, min, max) (RM_MIN(RM_MAX((val), (min)), (max)))
-#define RM_POW2(x) ((x) * (x))
-#define RM_POW4(x) (RM_POW2(RM_POW2((x))))
+#define RM_POW2(x)              ((x) * (x))
+#define RM_POW4(x)              (RM_POW2(RM_POW2((x))))
 
-#define RM_VEC2_FILL(x) (vec2){(x), (x)}
-#define RM_VEC3_FILL(x) (vec3){(x), (x), (x)}
-#define RM_VEC4_FILL(x) (vec4){(x), (x), (x), (x)}
+#define RM_VEC2_FILL(x)  (vec2){(x), (x)}
+#define RM_VEC3_FILL(x)  (vec3){(x), (x), (x)}
+#define RM_VEC4_FILL(x)  (vec4){(x), (x), (x), (x)}
 
-#define RM_MAT2_FILL(x) (mat2){{RM_VEC2_FILL((x)), RM_VEC2_FILL((x))}}
-#define RM_MAT3_FILL(x) (mat3){{RM_VEC3_FILL((x)), RM_VEC3_FILL((x)), RM_VEC3_FILL((x))}}
-#define RM_MAT4_FILL(x) (mat4){{RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x))}}
+#define RM_MAT2_FILL(x)  (mat2){{RM_VEC2_FILL((x)), RM_VEC2_FILL((x))}}
+#define RM_MAT3_FILL(x)  (mat3){{RM_VEC3_FILL((x)), RM_VEC3_FILL((x)), RM_VEC3_FILL((x))}}
+#define RM_MAT4_FILL(x)  (mat4){{RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x))}}
 
 #define RM_MAT2_IDENTITY (mat2){{{1, 0}, {0, 1}}}
 #define RM_MAT3_IDENTITY (mat3){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}
@@ -651,6 +655,14 @@ RM_INLINE i64 rm_powl(const i64 x, const i64 p) {
 
     return val;
 }
+/* UNIMPLEMENTED */
+RM_INLINE f32 rm_powf(const f32 x, const f32 p) {
+    return 0;
+}
+RM_INLINE f64 rm_powd(const f64 x, const f64 p) {
+    return 0;
+}
+/* END UNIMPLEMENTED */
 RM_INLINE i32 rm_pow2i(const i32 x) {
     return RM_POW2(x);
 }
@@ -1097,14 +1109,36 @@ RM_INLINE f64 rm_asind(const f64 x) {
 
     return u * wx + 4.0076297309073265e-34;
 }
-/* UNIMPLEMENTED: DON'T USE */
 RM_INLINE f32 rm_atanf(const f32 x) {
-    return 0;
+    return rm_asinf(x / rm_sqrtf(RM_POW2(x) + 1));
 }
 RM_INLINE f64 rm_atand(const f64 x) {
-    return 0;
+    return rm_asind(x / rm_sqrtd(RM_POW2(x) + 1));
 }
-/* END UNIMPLEMENTED */
+RM_INLINE f32 rm_atan2f(const f32 y, const f32 x) {
+    if (rm_eqf(y, 0)) {
+        if (x < 0) return RM_PI;
+        return 0;
+    }
+    if (rm_eqf(x, 0)) {
+        if (y < 0) return -RM_PI_2;
+        return RM_PI_2;
+    }
+
+    return rm_atanf(y / x);
+}
+RM_INLINE f64 rm_atan2d(const f64 y, const f64 x) {
+    if (rm_eqd(y, 0)) {
+        if (x < 0) return RM_PI;
+        return 0;
+    }
+    if (rm_eqd(x, 0)) {
+        if (y < 0) return -RM_PI_2;
+        return RM_PI_2;
+    }
+
+    return rm_atand(y / x);
+}
 RM_INLINE f32 rm_rad2degf(const f32 x) {
     return RM_MAKE_DEG * x;
 }
