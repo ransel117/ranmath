@@ -503,7 +503,8 @@ extern "C" {
 #define rmm_set1(x)         vdupq_n_f32((x))
 #if defined(__aarch64__)
 #define rmm_unpack_lo(a, b) vzip1q_f32((a), (b))
-#define rmm_unpack_hi(a, b) vzip2q_f32((a), (b))
+#define rmm_unpack_hi(a, b) vzip2q_f32((b), (a))
+#define rmm_fmadd(a, b, c)  vfmaq_f32((c), (a), (b))
 #else
 RM_INLINE RM_VEC rmm_unpack_lo(RM_VEC a, RM_VEC b) {
     float32x2x2_t res;
@@ -519,6 +520,7 @@ RM_INLINE RM_VEC rmm_unpack_hi(RM_VEC a, RM_VEC b) {
 
     return vcombine_f32(res.val[0], res.val[1]);
 }
+#define rmm_fmadd(a, b, c)  vmlaq_f32((c), (a), (b))
 #endif /* __aarch64__ */
 #define rmm_add(a, b)       vaddq_f32((a), (b))
 #define rmm_sub(a, b)       vsubq_f32((a), (b))
@@ -536,16 +538,15 @@ RM_INLINE RM_VEC rmm_shuffle(RM_VEC v, u32 x, u32 y, u32 z, u32 w) {
 
     imm = _MM_SHUFFLE(w, z, y, x);
 
-    return rmm_set(v[imm & 0x3], v[(imm >> 2) & 0x3], v[(imm >> 4) & 0x3], v[(imm >> 6) & 0x3]);
+    return rmm_set(v[(imm >> 6) & 0x3], v[(imm >> 4) & 0x3], v[(imm >> 2) & 0x3], v[imm & 0x3]);
 }
 RM_INLINE RM_VEC rmm_shuffle2(RM_VEC v, RM_VEC u, u32 x, u32 y, u32 z, u32 w) {
     uint32_t imm;
 
     imm = _MM_SHUFFLE(w, z, y, x);
 
-    return rmm_set(v[imm & 0x3], v[(imm >> 2) & 0x3], u[(imm >> 4) & 0x3], u[(imm >> 6) & 0x3]);
+    return rmm_set(v[(imm >> 6) & 0x3], v[(imm >> 4) & 0x3], u[(imm >> 2) & 0x3], u[imm & 0x3]);
 }
-#define rmm_fmadd(a, b, c)  vfmaq_f32((a), (b), (c))
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE f32 rmm_hadd(RM_VEC x) {
