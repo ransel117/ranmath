@@ -605,6 +605,7 @@ RM_INLINE bool rm_eq_epsf(const f32 a, const f32 b) {
 RM_INLINE bool rm_eq_epsd(const f64 a, const f64 b) {
     return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= RM_DBL_EPSILON;
 }
+/* WARNING: the factorial functions will very easily overflow */
 RM_INLINE i32 rm_facti(const i32 x) {
     if (x < 0) return -1; /* ERROR */
     i32 i, d;
@@ -633,7 +634,7 @@ RM_INLINE i32 rm_powi(const i32 x, const i32 p) {
     i32 i, val, x2, p2;
 
     val = 1;
-    x2 = (x < 0) ? 1 / x : x;
+    x2 = (p < 0) ? 1 / x : x;
     p2 = rm_absi(p);
     for (i = 0; i < p2; ++i) {
         val *= x2;
@@ -647,7 +648,7 @@ RM_INLINE i64 rm_powl(const i64 x, const i64 p) {
     i64 i, val, x2, p2;
 
     val = 1;
-    x2 = (x < 0) ? 1 / x : x;
+    x2 = (p < 0) ? 1 / x : x;
     p2 = rm_absl(p);
     for (i = 0; i < p2; ++i) {
         val *= x2;
@@ -1282,7 +1283,7 @@ RM_INLINE vec2 rm_vec2_scale_as(const vec2 v, const f32 s) {
 
     norm = rm_vec2_norm(v);
 
-    return (rm_eqf(norm, 0.0F)) ? rm_vec2_zero() : rm_vec2_scale(v, s / norm);
+    return (rm_eqf(norm, 0)) ? rm_vec2_zero() : rm_vec2_scale(v, s / norm);
 }
 RM_INLINE vec2 rm_vec2_scale_aniso(const vec2 v, const f32 x, const f32 y) {
     vec2 dest;
@@ -1317,7 +1318,7 @@ RM_INLINE vec2 rm_vec2_normalize(const vec2 v) {
 
     norm = rm_vec2_norm(v);
 
-    return (rm_eqf(norm, 0.0F)) ? rm_vec2_zero() : rm_vec2_scale(v, 1.0F / norm);
+    return (rm_eqf(norm, 0)) ? rm_vec2_zero() : rm_vec2_scale(v, 1.0F / norm);
 }
 RM_INLINE vec2 rm_vec2_rotate(const vec2 v, const f32 a) {
     f32 c, s;
@@ -1505,7 +1506,7 @@ RM_INLINE vec3 rm_vec3_scale_as(const vec3 v, const f32 s) {
 
     norm = rm_vec3_norm(v);
 
-    return (rm_eqf(norm, 0.0F)) ? rm_vec3_zero() : rm_vec3_scale(v, s / norm);
+    return (rm_eqf(norm, 0)) ? rm_vec3_zero() : rm_vec3_scale(v, s / norm);
 }
 RM_INLINE vec3 rm_vec3_scale_aniso(const vec3 v, const f32 x, const f32 y, const f32 z) {
     vec3 dest;
@@ -1540,7 +1541,7 @@ RM_INLINE vec3 rm_vec3_normalize(const vec3 v) {
 
     norm = rm_vec3_norm(v);
 
-    return (rm_eqf(norm, 0.0F)) ? rm_vec3_zero() : rm_vec3_scale(v, 1.0F / norm);
+    return (rm_eqf(norm, 0)) ? rm_vec3_zero() : rm_vec3_scale(v, 1.0F / norm);
 }
 RM_INLINE vec3 rm_vec3_rotate(const vec3 v, const f32 a, const vec3 axis) {
     f32 c, s;
