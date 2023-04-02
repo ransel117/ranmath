@@ -6,14 +6,16 @@ Will not be the most precise thing in the world but aiming to be within a reason
 Aiming to be a single header stb-style library.
 
 ## How to use
-Include ranmath.h in your project:
+Include ranmath.h in your project;
 ```
 #include "ranmath.h"
 #include "ranmath/ranmath.h"
 #include <ranmath.h>
 #include <ranmath/ranmath.h>
 ```
-For all functions to be declared put:
+using one of the above.
+
+For all functions to be declared put;
 ```
 #define RANMATH_IMPLEMENTATION
 ```
