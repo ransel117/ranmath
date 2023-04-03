@@ -177,6 +177,8 @@ union RM_ALIGN(4) vec4_cvt {
 #define RM_PI_F        (f32)RM_PI
 #define RM_PI_2        1.5707963267948966192313216916397514420985846996875529104874722961
 #define RM_PI_2_F      (f32)RM_PI_2
+#define RM_PI_4        0.7853981633974483096156608458198757210492923498437764552437361480
+#define RM_PI_4_F      (f32)RM_PI_4
 #define RM_2PI         6.2831853071795864769252867665590057683943387987502116419498891846
 #define RM_2PI_F       (f32)RM_2PI
 #define RM_PI2         9.8696044010893586188344909998761511353136994072407906264133493762
@@ -447,6 +449,10 @@ RM_INLINE mat4 rm_mat4_swap_col(const mat4, const u32, const u32);
 RM_INLINE mat4 rm_mat4_swap_row(const mat4, const u32, const u32);
 RM_INLINE f32  rm_mat4_rmc(const vec4, const mat4, const vec4);
 RM_INLINE mat4 rm_mat4_ortho(const f32, const f32, const f32, const f32, const f32, const f32);
+RM_INLINE mat4 rm_mat4_ortho_default(const f32);
+RM_INLINE mat4 rm_mat4_frustum(const f32, const f32, const f32, const f32, const f32, const f32);
+RM_INLINE mat4 rm_mat4_perspective(const f32, const f32, const f32, const f32);
+RM_INLINE mat4 rm_mat4_perspective_default(const f32);
 
 #ifdef __cplusplus
 }
@@ -490,6 +496,13 @@ extern "C" {
 #define rmm_shuffle(v, x, y, z, w)     _mm_shuffle_ps((v), (v), _MM_SHUFFLE((w), (z), (y), (x)))
 #define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps((v), (u), _MM_SHUFFLE((w), (z), (y), (x)))
 #define rmm_fmadd(a, b, c)             rmm_add(rmm_mul((a), (b)), (c))
+RM_INLINE f32 rmm_hadd(RM_VEC x) {
+    #if RM_COMPILER == RM_CL
+    return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
+    #else
+    return x[0] + x[1] + x[2] + x[3];
+    #endif /* Microsoft */
+}
 #endif /* RM_SSE_ENABLE */
 
 #if RM_NEON_ENABLE
@@ -505,6 +518,7 @@ extern "C" {
 #define rmm_unpack_lo(a, b) vzip1q_f32((a), (b))
 #define rmm_unpack_hi(a, b) vzip2q_f32((b), (a))
 #define rmm_fmadd(a, b, c)  vfmaq_f32((c), (a), (b))
+#define rmm_hadd(x)         vaddvq_f32((x))
 #else
 RM_INLINE RM_VEC rmm_unpack_lo(RM_VEC a, RM_VEC b) {
     float32x2x2_t res;
@@ -521,6 +535,10 @@ RM_INLINE RM_VEC rmm_unpack_hi(RM_VEC a, RM_VEC b) {
     return vcombine_f32(res.val[0], res.val[1]);
 }
 #define rmm_fmadd(a, b, c)  vmlaq_f32((c), (a), (b))
+RM_INLINE RM_VEC rmm_hadd(RM_VEC x) {
+    float32x2_t tmp = vadd_f32(vget_high_f32(x), vget_low_f32(x));
+    return vget_lane_f32(vpadd_f32(tmp, tmp), 0);
+}
 #endif /* __aarch64__ */
 #define rmm_add(a, b)       vaddq_f32((a), (b))
 #define rmm_sub(a, b)       vsubq_f32((a), (b))
@@ -549,15 +567,6 @@ RM_INLINE RM_VEC rmm_shuffle2(RM_VEC v, RM_VEC u, u32 x, u32 y, u32 z, u32 w) {
 }
 #endif /* RM_NEON_ENABLE */
 
-RM_INLINE f32 rmm_hadd(RM_VEC x) {
-    #if RM_COMPILER == RM_CL
-    return x.m128_f32[0] + x.m128_f32[1] + x.m128_f32[2] + x.m128_f32[3];
-    #elif RM_NEON_ENABLE && defined(__aarch64__)
-    return vaddvq_f32(x);
-    #else
-    return x[0] + x[1] + x[2] + x[3];
-    #endif /* Microsoft */
-}
 RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
     RM_VEC s1, s2;
 
@@ -2506,18 +2515,65 @@ RM_INLINE mat4 rm_mat4_ortho(const f32 l, const f32 r, const f32 b, const f32 t,
     vec4 c1, c2, c3, c4;
     mat4 dest;
 
-    rl = r - l;
-    tb = t - b;
-    fn = f - n;
+    rl = 1 / (r - l);
+    tb = 1 / (t - b);
+    fn = 1 / (f - n);
 
-    c1 = (vec4){2 / rl, 0, 0, 0};
-    c2 = (vec4){0, 2 / tb, 0, 0};
-    c3 = (vec4){0, 0, -2 / fn, 0};
-    c4 = (vec4){-(r + l) / rl, -(t + b) / tb, -(f + n) / fn, 1};
+    c1 = (vec4){2 * rl, 0, 0, 0};
+    c2 = (vec4){0, 2 * tb, 0, 0};
+    c3 = (vec4){0, 0, -2 * fn, 0};
+    c4 = (vec4){-(r + l) * rl, -(t + b) * tb, -(f + n) * fn, 1};
 
     dest = (mat4){{c1, c2, c3, c4}};
 
     return dest;
+}
+RM_INLINE mat4 rm_mat4_ortho_default(const f32 aspect) {
+    if (aspect >= 1) return rm_mat4_ortho(-aspect, aspect, -1, 1, -100, 100);
+    f32 iaspect;
+
+    iaspect = 1 / aspect;
+
+    return rm_mat4_ortho(-1, 1, -iaspect, iaspect, -100, 100);
+}
+RM_INLINE mat4 rm_mat4_frustum(const f32 l, const f32 r, const f32 b, const f32 t, const f32 n, const f32 f) {
+    f32 rl, tb, fn, nv;
+    vec4 c1, c2, c3, c4;
+    mat4 dest;
+
+    rl = 1 / (r - l);
+    tb = 1 / (t - b);
+    fn = 1 / (f - n);
+    nv = 2 * n;
+
+    c1 = (vec4){nv * rl, 0, 0, 0};
+    c2 = (vec4){0, nv * tb, 0, 0};
+    c3 = (vec4){(r + l) * rl, (t + b) * tb, -(f + n) * fn, -1};
+    c4 = (vec4){0, 0, -f * nv * fn, 0};
+
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
+}
+RM_INLINE mat4 rm_mat4_perspective(const f32 fov, const f32 aspect, const f32 n, const f32 f) {
+    f32 fv, fn;
+    vec4 c1, c2, c3, c4;
+    mat4 dest;
+
+    fv = 1 / rm_tanf(fov * 0.5F);
+    fn = 1 / (n - f);
+
+    c1 = (vec4){fv / aspect, 0, 0, 0};
+    c2 = (vec4){0, fv, 0, 0};
+    c3 = (vec4){0, 0, (n + f) * fn, -1};
+    c4 = (vec4){0, 0, 2 * n * f * fn, 0};
+
+    dest = (mat4){{c1, c2, c3, c4}};
+
+    return dest;
+}
+RM_INLINE mat4 rm_mat4_perspective_default(const f32 aspect) {
+    return rm_mat4_perspective(RM_PI_4, aspect, 0.01, 100);
 }
 
 #ifdef __cplusplus
