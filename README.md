@@ -7,7 +7,7 @@ Aiming to be a single header stb-style library.
 
 ## How to use
 Include ranmath.h in your project;
-```
+```C
 #include "ranmath.h"
 #include "ranmath/ranmath.h"
 #include <ranmath.h>
@@ -16,7 +16,7 @@ Include ranmath.h in your project;
 using one of the above.
 
 For all functions to be declared put;
-```
+```C
 #define RANMATH_IMPLEMENTATION
 ```
 above the include statement.
