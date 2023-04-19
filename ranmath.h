@@ -1060,7 +1060,7 @@ RM_INLINE f64 rm_cosd(const f64 x) {
 RM_INLINE f32 rm_sinf(const f32 x) {
     f32 u, wx;
 
-    wx = rm_wrapf(x, -RM_PI_2, RM_PI_2);
+    wx = -rm_wrapf(x, -RM_PI_2, RM_PI_2);
 
     u = 1.0476743e-30f;
     u = u * wx - 7.9707938e-18;
@@ -1088,7 +1088,7 @@ RM_INLINE f32 rm_sinf(const f32 x) {
 RM_INLINE f64 rm_sind(const f64 x) {
     f64 u, wx;
 
-    wx = rm_wrapd(x, -RM_PI_2, RM_PI_2);
+    wx = -rm_wrapd(x, -RM_PI_2, RM_PI_2);
 
     u = 7.6801785633015737e-73;
     u = u * wx - 7.970793758390793e-18;
