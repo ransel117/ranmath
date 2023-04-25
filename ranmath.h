@@ -31,7 +31,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#if !defined(__bool_true_false_are_defined)
+#ifndef __bool_true_false_are_defined
 #define bool _Bool
 #define true 1
 #define false 0
@@ -43,7 +43,9 @@ extern "C" {
 #define RM_CL 1
 
 #ifndef RM_SSE_ENABLE
-#if defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64) || defined(_M_IX86_FP)
+#if defined(__SSE2__)                                   \
+    || defined(_M_X64) || defined(_M_AMD64)             \
+    || defined(__x86_64__) || defined(__amd64__)
 #define RM_SSE_ENABLE 1
 #else
 #define RM_SSE_ENABLE 0
@@ -51,7 +53,7 @@ extern "C" {
 #endif /* Check if already defined */
 
 #ifndef RM_NEON_ENABLE
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(__ARM_NEON) || defined(__ARM_NEON__) || defined(__aarch64__)
 #define RM_NEON_ENABLE 1
 #else
 #define RM_NEON_ENABLE 0
@@ -111,12 +113,10 @@ typedef union RM_ALIGN(16) mat4 mat4;
 
 union RM_ALIGN(4) f32_cvt {
     f32 f;
-    i32 i;
     u32 u;
 };
 union RM_ALIGN(8) f64_cvt {
     f64 f;
-    i64 i;
     u64 u;
 };
 struct RM_ALIGN(4) vec2 {
@@ -162,65 +162,131 @@ union RM_ALIGN(4) vec4_cvt {
     f32  RM_ALIGN(4) raw[4];
 };
 
+#define as_u32(x) ((f32_cvt){.f = x}).u
+#define as_f32(x) ((f32_cvt){.u = x}).f
+#define as_u64(x) ((f64_cvt){.f = x}).u
+#define as_f64(x) ((f64_cvt){.u = x}).f
+
 /* ---------------- CONSTANTS ---------------- */
-#define RM_E           2.7182818284590452353602874713526624977572470936999595749669676277
-#define RM_E_F         (f32)RM_E
-#define RM_LOG2E       1.4426950408889634073599246810018921374266459541529859341354494069
-#define RM_LOG2E_F     (f32)RM_LOG2E
-#define RM_LOG10E      0.4342944819032518276511289189166050822943970058036665661144537831
-#define RM_LOG10E_F    (f32)RM_LOG10E
-#define RM_LN2         0.6931471805599453094172321214581765680755001343602552541206800094
-#define RM_LN2_F       (f32)RM_LN2
-#define RM_LN10        2.3025850929940456840179914546843642076011014886287729760333279009
-#define RM_LN10_F      (f32)RM_LN10
-#define RM_PI          3.1415926535897932384626433832795028841971693993751058209749445923
-#define RM_PI_F        (f32)RM_PI
-#define RM_PI_2        1.5707963267948966192313216916397514420985846996875529104874722961
-#define RM_PI_2_F      (f32)RM_PI_2
-#define RM_PI_4        0.7853981633974483096156608458198757210492923498437764552437361480
-#define RM_PI_4_F      (f32)RM_PI_4
-#define RM_2PI         6.2831853071795864769252867665590057683943387987502116419498891846
-#define RM_2PI_F       (f32)RM_2PI
-#define RM_PI2         9.8696044010893586188344909998761511353136994072407906264133493762
-#define RM_PI2_F       (f32)RM_PI2
-#define RM_PI3         31.006276680299820175476315067101395202225288565885107694144538103
-#define RM_PI3_F       (f32)RM_PI3
-#define RM_PI4         97.409091034002437236440332688705111249727585672685421691467859389
-#define RM_PI4_F       (f32)RM_PI4
-#define RM_1_PI        0.3183098861837906715377675267450287240689192914809128974953346881
-#define RM_1_PI_F      (f32)RM_1_PI
-#define RM_1_2PI       0.1591549430918953357688837633725143620344596457404564487476673440
-#define RM_1_2PI_F     (f32)RM_1_2PI
-#define RM_SQRTPI      1.7724538509055160272981674833411451827975494561223871282138077898
-#define RM_SQRTPI_F    (f32)RM_SQRTPI
-#define RM_1_SQRTPI    0.5641895835477562869480794515607725858440506293289988568440857217
-#define RM_1_SQRTPI_F  (f32)RM_1_SQRTPI
-#define RM_2_SQRTPI    1.1283791670955125738961589031215451716881012586579977136881714434
-#define RM_2_SQRTPI_F  (f32)RM_2_SQRTPI
-#define RM_SQRT2       1.4142135623730950488016887242096980785696718753769480731766797379
-#define RM_SQRT2_F     (f32)RM_SQRT2
-#define RM_1_SQRT2     0.7071067811865475244008443621048490392848359376884740365883398689
-#define RM_1_SQRT2_F   (f32)RM_1_SQRT2
-#define RM_MAKE_DEG    57.295779513082320876798154814105170332405472466564321549160243861
-#define RM_MAKE_DEG_F  (f32)RM_MAKE_DEG
-#define RM_MAKE_RAD    0.0174532925199432957692369076848861271344287188854172545609719144
-#define RM_MAKE_RAD_F  (f32)RM_MAKE_RAD
-#define RM_FLT_EPSILON 1.19210000093517010100185871124267578125E-7
-#define RM_DBL_EPSILON 2.220446049250313080847263336181640625000000000000E-16
+#define RM_E_X           (0x4005BF0A8B145769)
+#define RM_E_F_X         (0x402DF854)
+#define RM_LOG2E_X       (0x3FF71547652B82FE)
+#define RM_LOG2E_X_F_X   (0x3FB8AA3B)
+#define RM_LOG10E_X      (0x3FDBCB7B1526E50E)
+#define RM_LOG10E_F_X    (0x3EDE5BD9)
+#define RM_LN2_X         (0x3FE62E42FEFA39EF)
+#define RM_LN2_F_X       (0x3F317218)
+#define RM_LN10_X        (0x40026BB1BBB55516)
+#define RM_LN10_F_X      (0x40135D8E)
+#define RM_PI_X          (0x400921FB54442D18)
+#define RM_PI_F_X        (0x40490FDB)
+#define RM_PI_2_X        (0x3FF921FB54442D18)
+#define RM_PI_2_F_X      (0x3FC90FDB)
+#define RM_PI_4_X        (0x3FE921FB54442D18)
+#define RM_PI_4_F_X      (0x3F490FDB)
+#define RM_2PI_X         (0x401921FB54442D18)
+#define RM_2PI_F_X       (0x40C90FDB)
+#define RM_3PI_2_X       (0x4012D97C7F3321D2)
+#define RM_3PI_2_F_X     (0x4096CBE4)
+#define RM_PI2_X         (0x4023BD3CC9BE45DE)
+#define RM_PI2_F_X       (0x411DE9E6)
+#define RM_PI3_X         (0x403F019B59389D7C)
+#define RM_PI3_F_X       (0x41F80CDB)
+#define RM_PI4_X         (0x40585A2E8C290826)
+#define RM_PI4_F_X       (0x42C2D174)
+#define RM_1_PI_X        (0x3FD45F306DC9C883)
+#define RM_1_PI_F_X      (0x3EA2F983)
+#define RM_1_2PI_X       (0x3FC45F306DC9C883)
+#define RM_1_2PI_F_X     (0x3E22F983)
+#define RM_1_PI_2_X      (0x3FE45F306DC9C883)
+#define RM_1_PI_2_F_X    (0x3F22F983)
+#define RM_SQRTPI_X      (0x3FFC5BF891B4EF6B)
+#define RM_SQRTPI_F_X    (0x3FE2DFC5)
+#define RM_1_SQRTPI_X    (0x3FE20DD750429B6D)
+#define RM_1_SQRTPI_F_X  (0x3F106EBB)
+#define RM_2_SQRTPI_X    (0x3FF20DD750429B6D)
+#define RM_2_SQRTPI_F_X  (0x3F906EBB)
+#define RM_SQRT2_X       (0x3FF6A09E667F3BCD)
+#define RM_SQRT2_F_X     (0x3FB504F3)
+#define RM_1_SQRT2_X     (0x3FE6A09E667F3BCD)
+#define RM_1_SQRT2_F_X   (0x3F3504F3)
+#define RM_MAKE_DEG_X    (0x404CA5DC1A63C1F8)
+#define RM_MAKE_DEG_F_X  (0x42652EE1)
+#define RM_MAKE_RAD_X    (0x3F91DF46A2529D39)
+#define RM_MAKE_RAD_F_X  (0x3C8EFA35)
+#define RM_FLT_EPSILON_X (0x34000032)
+#define RM_DBL_EPSILON_X (0x3CB0000000000000)
+#define RM_SMALL_NUM_X   (0x2540000000000000)
+#define RM_SMALL_NUM_F_X (0x00000100)
+#define RM_NAN_X         (0x7FFFFFFFFFFFFFFF)
+#define RM_NAN_F_X       (0x7FFFFFFF)
+#define RM_INF_X         (0x7FF0000000000000)
+#define RM_INF_F_X       (0x7F800000)
+
+#define RM_E             as_f64(RM_E_X)
+#define RM_E_F           as_f32(RM_E_F_X)
+#define RM_LOG2E         as_f64(RM_LOG2E_X)
+#define RM_LOG2E_F       as_f32(RM_LOG2E_F_X)
+#define RM_LOG10E        as_f64(RM_LOG2E_X)
+#define RM_LOG10E_F      as_f32(RM_LOG10E_F_X)
+#define RM_LN2           as_f64(RM_LN2_X)
+#define RM_LN2_F         as_f32(RM_LN2_F_X)
+#define RM_LN10          as_f64(RM_LN10_X)
+#define RM_LN10_F        as_f32(RM_LN10_F_X)
+#define RM_PI            as_f64(RM_PI_X)
+#define RM_PI_F          as_f32(RM_PI_F_X)
+#define RM_PI_2          as_f64(RM_PI_2_X)
+#define RM_PI_2_F        as_f32(RM_PI_2_F_X)
+#define RM_PI_4          as_f64(RM_PI_4_X)
+#define RM_PI_4_F        as_f32(RM_PI_4_F_X)
+#define RM_2PI           as_f64(RM_2PI_X)
+#define RM_2PI_F         as_f32(RM_2PI_F_X)
+#define RM_3PI_2         as_f64(RM_3PI_2_X)
+#define RM_3PI_2_F       as_f32(RM_3PI_2_F_X)
+#define RM_PI2           as_f64(RM_PI2_X)
+#define RM_PI2_F         as_f32(RM_PI2_F_X)
+#define RM_PI3           as_f64(RM_PI3_X)
+#define RM_PI3_F         as_f32(RM_PI3_F_X)
+#define RM_PI4           as_f64(RM_PI4_X)
+#define RM_PI4_F         as_f32(RM_PI4_F_X)
+#define RM_1_PI          as_f64(RM_1_PI_X)
+#define RM_1_PI_F        as_f32(RM_1_PI_F_X)
+#define RM_1_2PI         as_f64(RM_1_2PI_X)
+#define RM_1_2PI_F       as_f32(RM_1_2PI_F_X)
+#define RM_1_PI_2        as_f64(RM_1_PI_2_X)
+#define RM_1_PI_2_F      as_f32(RM_1_PI_2_F_X)
+#define RM_SQRTPI        as_f64(RM_SQRTPI_X)
+#define RM_SQRTPI_F      as_f32(RM_SQRTPI_F_X)
+#define RM_1_SQRTPI      as_f64(RM_1_SQRTPI_X)
+#define RM_1_SQRTPI_F    as_f32(RM_1_SQRTPI_F_X)
+#define RM_2_SQRTPI      as_f64(RM_2_SQRTPI_X)
+#define RM_2_SQRTPI_F    as_f32(RM_2_SQRTPI_F_X)
+#define RM_SQRT2         as_f64(RM_SQRT2_X)
+#define RM_SQRT2_F       as_f32(RM_SQRT2_F_X)
+#define RM_1_SQRT2       as_f64(RM_1_SQRT2_X)
+#define RM_1_SQRT2_F     as_f32(RM_1_SQRT2_F_X)
+#define RM_MAKE_DEG      as_f64(RM_MAKE_DEG_X)
+#define RM_MAKE_DEG_F    as_f32(RM_MAKE_DEG_F_X)
+#define RM_MAKE_RAD      as_f64(RM_MAKE_RAD_X)
+#define RM_MAKE_RAD_F    as_f32(RM_MAKE_RAD_F_X)
+#define RM_FLT_EPSILON   as_f32(RM_FLT_EPSILON_X)
+#define RM_DBL_EPSILON   as_f64(RM_DBL_EPSILON_X)
 /* for 128 decimals of precision in rm_eqd */
-#define RM_SMALL_NUM   (f64_cvt){.u = 0x2540000000000000}.f
+#define RM_SMALL_NUM     as_f64(RM_SMALL_NUM_X)
 /* for 42 decimals of precision in rm_eqf */
-#define RM_SMALL_NUM_F (f32_cvt){.u = 0x00000100}.f
-#define RM_NAN         (f64_cvt){.u = 0x7FFFFFFFFFFFFFFF}.f
-#define RM_NAN_F       (f32_cvt){.u = 0x7FFFFFFF}.f
-#define RM_INF         (f64_cvt){.u = 0x7FF0000000000000}.f
-#define RM_INF_F       (f32_cvt){.u = 0x7F800000}.f
+#define RM_SMALL_NUM_F   as_f32(RM_SMALL_NUM_F_X)
+#define RM_NAN           as_f64(RM_NAN_X)
+#define RM_NAN_F         as_f32(RM_NAN_F_X)
+#define RM_INF           as_f64(RM_INF_X)
+#define RM_INF_F         as_f32(RM_INF_F_X)
 
 /* ----------------- METHODS ----------------- */
 RM_INLINE bool rm_eqf(const f32, const f32);
 RM_INLINE bool rm_eqd(const f64, const f64);
 RM_INLINE bool rm_eq_epsf(const f32, const f32);
 RM_INLINE bool rm_eq_epsd(const f64, const f64);
+RM_INLINE f32  rm_scalbnf(f32, i32);
+RM_INLINE f64  rm_scalbnd(f64, i32);
 RM_INLINE i8   rm_signi(const i32);
 RM_INLINE i8   rm_signl(const i64);
 RM_INLINE i8   rm_signf(const f32);
@@ -276,7 +342,15 @@ RM_INLINE i32  rm_wrapi(const i32, const i32, const i32);
 RM_INLINE i64  rm_wrapl(const i64, const i64, const i64);
 RM_INLINE f32  rm_wrapf(const f32, const f32, const f32);
 RM_INLINE f64  rm_wrapd(const f64, const f64, const f64);
-/* All trig functions have been approximated using lolremez; https://github.com/samhocevar/lolremez */
+RM_INLINE f32  rm_cosf_step(f64);
+RM_INLINE f64  rm_cosd_step(f64, f64);
+RM_INLINE f32  rm_sinf_step(f64);
+RM_INLINE f64  rm_sind_step(f64, f64, i32);
+RM_INLINE f32  rm_tanf_step(f64, i32);
+RM_INLINE f64  rm_tand_step(f64, f64, i32);
+RM_INLINE i32  rm_pi_2_remf(f32, f64*);
+RM_INLINE i32  rm_pi_2_remd(f64, f64*);
+RM_INLINE i32  rm_pi_2_rem_large(f64*, f64*, i32, i32, i32);
 RM_INLINE f32  rm_cosf(const f32);
 RM_INLINE f64  rm_cosd(const f64);
 RM_INLINE f32  rm_sinf(const f32);
@@ -492,6 +566,11 @@ extern "C" {
 #define rmm_store(v, a)                _mm_store_ps((v), (a))
 #define rmm_set(x, y, z, w)            _mm_set_ps((w), (z), (y), (x))
 #define rmm_set1(x)                    _mm_set_ps1((x))
+#define rmm_cvts32_f32(x)              _mm_cvtepi32_ps((x))
+#define rmm_cvtf32_s32(x)              _mm_cvtps_epi32((x))
+#define rmm_cvttf32_s32(x)             _mm_cvttps_epi32((x))
+#define rmm_casts32_f32(x)             _mm_castsi128_ps((x))
+#define rmm_castf32_s32(x)             _mm_castps_si128((x))
 #define rmm_unpack_lo(a, b)            _mm_unpacklo_ps((a), (b))
 #define rmm_unpack_hi(a, b)            _mm_unpackhi_ps((a), (b))
 #define rmm_add(a, b)                  _mm_add_ps((a), (b))
@@ -500,11 +579,8 @@ extern "C" {
 #define rmm_div(a, b)                  _mm_div_ps((a), (b))
 #define rmm_min(a, b)                  _mm_min_ps((a), (b))
 #define rmm_max(a, b)                  _mm_max_ps((a), (b))
-#define rmm_abs(x)                     _mm_and_ps(_mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF)), (x))
+#define rmm_abs(x)                     _mm_and_ps(rmm_casts32_f32(_mm_set1_epi32(0x7FFFFFFF)), (x))
 #define rmm_neg(x)                     rmm_sub(rmm_set1(0.0F), (x))
-#define rmm_cvts32_f32(x)              _mm_cvtepi32_ps((x))
-#define rmm_cvtf32_s32(x)              _mm_cvtps_epi32((x))
-#define rmm_cvttf32_s32(x)             _mm_cvttps_epi32((x))
 #define rmm_shuffle(v, x, y, z, w)     _mm_shuffle_ps((v), (v), _MM_SHUFFLE((w), (z), (y), (x)))
 #define rmm_shuffle2(v, u, x, y, z, w) _mm_shuffle_ps((v), (u), _MM_SHUFFLE((w), (z), (y), (x)))
 #define rmm_fmadd(a, b, c)             rmm_add(rmm_mul((a), (b)), (c))
@@ -535,6 +611,11 @@ RM_INLINE RM_VEC rmm_rcp(RM_VEC x) {
 #define rmm_store(v, a)     vst1q_f32((v), (a))
 #define rmm_set(x, y, z, w) (RM_VEC){(x), (y), (z), (w)}
 #define rmm_set1(x)         vdupq_n_f32((x))
+#define rmm_cvts32_f32(x)   vcvtq_f32_s32((x))
+#define rmm_cvtf32_s32(x)   vcvtnq_s32_f32((x))
+#define rmm_cvttf32_s32(x)  vcvtq_s32_f32((x))
+#define rmm_casts32_f32(x)  vreinterpretq_f32_s32((x))
+#define rmm_castf32_s32(x)  vreinterpretq_s32_f32((x))
 #if defined(__aarch64__)
 #define rmm_unpack_lo(a, b) vzip1q_f32((a), (b))
 #define rmm_unpack_hi(a, b) vzip2q_f32((b), (a))
@@ -569,18 +650,15 @@ RM_INLINE RM_VEC rmm_hadd(RM_VEC x) {
 #define rmm_max(a, b)       vmaxq_f32((a), (b))
 #define rmm_abs(x)          vabsq_f32((x))
 #define rmm_neg(x)          vnegq_f32((x))
-#define rmm_cvts32_f32(x)   vcvtq_f32_s32((x))
-#define rmm_cvtf32_s32(x)   vcvtnq_s32_f32((x))
-#define rmm_cvttf32_s32(x)  vcvtq_s32_f32((x))
 RM_INLINE RM_VEC rmm_shuffle(RM_VEC v, u32 x, u32 y, u32 z, u32 w) {
-    uint32_t imm;
+    u32 imm;
 
     imm = _MM_SHUFFLE(w, z, y, x);
 
     return rmm_set(v[(imm >> 6) & 0x3], v[(imm >> 4) & 0x3], v[(imm >> 2) & 0x3], v[imm & 0x3]);
 }
 RM_INLINE RM_VEC rmm_shuffle2(RM_VEC v, RM_VEC u, u32 x, u32 y, u32 z, u32 w) {
-    uint32_t imm;
+    u32 imm;
 
     imm = _MM_SHUFFLE(w, z, y, x);
 
@@ -593,8 +671,8 @@ RM_INLINE RM_VEC rmm_rcp(RM_VEC x) {
 
     return rmm_mul(rcp, rmm_sub(rmm_set1(2), rmm_mul(rcp, x)));
 }
-#define rmm_eq(a, b) vreinterpretq_f32_u32(vcltq_f32(rmm_abs(rmm_sub(rmm_max(a, b), rmm_min(a, b))), rmm_set1(RM_SMALL_NUM_F)))
-#define rmm_eq_eps(a, b) vreinterpretq_f32_u32(vcltq_f32(rmm_abs(rmm_sub(rmm_max(a, b), rmm_min(a, b))), rmm_set1(RM_FLT_EPSILON)))
+#define rmm_eq(a, b) rmm_casts32_f32(vcltq_f32(rmm_abs(rmm_sub(rmm_max(a, b), rmm_min(a, b))), rmm_set1(RM_SMALL_NUM_F)))
+#define rmm_eq_eps(a, b) rmm_casts32_f32(vcltq_f32(rmm_abs(rmm_sub(rmm_max(a, b), rmm_min(a, b))), rmm_set1(RM_FLT_EPSILON)))
 #endif /* RM_NEON_ENABLE */
 
 RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
@@ -608,7 +686,6 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 
     return rmm_add(rmm_unpack_lo(s1, s2), rmm_unpack_hi(s1, s2));
 }
-
 #define rmm_trunc(x)        rmm_cvts32_f32(rmm_cvttf32_s32((x)))
 #define rmm_fmod(a, b)      rmm_sub((a), rmm_mul(rmm_trunc(rmm_div((a), (b))), (b)))
 #define rmm_fmadds(a, b, c) rmm_fmadd((a), (b), rmm_set1((c)))
@@ -621,6 +698,29 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
 #define RM_CLAMP(val, min, max) (RM_MIN(RM_MAX((val), (min)), (max)))
 #define RM_POW2(x)              ((x) * (x))
 #define RM_POW4(x)              (RM_POW2(RM_POW2((x))))
+
+#define RM_EXTRACT_WORDS(hi, lo, d) do {  \
+        u64 __u = as_u64((d));            \
+        (hi) = __u >> 32;                 \
+        (lo) = (u32)__u;                  \
+    } while(0);
+#define RM_GET_HIGH_WORD(hi, d) do {            \
+        (hi) = as_u64((d)) >> 32;               \
+    } while(0);
+#define RM_GET_LOW_WORD(lo, d) do {             \
+        (lo) = (u32)as_u64((d));                \
+    } while(0);
+#define RM_INSERT_WORDS(d, hi, lo) do {              \
+        (d) = as_f64(((u64)(hi) << 32) | (u32)(lo)); \
+    } while(0);
+#define RM_SET_HIGH_WORD(d, hi) RM_INSERT_WORDS(d, hi, (u32)as_u64((d)))
+#define RM_SET_LOW_WORD(d, lo) RM_INSERT_WORDS(d, as_u64((d)) >> 32, lo)
+#define RM_GET_FLOAT_WORD(w, d) do {            \
+        (w) = as_u32((d));                      \
+    } while(0);
+#define RM_SET_FLOAT_WORD(d, w) do {            \
+        (d) = as_f32((w));                      \
+    } while(0);
 
 #define RM_VEC2_FILL(x)  (vec2){(x), (x)}
 #define RM_VEC3_FILL(x)  (vec3){(x), (x), (x)}
@@ -646,6 +746,70 @@ RM_INLINE bool rm_eq_epsf(const f32 a, const f32 b) {
 RM_INLINE bool rm_eq_epsd(const f64 a, const f64 b) {
     return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= RM_DBL_EPSILON;
 }
+RM_INLINE f32 rm_scalbnf(float x, int n) {
+    f32_cvt u;
+    f32 y;
+
+    y = x;
+    if (n > 127) {
+        y *= 0x1p127F;
+        n -= 127;
+
+        if (n > 127) {
+            y *= 0x1p127F;
+            n -= 127;
+
+            if (n > 127) n = 127;
+        }
+    } else if (n < -126) {
+        y *= 0x1p-126F * 0x1p24F;
+        n += 126 - 24;
+
+        if (n < -126) {
+            y *= 0x1p-126F * 0x1p24F;
+            n += 126 - 24;
+
+            if (n < -126) n = -126;
+        }
+    }
+    u.u = (u32)(0x0000007F + n) << 23;
+    x = y * u.f;
+
+    return x;
+}
+RM_INLINE f64 rm_scalbnd(f64 x, i32 n) {
+    f64_cvt u;
+    f64 y;
+
+    y = x;
+    if (n > 1023) {
+        y *= 0x1p1023;
+        n -= 1023;
+
+        if (n > 1023) {
+            y *= 0x1p1023;
+            n -= 1023;
+
+            if (n > 1023) n = 1023;
+        }
+    } else if (n < -1022) {
+        /* make sure final n < -53 to avoid double
+           rounding in the subnormal range */
+        y *= 0x1p-1022 * 0x1p53;
+        n += 1022 - 53;
+
+        if (n < -1022) {
+            y *= 0x1p-1022 * 0x1p53;
+            n += 1022 - 53;
+
+            if (n < -1022) n = -1022;
+        }
+    }
+    u.u = (u64)(0x000003FF + n) << 52;
+    x = y * u.f;
+
+    return x;
+}
 RM_INLINE i8 rm_signi(const i32 x) {
     return RM_SIGN(x);
 }
@@ -658,9 +822,10 @@ RM_INLINE i8 rm_signf(const f32 x) {
 RM_INLINE i8 rm_signd(const f64 x) {
     return RM_SIGN(x);
 }
-/* WARNING: the factorial functions will very easily overflow */
+/* NOTE: the factorial functions will very easily overflow */
 RM_INLINE i32 rm_facti(const i32 x) {
-    if (x < 0) return -1; /* ERROR */
+    /* ERROR if x is negative */
+    if (x < 0) return -1;
     i32 i, d;
 
     d = 1;
@@ -671,7 +836,8 @@ RM_INLINE i32 rm_facti(const i32 x) {
     return d;
 }
 RM_INLINE i64 rm_factl(const i64 x) {
-    if (x < 0) return -1; /* ERROR */
+    /* ERROR if x is negative */
+    if (x < 0) return -1;
     i64 i, d;
 
     d = 1;
@@ -709,27 +875,27 @@ RM_INLINE i64 rm_powl(const i64 x, const i64 p) {
 
     return val;
 }
-/* UNIMPLEMENTED */
+/* NOTE: UNIMPLEMENTED */
 RM_INLINE f32 rm_powf(const f32 x, const f32 p) {
     if (rm_eqf(p, 0)) return 1;
     if (rm_eqf(x, 0)) {
         if (p < 0) return RM_INF;
         return 0;
     }
-    f32 ap, tp, dpart, val, xsqrt;
+    f32 ap, tp, dp, val, xsqrt;
     usize i;
 
     ap = rm_absf(p);
     tp = rm_truncf(ap);
-    dpart = ap - tp;
+    dp = ap - tp;
     val = 1;
 
     for (i = 0; i < tp; ++i) {
         val *= x;
     }
-    if (!rm_eqf(dpart, 0)) {
+    if (!rm_eqf(dp, 0)) {
         xsqrt = rm_sqrtf(x);
-        if (rm_eqf(dpart, 0.5)) {
+        if (rm_eqf(dp, 0.5)) {
             val *= xsqrt;
         }
     }
@@ -742,32 +908,32 @@ RM_INLINE f64 rm_powd(const f64 x, const f64 p) {
         if (p < 0) return RM_INF;
         return 0;
     }
-    f64 ap, tp, dpart, val, xsqrt;
+    f64 ap, tp, dp, val, xsqrt;
     usize i;
 
     ap = rm_absd(p);
     tp = rm_truncd(ap);
-    dpart = ap - tp;
+    dp = ap - tp;
     val = 1;
 
     for (i = 0; i < tp; ++i) {
         val *= x;
     }
 
-    while (!rm_eqd(dpart, 0)) {
+    while (!rm_eqd(dp, 0)) {
         xsqrt = rm_sqrtd(x);
 
-        if (dpart > 0.75 || rm_eqd(dpart, 0.75)) {
+        if (dp > 0.75 || rm_eqd(dp, 0.75)) {
             val *= xsqrt * rm_sqrtd(xsqrt);
-            dpart -= 0.75;
+            dp -= 0.75;
         }
-        if (dpart > 0.5 || rm_eqd(dpart, 0.5)) {
+        if (dp > 0.5 || rm_eqd(dp, 0.5)) {
             val *= xsqrt;
-            dpart -= 0.5;
+            dp -= 0.5;
         }
-        if (dpart > 0.25 || rm_eqd(dpart, 0.25)) {
+        if (dp > 0.25 || rm_eqd(dp, 0.25)) {
             val *= rm_sqrtd(xsqrt);
-            dpart -= 0.25;
+            dp -= 0.25;
         }
     }
 
@@ -823,18 +989,17 @@ RM_INLINE f64 rm_rsqrtd(const f64 x) {
 
     return c.f;
 }
+/* sqrt(x) = x * 1/sqrt(x) */
 RM_INLINE f32 rm_sqrtf(const f32 x) {
     if (x < 0) return RM_NAN_F;
     if (x == 0 || x == 1) return x;
 
-    /* sqrt(x) = x * 1/sqrt(x) */
     return x * rm_rsqrtf(x);
 }
 RM_INLINE f64 rm_sqrtd(const f64 x) {
     if (x < 0) return RM_NAN;
     if (x == 0 || x == 1) return x;
 
-    /* sqrt(x) = x * 1/sqrt(x) */
     return x * rm_rsqrtd(x);
 }
 RM_INLINE i32 rm_absi(const i32 x) {
@@ -905,21 +1070,19 @@ RM_INLINE f64 rm_fmodd(const f64 a, const f64 b) {
 }
 RM_INLINE f32 rm_floorf(const f32 x) {
     if (rm_eqf(x, 0)) return x;
-    i32 ix, inx;
+    i32 ix;
 
     ix = rm_truncf(x);
-    inx = ix - 1;
 
-    return (x < 0) ? inx : ix;
+    return (x < 0) ? ix - 1 : ix;
 }
 RM_INLINE f64 rm_floord(const f64 x) {
     if (rm_eqd(x, 0)) return x;
-    i64 ix, inx;
+    i64 ix;
 
     ix = rm_truncd(x);
-    inx = ix - 1;
 
-    return (x < 0) ? inx : ix;
+    return (x < 0) ? ix - 1 : ix;
 }
 RM_INLINE f32 rm_ceilf(const f32 x) {
     if (rm_eqf(x, 0)) return x;
@@ -940,26 +1103,20 @@ RM_INLINE f64 rm_ceild(const f64 x) {
 RM_INLINE f32 rm_roundf(const f32 x) {
     if (rm_eqf(x, 0)) return x;
     bool c1, c2;
-    f32 floor, ceil;
 
     c1 = (rm_absf(x) - rm_absi(rm_truncf(x))) < 0.5F;
     c2 = x < 0;
-    floor = rm_floorf(x);
-    ceil = rm_ceilf(x);
 
-    return (c1) ? ((c2) ? ceil : floor) : ((c2) ? floor : ceil);
+    return (c1) ? ((c2) ? rm_ceilf(x) : rm_floorf(x)) : ((c2) ? rm_floorf(x) : rm_ceilf(x));
 }
 RM_INLINE f64 rm_roundd(const f64 x) {
     if (rm_eqd(x, 0)) return x;
     bool c1, c2;
-    f64 floor, ceil;
 
     c1 = (rm_absd(x) - rm_absl(rm_truncd(x))) < 0.5;
     c2 = x < 0;
-    floor = rm_floord(x);
-    ceil = rm_ceild(x);
 
-    return (c1) ? ((c2) ? ceil : floor) : ((c2) ? floor : ceil);
+    return (c1) ? ((c2) ? rm_ceilf(x) : rm_floorf(x)) : ((c2) ? rm_floorf(x) : rm_ceilf(x));
 }
 RM_INLINE i32 rm_wrap_maxi(const i32 val, const i32 max) {
     return rm_fmodi(max + rm_fmodi(val, max), max);
@@ -1001,123 +1158,769 @@ RM_INLINE f64 rm_wrapd(const f64 val, const f64 min, const f64 max) {
 
     return min + rm_fmodd(tmax + rm_fmodd(val - min, tmax), tmax);
 }
-RM_INLINE f32 rm_cosf(const f32 x) {
-    f32 u, wx;
+RM_INLINE f32 rm_cosf_step(const f64 x) {
+    static f64 r, w, z, C0, C1, C2, C3;
 
-    wx = rm_wrapf(x, -RM_PI_2, RM_PI_2);
+    C0 = -0x1FFFFFFD0C5E81.0p-54; /* -0.499999997251031003120 */
+    C1 = 0x155553E1053A42.0p-57;  /* 0.0416666233237390631894 */
+    C2 = -0x16C087E80F1E27.0p-62; /* -0.00138867637746099294692 */
+    C3 = 0x199342E0EE5069.0p-68;  /* 0.0000243904487962774090654 */
 
-    u = 3.9912655e-19;
-    u = u * wx + 3.4017639e-60;
-    u = u * wx - 1.5612263e-16;
-    u = u * wx - 3.6215036e-59;
-    u = u * wx + 4.7794544e-14;
-    u = u * wx + 1.6072316e-58;
-    u = u * wx - 1.1470745e-11;
-    u = u * wx - 3.8464376e-58;
-    u = u * wx + 2.0876757e-9;
-    u = u * wx + 5.3567968e-58;
-    u = u * wx - 2.7557319e-7;
-    u = u * wx - 4.3586531e-58;
-    u = u * wx + 2.4801587e-5;
-    u = u * wx + 1.9621065e-58;
-    u = u * wx - 1.3888889e-3;
-    u = u * wx - 4.2462988e-59;
-    u = u * wx + 4.1666667e-2;
-    u = u * wx + 3.1625168e-60;
-    u = u * wx - 5e-1;
-    u = u * wx - 3.4703906e-62;
+    z = RM_POW2(x);
+    w = RM_POW2(z);
+    r = C2 + z * C3;
 
-    return u * wx + 1;
+    return ((1 + z * C0) + w * C1) + (w * z) * r;
 }
-RM_INLINE f64 rm_cosd(const f64 x) {
-    f64 u, wx;
+RM_INLINE f64 rm_cosd_step(const f64 x, const f64 y) {
+    static f64 hz, z, r, w, C1, C2, C3, C4, C5, C6;
 
-    wx = rm_wrapd(x, -RM_PI_2, RM_PI_2);
+    C1 = 4.16666666666666019037e-02;  /* 0x3FA55555, 0x5555554C */
+    C2 = -1.38888888888741095749e-03; /* 0xBF56C16C, 0x16C15177 */
+    C3 = 2.48015872894767294178e-05;  /* 0x3EFA01A0, 0x19CB1590 */
+    C4 = -2.75573143513906633035e-07; /* 0xBE927E4F, 0x809C52AD */
+    C5 = 2.08757232129817482790e-09;  /* 0x3E21EE9E, 0xBDB4B1C4 */
+    C6 = -1.13596475577881948265e-11; /* 0xBDA8FAE9, 0xBE8838D4 */
 
-    u = 3.9912654640896781e-19;
-    u = u * wx - 4.1710881683800016e-125;
-    u = u * wx - 1.5612263430418807e-16;
-    u = u * wx + 3.8957082436971847e-124;
-    u = u * wx + 4.7794543940744223e-14;
-    u = u * wx - 1.4652529662436867e-123;
-    u = u * wx - 1.1470745126775755e-11;
-    u = u * wx + 2.808049472737082e-123;
-    u = u * wx + 2.0876756981654129e-9;
-    u = u * wx - 2.7937224805916421e-123;
-    u = u * wx - 2.7557319223933226e-7;
-    u = u * wx + 1.1463488482390069e-123;
-    u = u * wx + 2.4801587301587023e-5;
-    u = u * wx + 2.0548341185690209e-124;
-    u = u * wx - 1.3888888888888888e-3;
-    u = u * wx - 3.0786655408737294e-124;
-    u = u * wx + 4.1666666666666667e-2;
-    u = u * wx + 4.7364651421471611e-125;
-    u = u * wx - 5e-1;
-    u = u * wx + 7.9712727418282653e-126;
+    z = RM_POW2(x);
+    w = RM_POW2(z);
+    r = z * (C1 + z * (C2 + z * C3)) + RM_POW2(w) * (C4 + z * (C5 + z * C6));
+    hz = 0.5 * z;
+    w = 1 - hz;
 
-    return u * wx + 1;
+    return w + (((1 - w) - hz) + (z * r - x * y));
+}
+RM_INLINE f32 rm_sinf_step(const f64 x) {
+    static f64 r, s, w, z, S1, S2, S3, S4;
+
+    S1 = -0x15555554CBAC77.0p-55; /* -0.166666666416265235595 */
+    S2 = 0x111110896EFBB2.0p-59;  /* 0.0083333293858894631756 */
+    S3 = -0x1A00F9E2CAE774.0p-65; /* -0.000198393348360966317347 */
+    S4 = 0x16CD878C3B46A7.0p-71;  /* 0.0000027183114939898219064 */
+
+    z = RM_POW2(x);
+    w = RM_POW2(z);
+    r = S3 + z * S4;
+    s = z * x;
+
+    return (x + s * (S1 + z * S2)) + s * w * r;
+}
+RM_INLINE f64 rm_sind_step(const f64 x, const f64 y, const i32 iy) {
+    static f64 z, r, v, w, S1, S2, S3, S4, S5, S6;
+
+    S1 = -1.66666666666666324348e-01; /* 0xBFC55555, 0x55555549 */
+    S2 = 8.33333333332248946124e-03;  /* 0x3F811111, 0x1110F8A6 */
+    S3 = -1.98412698298579493134e-04; /* 0xBF2A01A0, 0x19C161D5 */
+    S4 = 2.75573137070700676789e-06;  /* 0x3EC71DE3, 0x57B1FE7D */
+    S5 = -2.50507602534068634195e-08; /* 0xBE5AE5E6, 0x8A2B9CEB */
+    S6 = 1.58969099521155010221e-10;  /* 0x3DE5D93A, 0x5ACFD57C */
+
+    z = RM_POW2(x);
+    w = RM_POW2(z);
+    r = S2 + z * (S3 + z * S4) + z * w * (S5 + z * S6);
+    v = z * x;
+
+    if (iy == 0) return x + v * (S1 + z * r);
+
+    return x - ((z * (0.5 * y - v * r) - y) - v * S1);
+}
+RM_INLINE f32 rm_tanf_step(f64 x, i32 odd) {
+    f64 z, r, w, s, t, u, T0, T1, T2, T3, T4, T5;
+
+    T0 = 0x15554D3418C99F.0p-54; /* 0.333331395030791399758 */
+    T1 = 0x1112FD38999F72.0p-55; /* 0.133392002712976742718 */
+    T2 = 0x1b54C91D865AFE.0p-57; /* 0.0533812378445670393523 */
+    T3 = 0x191DF3908C33CE.0p-58; /* 0.0245283181166547278873 */
+    T4 = 0x185DADFCECF44E.0p-61; /* 0.00297435743359967304927 */
+    T5 = 0x1362B9BF971BCD.0p-59; /* 0.00946564784943673166728 */
+
+    z = RM_POW2(x);
+    r = T4 + z * T5;
+    t = T2 + z * T3;
+    w = RM_POW2(z);
+    s = z * x;
+    u = T0 + z * T1;
+    r = (x + s * u) + (s * w) * (t + w * r);
+    return odd ? -1.0 / r : r;
+}
+RM_INLINE f64 rm_tand_step(f64 x, f64 y, i32 odd) {
+    u32 hx;
+    i32 big, sign;
+    f64 z, r, v, w, s, a, w0, a0, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, pio4lo;
+
+    T0 = 3.33333333333334091986e-01; /* 3FD55555, 55555563 */
+    T1 = 1.33333333333201242699e-01; /* 3FC11111, 1110FE7A */
+    T2 = 5.39682539762260521377e-02; /* 3FABA1BA, 1BB341FE */
+    T3 = 2.18694882948595424599e-02; /* 3F9664F4, 8406D637 */
+    T4 = 8.86323982359930005737e-03; /* 3F8226E3, E96E8493 */
+    T5 = 3.59207910759131235356e-03; /* 3F6D6D22, C9560328 */
+    T6 = 1.45620945432529025516e-03; /* 3F57DBC8, FEE08315 */
+    T7 = 5.88041240820264096874e-04; /* 3F4344D8, F2F26501 */
+    T8 = 2.46463134818469906812e-04; /* 3F3026F7, 1A8D1068 */
+    T9 = 7.81794442939557092300e-05; /* 3F147E88, A03792A6 */
+    T10 = 7.14072491382608190305e-05; /* 3F12B80F, 32F0A7E9 */
+    T11 = -1.85586374855275456654e-05; /* BEF375CB, DB605373 */
+    T12 = 2.59073051863633712884e-05; /* 3EFB2A70, 74BF7AD4 */
+    pio4lo = 3.06161699786838301793e-17; /* 3C81A626, 33145C07 */
+
+    RM_GET_HIGH_WORD(hx, x);
+    big = (hx & 0x7FFFFFFF) >= 0x3FE59428; /* |x| >= 0.6744 */
+    if (big) {
+        sign = hx >> 31;
+        if (sign) {
+            x = -x;
+            y = -y;
+        }
+        x = (RM_PI_4 - x) + (pio4lo - y);
+        y = 0;
+    }
+    z = RM_POW2(x);
+    w = RM_POW2(z);
+    /*
+     * Break x^5*(T[1]+x^2*T[2]+...) into
+     * x^5(T[1]+x^4*T[3]+...+x^20*T[11]) +
+     * x^5(x^2*(T[2]+x^4*T[4]+...+x^22*[T12]))
+     */
+    r = T1 + w * (T3 + w * (T5 + w * (T7 + w * (T9 + w * T11))));
+    v = z * (T2 + w * (T4 + w * (T6 + w * (T8 + w * (T10 + w * T12)))));
+    s = z * x;
+    r = y + z * (s * (r + v) + y) + s * T0;
+    w = x + r;
+    if (big) {
+        s = 1 - 2 * odd;
+        v = s - 2 * (x + (r - RM_POW2(w) / (w + s)));
+
+        return sign ? -v : v;
+    }
+    if (!odd) return w;
+    /* -1.0 / (x + r) has up to 2ulp error, so compute it accurately */
+    w0 = w;
+    RM_SET_LOW_WORD(w0, 0);
+    /* w0 + v = r + x */
+    v = r - (w0 - x);
+    a0 = a = -1.0 / w;
+    RM_SET_LOW_WORD(a0, 0);
+
+    return a0 + a * (1 + a0 * w0 + a0 * v);
+}
+RM_INLINE i32 rm_pi_2_remf(f32 x, f64 *y) {
+    u32 ix;
+    i32 n, sign, e0;
+    f32_cvt u;
+    static f64 tx, ty, fn, pio2_1, pio2_1t;
+
+    u = (f32_cvt){x};
+    pio2_1 = 1.57079631090164184570e+00;  /* 0x3FF921FB, 0x50000000 */
+    pio2_1t = 1.58932547735281966916e-08; /* 0x3E5110b4, 0x611A6263 */
+
+    ix = u.u & 0x7FFFFFFF;
+    /* 25+53 bit pi is good enough for medium size */
+    if (ix < 0x4DC90FDB) {  /* |x| ~< 2^28*(pi/2), medium size */
+        /* Use a specialized rint() to get fn. */
+        fn = (f64)x * RM_1_PI_2;
+        n = (i32)fn;
+        *y = x - fn * pio2_1 - fn * pio2_1t;
+        /* Matters with directed rounding. */
+        if (!(*y < -RM_PI_4)) {
+            n--;
+            fn--;
+            *y = x - fn * pio2_1 - fn * pio2_1t;
+        } else if (!(*y > RM_PI_4)) {
+            n++;
+            fn++;
+            *y = x - fn * pio2_1 - fn * pio2_1t;
+        }
+
+        return n;
+    }
+    if(ix >= RM_INF_F_X) {  /* x is inf or NaN */
+        *y = RM_INF_F;
+
+        return 0;
+    }
+    /* scale x into [2^23, 2^24-1] */
+    sign = u.u >> 31;
+    e0 = (ix >> 23) - (0x0000007F + 23);  /* e0 = ilogb(|x|)-23, positive */
+    u.u = ix - (e0 << 23);
+    tx = u.f;
+    n = rm_pi_2_rem_large(&tx, &ty, e0, 1, 0);
+
+    if (sign) {
+        *y = -ty;
+
+        return -n;
+    }
+    *y = ty;
+
+    return n;
+}
+RM_INLINE i32 rm_pi_2_remd(f64 x, f64 *y) {
+    u32 ix;
+    i32 sign, n, ex, ey, i;
+    f64_cvt u;
+    static f64 z, w, t, r, fn, pio2_1, pio2_1t, pio2_2, pio2_2t, pio2_3, pio2_3t, tx[3], ty[2];
+
+    pio2_1 = 1.57079632673412561417E+00; /* 0x3FF921FB, 0x54400000 */
+    pio2_1t = 6.07710050650619224932E-11; /* 0x3DD0B461, 0x1A626331 */
+    pio2_2 = 6.07710050630396597660E-11; /* 0x3DD0B461, 0x1A600000 */
+    pio2_2t = 2.02226624879595063154E-21; /* 0x3BA3198A, 0x2E037073 */
+    pio2_3 = 2.02226624871116645580E-21; /* 0x3BA3198A, 0x2E000000 */
+    pio2_3t = 8.47842766036889956997E-32; /* 0x397B839A, 0x252049C1 */
+
+    u = (f64_cvt){x};
+    sign = u.u >> 63;
+    ix = (u.u >> 32) & 0x7FFFFFFF;
+
+    /* |x| ~<= 5pi/4 */
+    if (ix <= 0x400F6A7A) {
+        /* |x| ~= pi/2 or 2pi/2 */
+        /* cancellation -- use medium case */
+        if ((ix & 0x000FFFFF) == 0x000921FB) goto medium;
+
+        /* |x| ~<= 3pi/4 */
+        if (ix <= 0x4002D97C) {
+            if (!sign) {
+                /* one round good to 85 bits */
+                z = x - pio2_1;
+                y[0] = z - pio2_1t;
+                y[1] = (z - y[0]) - pio2_1t;
+
+                return 1;
+            }
+            z = x + pio2_1;
+            y[0] = z + pio2_1t;
+            y[1] = (z - y[0]) + pio2_1t;
+
+            return -1;
+        }
+        if (!sign) {
+            z = x - 2 * pio2_1;
+            y[0] = z - 2 * pio2_1t;
+            y[1] = (z - y[0]) - 2 * pio2_1t;
+
+            return 2;
+        }
+        z = x + 2 * pio2_1;
+        y[0] = z + 2 * pio2_1t;
+        y[1] = (z - y[0]) + 2 * pio2_1t;
+
+        return -2;
+    }
+    /* |x| ~<= 9pi/4 */
+    if (ix <= 0x401C463B) {
+        /* |x| ~<= 7pi/4 */
+        if (ix <= 0x4015FDBC) {
+            /* |x| ~= 3pi/2 */
+            if (ix == RM_3PI_2_F_X) goto medium;
+
+            if (!sign) {
+                z = x - 3 * pio2_1;
+                y[0] = z - 3 * pio2_1t;
+                y[1] = (z - y[0]) - 3 * pio2_1t;
+
+                return 3;
+            }
+            z = x + 3 * pio2_1;
+            y[0] = z + 3 * pio2_1t;
+            y[1] = (z - y[0]) + 3 * pio2_1t;
+
+            return -3;
+        }
+        /* |x| ~= 4pi/2 */
+        if (ix == RM_2PI_F_X) goto medium;
+
+        if (!sign) {
+            z = x - 4 * pio2_1;
+            y[0] = z - 4 * pio2_1t;
+            y[1] = (z - y[0]) - 4 * pio2_1t;
+
+            return 4;
+        }
+        z = x + 4 * pio2_1;
+        y[0] = z + 4 * pio2_1t;
+        y[1] = (z - y[0]) + 4 * pio2_1t;
+
+        return -4;
+    }
+    /* |x| ~< 2^20*(pi/2), medium size */
+    if (ix < 0x413921FB) {
+    medium:
+        /* rint(x/(pi/2)) */
+        fn = (f64)x * RM_1_PI_2;
+        n = (i32)fn;
+        r = x - fn * pio2_1;
+        w = fn * pio2_1t;
+
+        /* 1st round, good to 85 bits */
+        /* Matters with directed rounding. */
+        if (!(r - w < -RM_PI_4)) {
+            n--;
+            fn--;
+            r = x - fn * pio2_1;
+            w = fn * pio2_1t;
+        } else if (!((r - w) > RM_PI_4)) {
+            n++;
+            fn++;
+            r = x - fn * pio2_1;
+            w = fn * pio2_1t;
+        }
+
+        y[0] = r - w;
+        u.f = y[0];
+        ey = (u.u >> 52) & 0x000007FF;
+        ex = ix >> 20;
+        /* 2nd round, good to 118 bits */
+        if ((ex - ey) > 16) {
+            t = r;
+            w = fn * pio2_2;
+            r = t - w;
+            w = fn * pio2_2t - ((t - r) - w);
+            y[0] = r - w;
+            u.f = y[0];
+            ey = (u.u >> 52) & 0x000007FF;
+
+            /* 3rd round, good to 151 bits, covers all cases */
+            if (ex - ey > 49) {
+                t = r;
+                w = fn * pio2_3;
+                r = t - w;
+                w = fn * pio2_3t - ((t - r) - w);
+                y[0] = r - w;
+            }
+        }
+        y[1] = (r - y[0]) - w;
+
+        return n;
+    }
+    /*
+     * all other (large) arguments
+     */
+    if (ix >= RM_INF_F_X) {  /* x is inf or NaN */
+        y[0] = y[1] = RM_INF;
+
+        return 0;
+    }
+    /* set z = scalbn(|x|,-ilogb(x)+23) */
+    u.f = x;
+    u.u &= (u64)-1 >> 12;
+    u.u |= (u64)(0x000003FF + 23) << 52;
+    z = u.f;
+    for (i = 0; i < 2; i++) {
+        tx[i] = (f64)(i32)z;
+        z = (z - tx[i]) * 0x1p24;
+    }
+    tx[i] = z;
+
+    /* skip zero terms, first term is non-zero */
+    while (rm_eqd(tx[i], 0)) i--;
+
+    n = rm_pi_2_rem_large(tx, ty, (i32)(ix >> 20) - (0x000003FF + 23), i + 1, 1);
+    if (sign) {
+        y[0] = -ty[0];
+        y[1] = -ty[1];
+
+        return -n;
+    }
+    y[0] = ty[0];
+    y[1] = ty[1];
+
+    return n;
+}
+static const i32 ipio2[66] = {
+    0xA2F983, 0x6E4E44, 0x1529FC, 0x2757D1, 0xF534DD, 0xC0DB62,
+    0x95993C, 0x439041, 0xFE5163, 0xABDEBB, 0xC561B7, 0x246E3A,
+    0x424DD2, 0xE00649, 0x2EEA09, 0xD1921C, 0xFE1DEB, 0x1CB129,
+    0xA73EE8, 0x8235F5, 0x2EBB44, 0x84E99C, 0x7026B4, 0x5F7E41,
+    0x3991D6, 0x398353, 0x39F49C, 0x845F8B, 0xBDF928, 0x3B1FF8,
+    0x97FFDE, 0x05980F, 0xEF2F11, 0x8B5A0A, 0x6D1F6D, 0x367ECF,
+    0x27CB09, 0xB74F46, 0x3F669E, 0x5FEA2D, 0x7527BA, 0xC7EBE5,
+    0xF17B3D, 0x0739F7, 0x8A5292, 0xEA6BFB, 0x5FB11F, 0x8D5D08,
+    0x560330, 0x46FC7B, 0x6BABF0, 0xCFBC20, 0x9AF436, 0x1DA9E3,
+    0x91615E, 0xE61B08, 0x659985, 0x5F14A0, 0x68408D, 0xFFD880,
+    0x4D7327, 0x310606, 0x1556CA, 0x73A8C9, 0x60E27B, 0xC08C6B
+};
+static const f64 PIo2[8] = {
+    1.57079625129699707031e+00, /* 0x3FF921FB, 0x40000000 */
+    7.54978941586159635335e-08, /* 0x3E74442D, 0x00000000 */
+    5.39030252995776476554e-15, /* 0x3CF84698, 0x80000000 */
+    3.28200341580791294123e-22, /* 0x3B78CC51, 0x60000000 */
+    1.27065575308067607349e-29, /* 0x39F01B83, 0x80000000 */
+    1.22933308981111328932e-36, /* 0x387A2520, 0x40000000 */
+    2.73370053816464559624e-44, /* 0x36E38222, 0x80000000 */
+    2.16741683877804819444e-51, /* 0x3569F31D, 0x00000000 */
+};
+RM_INLINE i32 rm_pi_2_rem_large(f64 *x, f64 *y, i32 e0, i32 nx, i32 prec) {
+    i32 jz, jx, jv, jp, jk, carry, n, i, j, k, m, q0, ih, iq[20];
+    f64 z, fw, f[20], fq[20], q[20];
+    /* initial value for jk */
+    static const i32 init_jk[4] = {3,4,4,6};
+
+    /* initialize jk*/
+    jk = init_jk[prec];
+    jp = jk;
+
+    /* determine jx,jv,q0, note that 3>q0 */
+    jx = nx - 1;
+    jv = (e0 - 3) / 24;
+    if(jv < 0) jv = 0;
+
+    q0 = e0 - 24 * (jv + 1);
+
+    /* set up f[0] to f[jx+jk] where f[jx+jk] = ipio2[jv+jk] */
+    j = jv - jx;
+    m = jx + jk;
+    for (i = 0; i <= m; ++i, ++j) f[i] = j < 0 ? 0 : (f64)ipio2[j];
+
+    /* compute q[0],q[1],...q[jk] */
+    for (i = 0; i <= jk; ++i) {
+        for (j = 0, fw = 0; j <= jx; ++j) fw += x[j] * f[jx + i - j];
+
+        q[i] = fw;
+    }
+
+    jz = jk;
+ recompute:
+    /* distill q[] into iq[] reversingly */
+    for (i = 0, j = jz, z = q[jz]; j > 0; ++i, --j) {
+        fw = (f64)(i32)(0x1p-24 * z);
+        iq[i] = (i32)(z - 0x1p24 * fw);
+        z  = q[j - 1] + fw;
+    }
+
+    /* compute n */
+    z = rm_scalbnd(z, q0);  /* actual value of z */
+    z -= 8.0 * rm_floord(z * 0.125); /* trim off integer >= 8 */
+    n = (i32)z;
+    z -= (f64)n;
+    ih = 0;
+    if (q0 > 0) { /* need iq[jz-1] to determine n */
+        i = iq[jz - 1] >> (24 - q0);
+        n += i;
+        iq[jz - 1] -= i << (24 - q0);
+        ih = iq[jz - 1] >> (23 - q0);
+    }
+    else if (q0 == 0) ih = iq[jz - 1] >> 23;
+    else if (z >= 0.5) ih = 2;
+
+    if (ih > 0) { /* q > 0.5 */
+        n += 1;
+        carry = 0;
+        for (i = 0; i <  jz; ++i) { /* compute 1-q */
+            j = iq[i];
+            if (carry == 0) {
+                if (j != 0) {
+                    carry = 1;
+                    iq[i] = 0x1000000 - j;
+                }
+            } else
+                iq[i] = 0x00FFFFFF - j;
+        }
+        if (q0 > 0) { /* rare case: chance is 1 in 12 */
+            switch(q0) {
+            case 1:
+                iq[jz-1] &= 0x07FFFFF;
+                break;
+            case 2:
+                iq[jz-1] &= 0x03FFFFF;
+                break;
+            }
+        }
+        if (ih == 2) {
+            z = 1 - z;
+
+            if (carry != 0) z -= rm_scalbnd(1, q0);
+        }
+    }
+
+    /* check if recomputation is needed */
+    if (rm_eqd(z, 0)) {
+        j = 0;
+        for (i = jz - 1; i >= jk; --i) j |= iq[i];
+
+        /* needs recomputation */
+        if (j == 0) {
+            /* k = no. of terms needed */
+            for (k = 1; iq[jk - k] == 0; ++k);
+
+            /* add q[jz+1] to q[jz+k] */
+            for (i = jz + 1; i <= jz + k; ++i) {
+                f[jx + i] = (f64)ipio2[jv + i];
+                for (j = 0, fw = 0; j <= jx; ++j) fw += x[j] * f[jx + i - j];
+
+                q[i] = fw;
+            }
+            jz += k;
+
+            goto recompute;
+        }
+    }
+
+    /* chop off zero terms */
+    if (rm_eqd(z, 0)) {
+        jz -= 1;
+        q0 -= 24;
+
+        while (iq[jz] == 0) {
+            jz--;
+            q0 -= 24;
+        }
+    } else {
+        /* break z into 24-bit if necessary */
+        z = rm_scalbnd(z, -q0);
+        if (z >= 0x1p24) {
+            fw = (f64)(i32)(0x1p-24 * z);
+            iq[jz] = (i32)(z - 0x1p24 * fw);
+            jz += 1;
+            q0 += 24;
+            iq[jz] = (i32)fw;
+        } else iq[jz] = (i32)z;
+    }
+
+    /* convert integer "bit" chunk to floating-point value */
+    fw = rm_scalbnd(1, q0);
+    for (i = jz; i >= 0; --i) {
+        q[i] = fw * (f64)iq[i];
+        fw *= 0x1p-24;
+    }
+
+    /* compute PIo2[0,...,jp]*q[jz,...,0] */
+    for(i = jz; i >= 0; --i) {
+        for (fw = 0, k = 0; k <= jp && k <= jz - i; ++k) fw += PIo2[k] * q[i + k];
+
+        fq[jz - i] = fw;
+    }
+
+    /* compress fq[] into y[] */
+    switch(prec) {
+    case 0:
+        fw = 0;
+        for (i = jz; i >= 0; --i) fw += fq[i];
+
+        y[0] = ih == 0 ? fw : -fw;
+        break;
+    case 1:
+    case 2:
+        fw = 0;
+        for (i = jz; i >= 0; --i) fw += fq[i];
+
+        // TODO: drop excess precision here once double_t is used
+        fw = (f64)fw;
+        y[0] = ih == 0 ? fw : -fw;
+        fw = fq[0] - fw;
+        for (i = 1; i <= jz; ++i) fw += fq[i];
+
+        y[1] = ih == 0 ? fw : -fw;
+        break;
+    case 3: /* painful */
+        for (i = jz; i > 0; --i) {
+            fw = fq[i - 1] + fq[i];
+            fq[i] += fq[i - 1] - fw;
+            fq[i - 1] = fw;
+        }
+        for (i = jz; i > 1; --i) {
+            fw = fq[i - 1] + fq[i];
+            fq[i] += fq[i - 1] - fw;
+            fq[i - 1] = fw;
+        }
+        for (fw = 0, i = jz; i >= 2; --i) fw += fq[i];
+
+        if (ih == 0) {
+            y[0] = fq[0]; y[1] = fq[1]; y[2] = fw;
+        } else {
+            y[0] = -fq[0]; y[1] = -fq[1]; y[2] = -fw;
+        }
+    }
+
+    return n & 7;
+}
+RM_INLINE f32 rm_cosf(f32 x) {
+    u32 ix, n, sign;
+    f64 y;
+
+    ix = as_u32(x);
+    sign = ix >> 31;
+    ix &= 0x7FFFFFFF;
+
+    if (ix >= RM_INF_F_X) return RM_NAN_F;
+
+    /* |x| ~<= pi/4 */
+    if (ix <= RM_PI_4_F_X) {
+        /* |x| < 2**-12 */
+        return (ix < 0x39800000) ? 1 : rm_cosf_step(x);
+        /* raise inexact if x != 0 */
+    }
+    /* |x| ~<= 5*pi/4 */
+    if (ix <= 0x407B53D1) {
+        /* |x|  ~> 3*pi/4 */
+        return (ix > 0x4016CBE3) ? -rm_cosf_step(sign ? x + RM_PI : x - RM_PI)
+            : rm_sinf_step((sign) ? x + RM_PI_2 : RM_PI_2 - x);
+    }
+    /* |x| ~<= 9*pi/4 */
+    if (ix <= 0x40e231d5) {
+        /* |x| ~> 7*pi/4 */
+        return (ix > 0x40AFEDDF) ? rm_cosf_step((sign) ? (x + RM_2PI) : (x - RM_2PI))
+            : rm_sinf_step((sign) ? (-x - RM_3PI_2) : (x - RM_3PI_2));
+    }
+
+    /* general argument reduction needed */
+    n = rm_pi_2_remf(x, &y);
+
+    switch (n & 3) {
+    case 0:  return  rm_cosf_step(y);
+    case 1:  return  rm_sinf_step(-y);
+    case 2:  return -rm_cosf_step(y);
+    default: return  rm_sinf_step(y);
+    }
+}
+RM_INLINE f64 rm_cosd(f64 x) {
+    u32 ix, n;
+    f64 y[2];
+
+    RM_GET_HIGH_WORD(ix, x);
+    ix &= 0x7FFFFFFF;
+
+    if (ix >= RM_INF_F_X) return RM_NAN;
+
+    /* |x| ~< pi/4 */
+    if (ix <= RM_PI_4_F_X) {
+        /* |x| < 2**-27 * sqrt(2) */
+        return (ix < 0x3E46A09E) ? 1 : rm_cosd_step(x, 0);
+        /* raise inexact if x!=0 */
+    }
+
+    /* argument reduction */
+    n = rm_pi_2_remd(x, y);
+
+    switch (n & 3) {
+    case 0:  return  rm_cosd_step(y[0], y[1]);
+    case 1:  return -rm_sind_step(y[0], y[1], 1);
+    case 2:  return -rm_cosd_step(y[0], y[1]);
+    default: return  rm_sind_step(y[0], y[1], 1);
+    }
 }
 RM_INLINE f32 rm_sinf(const f32 x) {
-    f32 u, wx;
+    u32 ix;
+    i32 n, sign;
+    f64 y;
 
-    wx = -rm_wrapf(x, -RM_PI_2, RM_PI_2);
+    ix = as_u32(x);
+    sign = ix >> 31;
+    ix &= 0x7FFFFFFF;
 
-    u = 1.0476743e-30f;
-    u = u * wx - 7.9707938e-18;
-    u = u * wx - 1.2277326e-29;
-    u = u * wx + 2.8100771e-15;
-    u = u * wx + 6.0976052e-29;
-    u = u * wx - 7.647121e-13;
-    u = u * wx - 1.671426e-28;
-    u = u * wx + 1.6059043e-10;
-    u = u * wx + 2.7589978e-28;
-    u = u * wx - 2.5052108e-8;
-    u = u * wx - 2.8075441e-28;
-    u = u * wx + 2.7557319e-6;
-    u = u * wx + 1.7314312e-28;
-    u = u * wx - 1.984127e-4;
-    u = u * wx - 6.1014107e-29;
-    u = u * wx + 8.3333333e-3;
-    u = u * wx + 1.08533e-29;
-    u = u * wx - 1.6666667e-1;
-    u = u * wx - 7.4359789e-31;
-    u = u * wx + 1;
+    if (ix >= RM_INF_F_X) return RM_NAN_F;
 
-    return u * wx + 8.3360846e-33;
+    /* |x| ~<= pi/4 */
+    if (ix <= RM_PI_4_F_X) {
+        /* |x| < 2**-12 */
+        return (ix < 0x39800000) ? x : rm_sinf_step(x);
+        /* raise inexact if x!=0 and underflow if subnormal */
+    }
+    /* |x| ~<= 5*pi/4 */
+    if (ix <= 0x407B53D1) {
+        /* |x| ~<= 3pi/4 */
+        if (ix <= 0x4016CBE3) {
+            return (sign) ? -rm_cosf_step(x + RM_PI_2) : rm_cosf_step(x - RM_PI_2);
+        }
+
+        return rm_sinf_step(sign ? -(x + RM_PI) : -(x - RM_PI));
+    }
+    /* |x| ~<= 9*pi/4 */
+    if (ix <= 0x40E231D5) {
+        /* |x| ~<= 7*pi/4 */
+        if (ix <= 0x40AFEDDF) {
+            return (sign) ? rm_cosf_step(x + RM_3PI_2) : -rm_cosf_step(x - RM_3PI_2);
+        }
+
+        return rm_sinf_step(sign ? x + RM_2PI : x - RM_2PI);
+    }
+
+    /* general argument reduction needed */
+    n = rm_pi_2_remf(x, &y);
+    switch (n & 3) {
+    case 0:  return rm_sinf_step(y);
+    case 1:  return rm_cosf_step(y);
+    case 2:  return rm_sinf_step(-y);
+    default: return -rm_cosf_step(y);
+    }
 }
 RM_INLINE f64 rm_sind(const f64 x) {
-    f64 u, wx;
+    f64 y[2];
+    u32 ix, n;
 
-    wx = -rm_wrapd(x, -RM_PI_2, RM_PI_2);
+    /* High word of x. */
+    RM_GET_HIGH_WORD(ix, x);
+    ix &= 0x7FFFFFFF;
 
-    u = 7.6801785633015737e-73;
-    u = u * wx - 7.970793758390793e-18;
-    u = u * wx - 9.0001307111075785e-72;
-    u = u * wx + 2.8100771049480405e-15;
-    u = u * wx + 4.4699671877848799e-71;
-    u = u * wx - 7.6471209575736836e-13;
-    u = u * wx - 1.2252711255426201e-70;
-    u = u * wx + 1.605904302324813e-10;
-    u = u * wx + 2.0225365545381623e-70;
-    u = u * wx - 2.50521083756661e-8;
-    u = u * wx - 2.0581243740559842e-70;
-    u = u * wx + 2.7557319223912249e-6;
-    u = u * wx + 1.26925903237337e-70;
-    u = u * wx - 1.9841269841269508e-4;
-    u = u * wx - 4.4727569126625767e-71;
-    u = u * wx + 8.3333333333333325e-3;
-    u = u * wx + 7.9562209355903606e-72;
-    u = u * wx - 1.6666666666666667e-1;
-    u = u * wx - 5.4510878492684119e-73;
-    u = u * wx + 1;
+    if (ix >= RM_INF_F_X) return RM_NAN;
 
-    return u * wx + 6.1109277161354271e-75;
+    /* |x| ~< pi/4 */
+    if (ix <= RM_PI_4_F_X) {
+        /* |x| < 2**-26 */
+        return (ix < 0x3E500000) ? x : rm_sind_step(x, 0, 0);
+        /* raise inexact if x != 0 and underflow if subnormal*/
+    }
+
+    /* argument reduction needed */
+    n = rm_pi_2_remd(x, y);
+    switch (n & 3) {
+    case 0:  return  rm_sind_step(y[0], y[1], 1);
+    case 1:  return  rm_cosd_step(y[0], y[1]);
+    case 2:  return -rm_sind_step(y[0], y[1], 1);
+    default: return -rm_cosd_step(y[0], y[1]);
+    }
 }
-RM_INLINE f32 rm_tanf(const f32 x) {
-    return rm_sinf(x) / rm_cosf(x);
+RM_INLINE f32 rm_tanf(f32 x) {
+    f64 y;
+    u32 ix, n, sign;
+
+    ix = as_u32(x);
+    sign = ix >> 31;
+    ix &= 0x7FFFFFFF;
+
+    if (ix >= RM_INF_F_X) return RM_NAN_F;
+
+    /* |x| ~<= pi/4 */
+    if (ix <= RM_PI_4_F_X) {
+        /* |x| < 2**-12 */
+        return (ix < 0x39800000) ? x : rm_tanf_step(x, 0);
+        /* raise inexact if x!=0 and underflow if subnormal */
+    }
+    /* |x| ~<= 5*pi/4 */
+    if (ix <= 0x407B53D1) {
+        /* |x| ~<= 3pi/4 */
+        return (ix <= 0x4016CBE3) ? rm_tanf_step((sign ? x + RM_PI_2 : x - RM_PI_2), 1)
+            : rm_tanf_step((sign ? x + RM_PI : x - RM_PI), 0);
+    }
+    /* |x| ~<= 9*pi/4 */
+    if (ix <= 0x40E231D5) {
+        /* |x| ~<= 7*pi/4 */
+        return (ix <= 0x40AFEDDF) ? rm_tanf_step((sign ? x + RM_3PI_2 : x - RM_3PI_2), 1)
+            : rm_tanf_step((sign ? x + RM_2PI : x - RM_2PI), 0);
+    }
+    /* argument reduction */
+    n = rm_pi_2_remf(x, &y);
+
+    return rm_tanf_step(y, n&1);
 }
-RM_INLINE f64 rm_tand(const f64 x) {
-    return rm_sind(x) / rm_cosd(x);
+RM_INLINE f64 rm_tand(f64 x) {
+    f64 y[2];
+    u32 ix, n;
+
+    RM_GET_HIGH_WORD(ix, x);
+    ix &= 0x7FFFFFFF;
+
+    if (ix >= RM_INF_F_X) return RM_NAN;
+
+    /* |x| ~< pi/4 */
+    if (ix <= RM_PI_4_F_X) {
+        /* |x| < 2**-27 */
+        return (ix < 0x3E400000) ? x : rm_tand_step(x, 0.0, 0);
+        /* raise inexact if x!=0 and underflow if subnormal */
+    }
+    /* argument reduction */
+    n = rm_pi_2_remd(x, y);
+
+    return rm_tand_step(y[0], y[1], n & 1);
 }
 RM_INLINE f32 rm_cotf(const f32 x) {
     return rm_cosf(x) / rm_sinf(x);
