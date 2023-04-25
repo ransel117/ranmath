@@ -67,7 +67,7 @@ extern "C" {
 #endif /* Check for simd */
 
 #if defined(__GNUC__) || defined(__clang__) || defined(__PCC__)
-/* GCC-compatible compiler (gcc, clang) */
+    /* GCC-compatible compiler (gcc, clang) */
 #define RM_COMPILER RM_CC
 #define RM_INLINE   static inline __attribute__((always_inline))
 #define RM_ALIGN(x) __attribute__((aligned(x)))
