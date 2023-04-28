@@ -66,18 +66,18 @@ extern "C" {
 #define RM_SIMD 0
 #endif /* Check for simd */
 
+/* GCC-compatible compiler (gcc, clang) */
 #if defined(__GNUC__) || defined(__clang__) || defined(__PCC__)
-    /* GCC-compatible compiler (gcc, clang) */
 #define RM_COMPILER RM_CC
 #define RM_INLINE   static inline __attribute__((always_inline))
 #define RM_ALIGN(x) __attribute__((aligned(x)))
-#elif defined(_MSC_VER)
 /* Microsoft cl */
+#elif defined(_MSC_VER)
 #define RM_COMPILER RM_CL
 #define RM_INLINE   static inline __forceinline
 #define RM_ALIGN(x) __declspec(align(x))
-#else
 /* Unknown */
+#else
 #define RM_COMPILER RM_CC /* Temporary, might change */
 #define RM_INLINE   static inline
 #define RM_ALIGN(x)
@@ -100,12 +100,9 @@ typedef size_t   usize;
 typedef union  RM_ALIGN(4) f32_cvt f32_cvt;
 typedef union  RM_ALIGN(8) f64_cvt f64_cvt;
 
-typedef struct RM_ALIGN(4) vec2 vec2;
-typedef struct RM_ALIGN(4) vec3 vec3;
-typedef struct RM_ALIGN(4) vec4 vec4;
-typedef union  RM_ALIGN(4) vec2_cvt vec2_cvt;
-typedef union  RM_ALIGN(4) vec3_cvt vec3_cvt;
-typedef union  RM_ALIGN(4) vec4_cvt vec4_cvt;
+typedef union RM_ALIGN(4) vec2 vec2;
+typedef union RM_ALIGN(4) vec3 vec3;
+typedef union RM_ALIGN(4) vec4 vec4;
 
 typedef union RM_ALIGN(16) mat2 mat2;
 typedef union RM_ALIGN(16) mat3 mat3;
@@ -119,20 +116,31 @@ union RM_ALIGN(8) f64_cvt {
     f64 f;
     u64 u;
 };
-struct RM_ALIGN(4) vec2 {
-    f32 x;
-    f32 y;
+union RM_ALIGN(4) vec2 {
+    struct RM_ALIGN(4) {f32 x, y;};
+    struct RM_ALIGN(4) {f32 u, v;};
+    struct RM_ALIGN(4) {f32 r, g;};
+    f32    RM_ALIGN(4) raw[2];
 };
-struct RM_ALIGN(4) vec3 {
-    f32 x;
-    f32 y;
-    f32 z;
+union RM_ALIGN(4) vec3 {
+    struct RM_ALIGN(4) {f32 x, y, z;};
+    struct RM_ALIGN(4) {f32 r, g, b;};
+    vec2   RM_ALIGN(4) xy;
+    struct RM_ALIGN(4) {f32 _;  vec2 yz;};
+    vec2   RM_ALIGN(4) rg;
+    struct RM_ALIGN(4) {f32 __; vec2 gb;};
+    f32    RM_ALIGN(4) raw[3];
 };
-struct RM_ALIGN(4) vec4 {
-    f32 x;
-    f32 y;
-    f32 z;
-    f32 w;
+union RM_ALIGN(4) vec4 {
+    struct RM_ALIGN(4) {f32  x, y, z, w;};
+    struct RM_ALIGN(4) {f32  r, g, b, a;};
+    struct RM_ALIGN(4) {vec2 xy, zw;};
+    struct RM_ALIGN(4) {vec2 rg, ba;};
+    vec3   RM_ALIGN(4) xyz;
+    struct RM_ALIGN(4) {f32 _;  vec3 yzw;};
+    vec3   RM_ALIGN(4) rgb;
+    struct RM_ALIGN(4) {f32 __; vec3 gba;};
+    f32    RM_ALIGN(4) raw[4];
 };
 union RM_ALIGN(16) mat2 {
     vec2 RM_ALIGN(16) cols[2];
@@ -147,19 +155,6 @@ union RM_ALIGN(16) mat3 {
 union RM_ALIGN(16) mat4 {
     vec4 RM_ALIGN(16) cols[4];
     f32  RM_ALIGN(16) raw[4][4];
-};
-union RM_ALIGN(4) vec2_cvt {
-    vec2 RM_ALIGN(4) v;
-    f32  RM_ALIGN(4) raw[2];
-};
-union RM_ALIGN(4) vec3_cvt {
-    vec3 RM_ALIGN(4) v;
-    f32  RM_ALIGN(4) raw[3];
-};
-union RM_ALIGN(4) vec4_cvt {
-    vec4 RM_ALIGN(4) v;
-    mat2 RM_ALIGN(4) m;
-    f32  RM_ALIGN(4) raw[4];
 };
 
 #define as_u32(x) ((f32_cvt){.f = x}).u
@@ -704,35 +699,25 @@ RM_INLINE RM_VEC rmm_hadd4(RM_VEC a, RM_VEC b, RM_VEC c, RM_VEC d) {
         (hi) = __u >> 32;                 \
         (lo) = (u32)__u;                  \
     } while(0);
-#define RM_GET_HIGH_WORD(hi, d) do {            \
-        (hi) = as_u64((d)) >> 32;               \
-    } while(0);
-#define RM_GET_LOW_WORD(lo, d) do {             \
-        (lo) = (u32)as_u64((d));                \
-    } while(0);
-#define RM_INSERT_WORDS(d, hi, lo) do {              \
-        (d) = as_f64(((u64)(hi) << 32) | (u32)(lo)); \
-    } while(0);
-#define RM_SET_HIGH_WORD(d, hi) RM_INSERT_WORDS(d, hi, (u32)as_u64((d)))
-#define RM_SET_LOW_WORD(d, lo) RM_INSERT_WORDS(d, as_u64((d)) >> 32, lo)
-#define RM_GET_FLOAT_WORD(w, d) do {            \
-        (w) = as_u32((d));                      \
-    } while(0);
-#define RM_SET_FLOAT_WORD(d, w) do {            \
-        (d) = as_f32((w));                      \
-    } while(0);
+#define RM_GET_HIGH_WORD(hi, d)     do {(hi) = as_u64((d)) >> 32;} while(0);
+#define RM_GET_LOW_WORD(lo, d)      do {(lo) = (u32)as_u64((d));} while(0);
+#define RM_INSERT_WORDS(d, hi, lo)  do {(d) = as_f64(((u64)(hi) << 32) | (u32)(lo));} while(0);
+#define RM_SET_HIGH_WORD(d, hi)     RM_INSERT_WORDS(d, hi, (u32)as_u64((d)))
+#define RM_SET_LOW_WORD(d, lo)      RM_INSERT_WORDS(d, as_u64((d)) >> 32, lo)
+#define RM_GET_FLOAT_WORD(w, d)     do {(w) = as_u32((d));} while(0);
+#define RM_SET_FLOAT_WORD(d, w)     do {(d) = as_f32((w));} while(0);
 
-#define RM_VEC2_FILL(x)  (vec2){(x), (x)}
-#define RM_VEC3_FILL(x)  (vec3){(x), (x), (x)}
-#define RM_VEC4_FILL(x)  (vec4){(x), (x), (x), (x)}
+#define RM_VEC2_FILL(x)  (vec2){{(x), (x)}}
+#define RM_VEC3_FILL(x)  (vec3){{(x), (x), (x)}}
+#define RM_VEC4_FILL(x)  (vec4){{(x), (x), (x), (x)}}
 
 #define RM_MAT2_FILL(x)  (mat2){{RM_VEC2_FILL((x)), RM_VEC2_FILL((x))}}
 #define RM_MAT3_FILL(x)  (mat3){{RM_VEC3_FILL((x)), RM_VEC3_FILL((x)), RM_VEC3_FILL((x))}}
 #define RM_MAT4_FILL(x)  (mat4){{RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x)), RM_VEC4_FILL((x))}}
 
-#define RM_MAT2_IDENTITY (mat2){{{1, 0}, {0, 1}}}
-#define RM_MAT3_IDENTITY (mat3){{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}}
-#define RM_MAT4_IDENTITY (mat4){{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}}}
+#define RM_MAT2_IDENTITY (mat2){{{{1, 0}}, {{0, 1}}}}
+#define RM_MAT3_IDENTITY (mat3){{{{1, 0, 0}}, {{0, 1, 0}}, {{0, 0, 1}}}}
+#define RM_MAT4_IDENTITY (mat4){{{{1, 0, 0, 0}}, {{0, 1, 0, 0}}, {{0, 0, 1, 0}}, {{0, 0, 0, 1}}}}
 
 RM_INLINE bool rm_eqf(const f32 a, const f32 b) {
     return RM_ABS(RM_MAX(a, b) - RM_MIN(a, b)) <= RM_SMALL_NUM_F;
@@ -2097,14 +2082,14 @@ RM_INLINE f64 rm_deg2radd(const f64 x) {
 RM_INLINE vec2 rm_vec2_copy(const vec2 v) {
     vec2 dest;
 
-    dest = (vec2){v.x, v.y};
+    dest = (vec2){{v.x, v.y}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_abs(const vec2 v) {
     vec2 dest;
 
-    dest = (vec2){rm_absf(v.x), rm_absf(v.y)};
+    dest = (vec2){{rm_absf(v.x), rm_absf(v.y)}};
 
     return dest;
 }
@@ -2117,14 +2102,14 @@ RM_INLINE f32 rm_vec2_min(const vec2 v) {
 RM_INLINE vec2 rm_vec2_maxv(const vec2 a, const vec2 b) {
     vec2 dest;
 
-    dest = (vec2){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y)};
+    dest = (vec2){{rm_maxf(a.x, b.x), rm_maxf(a.y, b.y)}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_minv(const vec2 a, const vec2 b) {
     vec2 dest;
 
-    dest = (vec2){rm_minf(a.x, b.x), rm_minf(a.y, b.y)};
+    dest = (vec2){{rm_minf(a.x, b.x), rm_minf(a.y, b.y)}};
 
     return dest;
 }
@@ -2148,7 +2133,7 @@ RM_INLINE vec2 rm_vec2_one(void) {
 RM_INLINE vec2 rm_vec2_set(const f32 x, const f32 y) {
     vec2 dest;
 
-    dest = (vec2){x, y};
+    dest = (vec2){{x, y}};
 
     return dest;
 }
@@ -2180,42 +2165,42 @@ RM_INLINE f32 rm_vec2_norm_inf(const vec2 v) {
 RM_INLINE vec2 rm_vec2_add(const vec2 a, const vec2 b) {
     vec2 dest;
 
-    dest = (vec2){a.x + b.x, a.y + b.y};
+    dest = (vec2){{a.x + b.x, a.y + b.y}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_adds(const vec2 v, const f32 s) {
     vec2 dest;
 
-    dest = (vec2){v.x + s, v.y + s};
+    dest = (vec2){{v.x + s, v.y + s}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_sub(const vec2 a, const vec2 b) {
     vec2 dest;
 
-    dest = (vec2){a.x - b.x, a.y - b.y};
+    dest = (vec2){{a.x - b.x, a.y - b.y}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_subs(const vec2 v, const f32 s) {
     vec2 dest;
 
-    dest = (vec2){v.x - s, v.y - s};
+    dest = (vec2){{v.x - s, v.y - s}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_mul(const vec2 a, const vec2 b) {
     vec2 dest;
 
-    dest = (vec2){a.x * b.x, a.y * b.y};
+    dest = (vec2){{a.x * b.x, a.y * b.y}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_scale(const vec2 v, const f32 s) {
     vec2 dest;
 
-    dest = (vec2){v.x * s, v.y * s};
+    dest = (vec2){{v.x * s, v.y * s}};
 
     return dest;
 }
@@ -2229,14 +2214,14 @@ RM_INLINE vec2 rm_vec2_scale_as(const vec2 v, const f32 s) {
 RM_INLINE vec2 rm_vec2_scale_aniso(const vec2 v, const f32 x, const f32 y) {
     vec2 dest;
 
-    dest = (vec2){v.x * x, v.y * y};
+    dest = (vec2){{v.x * x, v.y * y}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_div(const vec2 a, const vec2 b) {
     vec2 dest;
 
-    dest = (vec2){a.x / b.x, a.y / b.y};
+    dest = (vec2){{a.x / b.x, a.y / b.y}};
 
     return dest;
 }
@@ -2250,7 +2235,7 @@ RM_INLINE vec2 rm_vec2_divs(const vec2 v, const f32 s) {
 RM_INLINE vec2 rm_vec2_negate(const vec2 v) {
     vec2 dest;
 
-    dest = (vec2){-v.x, -v.y};
+    dest = (vec2){{-v.x, -v.y}};
 
     return dest;
 }
@@ -2268,7 +2253,7 @@ RM_INLINE vec2 rm_vec2_rotate(const vec2 v, const f32 a) {
     c = rm_cosf(a);
     s = rm_sinf(a);
 
-    dest = (vec2){c * v.x - s * v.y, s * v.x + c * v.y};
+    dest = (vec2){{c * v.x - s * v.y, s * v.x + c * v.y}};
 
     return dest;
 }
@@ -2281,14 +2266,14 @@ RM_INLINE f32 rm_vec2_distance(const vec2 a, const vec2 b) {
 RM_INLINE vec2 rm_vec2_clamp(const vec2 v, const f32 min, const f32 max) {
     vec2 dest;
 
-    dest = (vec2){rm_clampf(v.x, min, max), rm_clampf(v.y, min, max)};
+    dest = (vec2){{rm_clampf(v.x, min, max), rm_clampf(v.y, min, max)}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec2_wrap(const vec2 v, const f32 min, const f32 max) {
     vec2 dest;
 
-    dest = (vec2){rm_wrapf(v.x, min, max), rm_wrapf(v.y, min, max)};
+    dest = (vec2){{rm_wrapf(v.x, min, max), rm_wrapf(v.y, min, max)}};
 
     return dest;
 }
@@ -2299,21 +2284,21 @@ RM_INLINE vec2 rm_vec2_center(const vec2 a, const vec2 b) {
 RM_INLINE vec3 rm_vec3_copy(const vec3 v) {
     vec3 dest;
 
-    dest = (vec3){v.x, v.y, v.z};
+    dest = (vec3){{v.x, v.y, v.z}};
 
     return dest;
 }
 RM_INLINE vec2 rm_vec3_copy2(const vec3 v) {
     vec2 dest;
 
-    dest = (vec2){v.x, v.y};
+    dest = (vec2){{v.x, v.y}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_abs(const vec3 v) {
     vec3 dest;
 
-    dest = (vec3){rm_absf(v.x), rm_absf(v.y), rm_absf(v.z)};
+    dest = (vec3){{rm_absf(v.x), rm_absf(v.y), rm_absf(v.z)}};
 
     return dest;
 }
@@ -2326,14 +2311,14 @@ RM_INLINE f32 rm_vec3_min(const vec3 v) {
 RM_INLINE vec3 rm_vec3_maxv(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z)};
+    dest = (vec3){{rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z)}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_minv(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z)};
+    dest = (vec3){{rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z)}};
 
     return dest;
 }
@@ -2357,7 +2342,7 @@ RM_INLINE vec3 rm_vec3_one(void) {
 RM_INLINE vec3 rm_vec3_set(const f32 x, const f32 y, const f32 z) {
     vec3 dest;
 
-    dest = (vec3){x, y, z};
+    dest = (vec3){{x, y, z}};
 
     return dest;
 }
@@ -2371,7 +2356,7 @@ RM_INLINE vec3 rm_vec3_fill(const f32 x) {
 RM_INLINE vec3 rm_vec3_make(const vec2 v, const f32 last) {
     vec3 dest;
 
-    dest = (vec3){v.x, v.y, last};
+    dest = (vec3){{v.x, v.y, last}};
 
     return dest;
 }
@@ -2381,7 +2366,7 @@ RM_INLINE f32 rm_vec3_dot(const vec3 a, const vec3 b) {
 RM_INLINE vec3 rm_vec3_cross(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
+    dest = (vec3){{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x}};
 
     return dest;
 }
@@ -2403,42 +2388,42 @@ RM_INLINE f32 rm_vec3_norm_inf(const vec3 v) {
 RM_INLINE vec3 rm_vec3_add(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){a.x + b.x, a.y + b.y, a.z + b.z};
+    dest = (vec3){{a.x + b.x, a.y + b.y, a.z + b.z}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_adds(const vec3 v, const f32 s) {
     vec3 dest;
 
-    dest = (vec3){v.x + s, v.y + s, v.z + s};
+    dest = (vec3){{v.x + s, v.y + s, v.z + s}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_sub(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){a.x - b.x, a.y - b.y, a.z - b.z};
+    dest = (vec3){{a.x - b.x, a.y - b.y, a.z - b.z}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_subs(const vec3 v, const f32 s) {
     vec3 dest;
 
-    dest = (vec3){v.x - s, v.y - s, v.z - s};
+    dest = (vec3){{v.x - s, v.y - s, v.z - s}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_mul(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){a.x * b.x, a.y * b.y, a.z * b.z};
+    dest = (vec3){{a.x * b.x, a.y * b.y, a.z * b.z}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_scale(const vec3 v, const f32 s) {
     vec3 dest;
 
-    dest = (vec3){v.x * s, v.y * s, v.z * s};
+    dest = (vec3){{v.x * s, v.y * s, v.z * s}};
 
     return dest;
 }
@@ -2452,14 +2437,14 @@ RM_INLINE vec3 rm_vec3_scale_as(const vec3 v, const f32 s) {
 RM_INLINE vec3 rm_vec3_scale_aniso(const vec3 v, const f32 x, const f32 y, const f32 z) {
     vec3 dest;
 
-    dest = (vec3){v.x * x, v.y * y, v.z * z};
+    dest = (vec3){{v.x * x, v.y * y, v.z * z}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec3_div(const vec3 a, const vec3 b) {
     vec3 dest;
 
-    dest = (vec3){a.x / b.x, a.y / b.y, a.z / b.z};
+    dest = (vec3){{a.x / b.x, a.y / b.y, a.z / b.z}};
 
     return dest;
 }
@@ -2473,7 +2458,7 @@ RM_INLINE vec3 rm_vec3_divs(const vec3 v, const f32 s) {
 RM_INLINE vec3 rm_vec3_negate(const vec3 v) {
     vec3 dest;
 
-    dest = (vec3){-v.x, -v.y, -v.z};
+    dest = (vec3){{-v.x, -v.y, -v.z}};
 
     return dest;
 }
@@ -2515,7 +2500,7 @@ RM_INLINE f32 rm_vec3_distance(const vec3 a, const vec3 b) {
 RM_INLINE vec3 rm_vec3_clamp(const vec3 v, const f32 min, const f32 max) {
     vec3 dest;
 
-    dest = (vec3){rm_clampf(v.x, min, max), rm_clampf(v.y, min, max), rm_clampf(v.z, min, max)};
+    dest = (vec3){{rm_clampf(v.x, min, max), rm_clampf(v.y, min, max), rm_clampf(v.z, min, max)}};
 
     return dest;
 
@@ -2523,7 +2508,7 @@ RM_INLINE vec3 rm_vec3_clamp(const vec3 v, const f32 min, const f32 max) {
 RM_INLINE vec3 rm_vec3_wrap(const vec3 v, const f32 min, const f32 max) {
     vec3 dest;
 
-    dest = (vec3){rm_wrapf(v.x, min, max), rm_wrapf(v.y, min, max), rm_wrapf(v.z, min, max)};
+    dest = (vec3){{rm_wrapf(v.x, min, max), rm_wrapf(v.y, min, max), rm_wrapf(v.z, min, max)}};
 
     return dest;
 }
@@ -2534,27 +2519,27 @@ RM_INLINE vec3 rm_vec3_center(const vec3 a, const vec3 b) {
 RM_INLINE vec4 rm_vec4_copy(const vec4 v) {
     vec4 dest;
 
-    dest = (vec4){v.x, v.y, v.z, v.w};
+    dest = (vec4){{v.x, v.y, v.z, v.w}};
 
     return dest;
 }
 RM_INLINE vec3 rm_vec4_copy3(const vec4 v) {
     vec3 dest;
 
-    dest = (vec3){v.x, v.y, v.z};
+    dest = (vec3){{v.x, v.y, v.z}};
 
     return dest;
 }
 RM_INLINE vec4 rm_vec4_abs(const vec4 v) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_abs(rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){rm_absf(v.x), rm_absf(v.y), rm_absf(v.z), rm_absf(v.w)};
+    dest = (vec4){{rm_absf(v.x), rm_absf(v.y), rm_absf(v.z), rm_absf(v.w)}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE f32 rm_vec4_max(const vec4 v) {
     return rm_maxf(rm_maxf(rm_maxf(v.x, v.y), v.z), v.w);
@@ -2563,38 +2548,38 @@ RM_INLINE f32 rm_vec4_min(const vec4 v) {
     return rm_minf(rm_minf(rm_minf(v.x, v.y), v.z), v.w);
 }
 RM_INLINE vec4 rm_vec4_maxv(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_max(rmm_load(v0.raw), rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z), rm_maxf(a.w, b.w)};
+    dest = (vec4){{rm_maxf(a.x, b.x), rm_maxf(a.y, b.y), rm_maxf(a.z, b.z), rm_maxf(a.w, b.w)}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_minv(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_min(rmm_load(v0.raw), rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z), rm_minf(a.w, b.w)};
+    dest = (vec4){{rm_minf(a.x, b.x), rm_minf(a.y, b.y), rm_minf(a.z, b.z), rm_minf(a.w, b.w)}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE f32 rm_vec4_hadd(const vec4 v) {
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(v);
+    v0 = rm_vec4_copy(v);
 
     return rmm_hadd(rmm_load(v0.raw));
     #else
@@ -2618,7 +2603,7 @@ RM_INLINE vec4 rm_vec4_one(void) {
 RM_INLINE vec4 rm_vec4_set(const f32 x, const f32 y, const f32 z, const f32 w) {
     vec4 dest;
 
-    dest = (vec4){x, y, z, w};
+    dest = (vec4){{x, y, z, w}};
 
     return dest;
 }
@@ -2632,16 +2617,16 @@ RM_INLINE vec4 rm_vec4_fill(const f32 x) {
 RM_INLINE vec4 rm_vec4_make(const vec3 v, const f32 last) {
     vec4 dest;
 
-    dest = (vec4){v.x, v.y, v.z, last};
+    dest = (vec4){{v.x, v.y, v.z, last}};
 
     return dest;
 }
 RM_INLINE f32 rm_vec4_dot(const vec4 a, const vec4 b) {
     #if RM_SIMD
-    vec4_cvt v0, v1;
+    vec4 v0, v1;
 
-    v0.v = rm_vec4_copy(a);
-    v1.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    v1 = rm_vec4_copy(b);
 
     return rmm_hadd(rmm_mul(rmm_load(v0.raw), rmm_load(v1.raw)));
     #else
@@ -2661,79 +2646,79 @@ RM_INLINE f32 rm_vec4_norm_inf(const vec4 v) {
     return rm_vec4_max(rm_vec4_abs(v));
 }
 RM_INLINE vec4 rm_vec4_add(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_add(rmm_load(v0.raw), rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+    dest = (vec4){{a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_adds(const vec4 v, const f32 s) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_add(rmm_load(dest.raw), rmm_set1(s)));
     #else
-    dest.v = (vec4){v.x + s, v.y + s, v.z + s, v.w + s};
+    dest = (vec4){{v.x + s, v.y + s, v.z + s, v.w + s}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_sub(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_sub(rmm_load(v0.raw), rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+    dest = (vec4){{a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_subs(const vec4 v, const f32 s) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_sub(rmm_load(dest.raw), rmm_set1(s)));
     #else
-    dest.v = (vec4){v.x - s, v.y - s, v.z - s, v.w - s};
+    dest = (vec4){{v.x - s, v.y - s, v.z - s, v.w - s}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_mul(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_mul(rmm_load(v0.raw), rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
+    dest = (vec4){{a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_scale(const vec4 v, const f32 s) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_mul(rmm_load(dest.raw), rmm_set1(s)));
     #else
-    dest.v = (vec4){v.x * s, v.y * s, v.z * s, v.w * s};
+    dest = (vec4){{v.x * s, v.y * s, v.z * s, v.w * s}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_scale_as(const vec4 v, const f32 s) {
     f32 norm;
@@ -2743,34 +2728,34 @@ RM_INLINE vec4 rm_vec4_scale_as(const vec4 v, const f32 s) {
     return (rm_eqf(norm, 0)) ? rm_vec4_zero() : rm_vec4_scale(v, s / norm);
 }
 RM_INLINE vec4 rm_vec4_scale_aniso(const vec4 v, const f32 x, const f32 y, const f32 z, const f32 w) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_mul(rmm_load(dest.raw), rmm_set(x, y, z, w)));
     #else
-    dest.v = (vec4){v.x * x, v.y * y, v.z * z, v.w * w};
+    dest = (vec4){{v.x * x, v.y * y, v.z * z, v.w * w}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_div(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_div(rmm_load(v0.raw), rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w};
+    dest = (vec4){{a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_mul(rmm_load(dest.raw), rmm_set1(1.0F / s)));
     #else
@@ -2778,20 +2763,20 @@ RM_INLINE vec4 rm_vec4_divs(const vec4 v, const f32 s) {
 
     x = 1.0F / s;
 
-    dest.v = rm_vec4_scale(v, x);
+    dest = rm_vec4_scale(v, x);
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_negate(const vec4 v) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_neg(rmm_load(dest.raw)));
     #else
-    dest.v = (vec4){-v.x, -v.y, -v.z, -v.w};
+    dest = (vec4){{-v.x, -v.y, -v.z, -v.w}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
     f32 norm;
@@ -2803,10 +2788,10 @@ RM_INLINE vec4 rm_vec4_normalize(const vec4 v) {
 RM_INLINE f32 rm_vec4_distance2(const vec4 a, const vec4 b) {
     #if RM_SIMD
     RM_VEC x0;
-    vec4_cvt v0, v1;
+    vec4 v0, v1;
 
-    v0.v = rm_vec4_copy(a);
-    v1.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    v1 = rm_vec4_copy(b);
     x0 = rmm_sub(rmm_load(v0.raw), rmm_load(v1.raw));
 
     return rmm_hadd(rmm_mul(x0, x0));
@@ -2818,9 +2803,9 @@ RM_INLINE f32 rm_vec4_distance(const vec4 a, const vec4 b) {
     return rm_sqrtf(rm_vec4_distance2(a, b));
 }
 RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     rmm_store(dest.raw, rmm_min(rmm_max(rmm_load(dest.raw), rmm_set1(min)), rmm_set1(max)));
     #else
@@ -2831,16 +2816,16 @@ RM_INLINE vec4 rm_vec4_clamp(const vec4 v, const f32 min, const f32 max) {
     cz = rm_clampf(v.z, min, max);
     cw = rm_clampf(v.w, min, max);
 
-    dest.v = (vec4){cx, cy, cz, cw};
+    dest = (vec4){{cx, cy, cz, cw}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
     RM_VEC x0, x1;
 
-    dest.v = rm_vec4_copy(v);
+    dest = rm_vec4_copy(v);
 
     x0 = rmm_set1(min);
     x1 = rmm_set1(max - min);
@@ -2854,23 +2839,23 @@ RM_INLINE vec4 rm_vec4_wrap(const vec4 v, const f32 min, const f32 max) {
     wz = rm_wrapf(v.z , min, max);
     ww = rm_wrapf(v.w , min, max);
 
-    dest.v = (vec4){wx, wy, wz, ww};
+    dest = (vec4){{wx, wy, wz, ww}};
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec4 rm_vec4_center(const vec4 a, const vec4 b) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
-    vec4_cvt v0;
+    vec4 v0;
 
-    v0.v = rm_vec4_copy(a);
-    dest.v = rm_vec4_copy(b);
+    v0 = rm_vec4_copy(a);
+    dest = rm_vec4_copy(b);
 
     rmm_store(dest.raw, rmm_mul(rmm_sub(rmm_load(v0.raw), rmm_load(dest.raw)), rmm_set1(0.5F)));
     #else
-    dest.v = rm_vec4_scale(rm_vec4_add(a, b), 0.5F);
+    dest = rm_vec4_scale(rm_vec4_add(a, b), 0.5F);
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 
 RM_INLINE mat2 rm_mat2_copy(const mat2 m) {
@@ -2928,8 +2913,8 @@ RM_INLINE mat2 rm_mat2_transpose(const mat2 m) {
     #else
     vec2 c1, c2;
 
-    c1 = (vec2){m.cols[0].x, m.cols[1].x};
-    c2 = (vec2){m.cols[0].y, m.cols[1].y};
+    c1 = (vec2){m.cols[0].x, m.cols[1].x}};
+    c2 = (vec2){m.cols[0].y, m.cols[1].y}};
 
     dest = (mat2){{c1, c2}};
     #endif /* RM_SIMD */
@@ -2959,14 +2944,14 @@ RM_INLINE mat2 rm_mat2_inv(const mat2 m) {
     f32 det;
     mat2 dest;
 
-    det = 1.0F / (m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x);
+    det = 1.0 / (m.cols[0].x * m.cols[1].y - m.cols[0].y * m.cols[1].x);
     #if RM_SIMD
     rmm_store(dest.rawv, rmm_mul(rmm_shuffle(rmm_load(m.rawv), 3, 1, 2, 0), rmm_set(det, -det, -det, det)));
     #else
     vec2 c1, c2;
 
-    c1 = (vec2){ m.rawv[3] * det, -m.rawv[1] * det};
-    c2 = (vec2){-m.rawv[2] * det,  m.rawv[0] * det};
+    c1 = (vec2){{m.rawv[3] * det, -m.rawv[1] * det}};
+    c2 = (vec2){{-m.rawv[2] * det,  m.rawv[0] * det}};
 
     dest = (mat2){{c1, c2}};
     #endif /* RM_SIMD */
@@ -3048,9 +3033,9 @@ RM_INLINE mat3 rm_mat3_transpose(const mat3 m) {
     vec3 c1, c2, c3;
     mat3 dest;
 
-    c1 = (vec3){m.cols[0].x, m.cols[1].x, m.cols[2].x};
-    c2 = (vec3){m.cols[0].y, m.cols[1].y, m.cols[2].y};
-    c3 = (vec3){m.cols[0].z, m.cols[1].z, m.cols[2].z};
+    c1 = (vec3){{m.cols[0].x, m.cols[1].x, m.cols[2].x}};
+    c2 = (vec3){{m.cols[0].y, m.cols[1].y, m.cols[2].y}};
+    c3 = (vec3){{m.cols[0].z, m.cols[1].z, m.cols[2].z}};
 
     dest = (mat3){{c1, c2, c3}};
 
@@ -3176,9 +3161,9 @@ RM_INLINE mat3 rm_mat4_pick3t(const mat4 m) {
     vec3 c1, c2, c3;
     mat3 dest;
 
-    c1 = (vec3){m.cols[0].x, m.cols[1].x, m.cols[2].x};
-    c2 = (vec3){m.cols[0].y, m.cols[1].y, m.cols[2].y};
-    c3 = (vec3){m.cols[0].z, m.cols[1].z, m.cols[2].z};
+    c1 = (vec3){{m.cols[0].x, m.cols[1].x, m.cols[2].x}};
+    c2 = (vec3){{m.cols[0].y, m.cols[1].y, m.cols[2].y}};
+    c3 = (vec3){{m.cols[0].z, m.cols[1].z, m.cols[2].z}};
 
     dest = (mat3){{c1, c2, c3}};
 
@@ -3238,7 +3223,7 @@ RM_INLINE mat4 rm_mat4_mul(const mat4 a, const mat4 b) {
     return dest;
 }
 RM_INLINE vec4 rm_mat4_mulv(const mat4 m, const vec4 v) {
-    vec4_cvt dest;
+    vec4 dest;
     #if RM_SIMD
     RM_VEC x0, x1;
 
@@ -3252,9 +3237,9 @@ RM_INLINE vec4 rm_mat4_mulv(const mat4 m, const vec4 v) {
     tmp1 = rm_vec4_add(rm_vec4_scale(m.cols[0], v.x), rm_vec4_scale(m.cols[1], v.y));
     tmp2 = rm_vec4_add(rm_vec4_scale(m.cols[2], v.z), rm_vec4_scale(m.cols[3], v.w));
 
-    dest.v = rm_vec4_add(tmp1, tmp2);
+    dest = rm_vec4_add(tmp1, tmp2);
     #endif /* RM_SIMD */
-    return dest.v;
+    return dest;
 }
 RM_INLINE vec3 rm_mat4_mulv3(const mat4 m, const vec3 v, const f32 last) {
     return rm_vec4_copy3(rm_mat4_mulv(m, rm_vec4_make(v, last)));
@@ -3269,10 +3254,10 @@ RM_INLINE mat4 rm_mat4_transpose(const mat4 m) {
     vec4 c1, c2, c3, c4;
     mat4 dest;
 
-    c1 = (vec4){m.cols[0].x, m.cols[1].x, m.cols[2].x, m.cols[3].x};
-    c2 = (vec4){m.cols[0].y, m.cols[1].y, m.cols[2].y, m.cols[3].y};
-    c3 = (vec4){m.cols[0].z, m.cols[1].z, m.cols[2].z, m.cols[3].z};
-    c4 = (vec4){m.cols[0].w, m.cols[1].w, m.cols[2].w, m.cols[3].w};
+    c1 = (vec4){{m.cols[0].x, m.cols[1].x, m.cols[2].x, m.cols[3].x}};
+    c2 = (vec4){{m.cols[0].y, m.cols[1].y, m.cols[2].y, m.cols[3].y}};
+    c3 = (vec4){{m.cols[0].z, m.cols[1].z, m.cols[2].z, m.cols[3].z}};
+    c4 = (vec4){{m.cols[0].w, m.cols[1].w, m.cols[2].w, m.cols[3].w}};
 
     dest = (mat4){{c1, c2, c3, c4}};
 
@@ -3450,10 +3435,10 @@ RM_INLINE mat4 rm_mat4_ortho(const f32 l, const f32 r, const f32 b, const f32 t,
     tb = 1 / (t - b);
     fn = 1 / (f - n);
 
-    c1 = (vec4){2 * rl, 0, 0, 0};
-    c2 = (vec4){0, 2 * tb, 0, 0};
-    c3 = (vec4){0, 0, -2 * fn, 0};
-    c4 = (vec4){-(r + l) * rl, -(t + b) * tb, -(f + n) * fn, 1};
+    c1 = (vec4){{2 * rl, 0, 0, 0}};
+    c2 = (vec4){{0, 2 * tb, 0, 0}};
+    c3 = (vec4){{0, 0, -2 * fn, 0}};
+    c4 = (vec4){{-(r + l) * rl, -(t + b) * tb, -(f + n) * fn, 1}};
 
     dest = (mat4){{c1, c2, c3, c4}};
 
@@ -3469,10 +3454,10 @@ RM_INLINE mat4 rm_mat4_frustum(const f32 l, const f32 r, const f32 b, const f32 
     fn = 1 / (f - n);
     nv = 2 * n;
 
-    c1 = (vec4){nv * rl, 0, 0, 0};
-    c2 = (vec4){0, nv * tb, 0, 0};
-    c3 = (vec4){(r + l) * rl, (t + b) * tb, -(f + n) * fn, -1};
-    c4 = (vec4){0, 0, -f * nv * fn, 0};
+    c1 = (vec4){{nv * rl, 0, 0, 0}};
+    c2 = (vec4){{0, nv * tb, 0, 0}};
+    c3 = (vec4){{(r + l) * rl, (t + b) * tb, -(f + n) * fn, -1}};
+    c4 = (vec4){{0, 0, -f * nv * fn, 0}};
 
     dest = (mat4){{c1, c2, c3, c4}};
 
@@ -3486,10 +3471,10 @@ RM_INLINE mat4 rm_mat4_perspective(const f32 fov, const f32 aspect, const f32 n,
     fv = 1 / rm_tanf(fov * 0.5F);
     fn = 1 / (n - f);
 
-    c1 = (vec4){fv / aspect, 0, 0, 0};
-    c2 = (vec4){0, fv, 0, 0};
-    c3 = (vec4){0, 0, (n + f) * fn, -1};
-    c4 = (vec4){0, 0, 2 * n * f * fn, 0};
+    c1 = (vec4){{fv / aspect, 0, 0, 0}};
+    c2 = (vec4){{0, fv, 0, 0}};
+    c3 = (vec4){{0, 0, (n + f) * fn, -1}};
+    c4 = (vec4){{0, 0, 2 * n * f * fn, 0}};
 
     dest = (mat4){{c1, c2, c3, c4}};
 
