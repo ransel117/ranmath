@@ -28,17 +28,6 @@
 //extern "C" {
 #endif /* __cplusplus */
 
-#include <stdint.h>
-#include <stddef.h>
-
-#ifndef __bool_true_false_are_defined
-#define bool _Bool
-#define true 1
-#define false 0
-
-#define __bool_true_false_are_defined 1
-#endif /* Check if user has included stdbool.h */
-
 #define RM_CC 0
 #define RM_CL 1
 
@@ -86,6 +75,20 @@
 #endif /* Check compiler for alignment of vectors */
 
 /* ---------------- TYPES ---------------- */
+#ifndef RANTYPES_H
+#define RANTYPES_H
+
+#include <stdint.h>
+#include <stddef.h>
+
+#ifndef __bool_true_false_are_defined
+#define bool  _Bool
+#define true  1
+#define false 0
+
+#define __bool_true_false_are_defined 1
+#endif /* __bool_true_false_are_defined */
+
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -97,6 +100,7 @@ typedef int64_t  i64;
 typedef float    f32;
 typedef double   f64;
 typedef size_t   usize;
+#endif /* RANTYPES_H */
 
 typedef struct RM_ALIGN(4)  f32_cvt_s f32_cvt;
 typedef struct RM_ALIGN(8)  f64_cvt_s f64_cvt;
