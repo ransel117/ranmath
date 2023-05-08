@@ -176,16 +176,16 @@ struct RM_ALIGN(16) mat4_s {
     };
 };
 
-#define as_u32(x)               (((f32_cvt){.f = (x)}).u)
-#define as_f32(x)               (((f32_cvt){.u = (x)}).f)
-#define as_u64(x)               (((f64_cvt){.f = (x)}).u)
-#define as_f64(x)               (((f64_cvt){.u = (x)}).f)
-#define rm_vec2(x, y)           ((vec2){{{(x), (y)}}})
-#define rm_vec3(x, y, z)        ((vec3){{{(x), (y), (z)}}})
-#define rm_vec4(x, y, z, w)     ((vec4){{{(x), (y), (z), (w)}}})
-#define rm_mat2(c0, c1)         ((mat2){{{(c0), (c1)}}})
-#define rm_mat3(c0, c1, c2)     ((mat3){{{(c0), (c1), (c2)}}})
-#define rm_mat4(c0, c1, c2, c3) ((mat4){{{(c0), (c1), (c2), (c3)}}})
+#define as_u32(_x)                  (((f32_cvt){.f = (_x)}).u)
+#define as_f32(_x)                  (((f32_cvt){.u = (_x)}).f)
+#define as_u64(_x)                  (((f64_cvt){.f = (_x)}).u)
+#define as_f64(_x)                  (((f64_cvt){.u = (_x)}).f)
+#define rm_vec2(_x, _y)             ((vec2){{{.x=(_x), .y=(_y)}}})
+#define rm_vec3(_x, _y, _z)         ((vec3){{{.x=(_x), .y=(_y), .z=(_z)}}})
+#define rm_vec4(_x, _y, _z, _w)     ((vec4){{{.x=(_x), .y=(_y), .z=(_z), .w=(_w)}}})
+#define rm_mat2(_c0, _c1)           ((mat2){{{(_c0), (_c1)}}})
+#define rm_mat3(_c0, _c1, _c2)      ((mat3){{{(_c0), (_c1), (_c2)}}})
+#define rm_mat4(_c0, _c1, _c2, _c3) ((mat4){{{(_c0), (_c1), (_c2), (_c3)}}})
 
 /* ---------------- CONSTANTS ---------------- */
 #define RM_E_X           (0x4005BF0A8B145769)
