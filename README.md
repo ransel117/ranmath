@@ -13,12 +13,6 @@ Include ranmath.h in your project;
 ```
 using one of the above.
 
-For all functions to be declared put;
-```C
-#define RANMATH_IMPLEMENTATION
-```
-above the include statement.
-
 ## Contribute
 Feel free to make contributions! Try to fit in with the current code base which may change.
 
