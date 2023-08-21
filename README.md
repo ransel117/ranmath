@@ -3,8 +3,6 @@ Math library by me.
 
 Will not be the most precise thing in the world but aiming to be within a reasonable amount of libc.
 
-Aiming to be a single header stb-style library.
-
 ## How to use
 Include ranmath.h in your project;
 ```C
