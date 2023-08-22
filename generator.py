@@ -2,230 +2,8 @@ import re
 
 file = open("build/ranmath.h", "w")
 
-LICENSE = """/*
-* MIT License
-*
-* Copyright (c) 2023 Ransel117
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in all
-* copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*/
-"""
-file.write(LICENSE)
+RANMATH_HEADER = open("test.h", "r").read()
 
-"""
-------------------------------------TYPES---------------------------------------
-"""
-RANMATH_HEADER = """#ifndef RANMATH_H
-#define RANMATH_H
-
-#define RM_PLATFORM_LINUX           0x1
-#define RM_PLATFORM_WINDOWS         0x2
-
-#if defined(__linux__)
-#define RM_PLATFORM RM_PLATFORM_LINUX
-#elif defined(_MSC_VER)
-#define RM_PLATFORM RM_PLATFORM_WINDOWS
-#define WIN32_LEAN_AND_MEAN
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-#else
-#error unsupported platform
-#endif /* CHECK PLATFORM */
-
-#define RM_ARCH_X86                 (1 << 0)
-/* 32-bit arm and 64-bit arm, RM_ARCH_ARM is for either */
-#define RM_ARCH_AARCH32             (1 << 0)
-#define RM_ARCH_AARCH64             (1 << 1)
-#if defined(__x86_64__)    || defined(_M_X64)      ||    \\
-    defined(__amd64__)     || defined(_M_AMD64)    ||    \\
-    defined(__i386__)      || defined(_M_IX86)
-#define RM_ARCH RM_ARCH_X86
-#elif defined(__aarch64__) || defined(_M_ARM64)
-#define RM_ARCH_ARM RM_ARCH_AARCH64 | RM_ARCH_AARCH32
-#define RM_ARCH     RM_ARCH_ARM
-#elif defined(__arm__)     || defined(_M_ARM)
-#define RM_ARCH_ARM RM_ARCH_AARCH32
-#define RM_ARCH     RM_ARCH_ARM
-#else
-#error unsupported architecture
-#endif /* CHECK ARCHITECTURE */
-
-#define RM_BYTE_ORDER_BIG_ENDIAN    4321
-#define RM_BYTE_ORDER_LITTLE_ENDIAN 1234
-#if RM_PLATFORM == RM_PLATFORM_LINUX
-
-#if defined(__BYTE_ORDER__)
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define RM_BYTE_ORDER RM_BYTE_ORDER_BIG_ENDIAN
-#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-#define RM_BYTE_ORDER RM_BYTE_ORDER_LITTLE_ENDIAN
-#else
-#error unsupported byte order
-#endif /* __BYTE_ORDER__ */
-#endif
-
-/*
- * according to https://en.wikipedia.org/wiki/Endianness#Newer_architectures
- * x86 is little-endian and arm/aarch64 are bi-endian to some degree.
- *
- * according to
- * https://developer.arm.com/documentation/dui0472/m/Compiler-specific-Features/Predefined-macros
- * and
- * https://developer.arm.com/documentation/101754/0620/armclang-Reference/Other-Compiler-specific-Features/Predefined-macros
- * the compilers should specify if the target is big-endian.
- */
-#elif RM_ARCH == RM_ARCH_X86
-#define RM_BYTE_ORDER RM_BYTE_ORDER_LITTLE_ENDIAN
-
-#elif RM_ARCH == RM_ARCH_ARM
-#if defined(__BIG_ENDIAN) || defined(__ARM_BIG_ENDIAN)
-#define RM_BYTE_ORDER RM_BYTE_ORDER_BIG_ENDIAN
-#else
-#define RM_BYTE_ORDER RM_BYTE_ORDER_LITTLE_ENDIAN
-#endif
-#endif /* CHECK BYTE ORDER */
-
-#if !defined(RM_NO_INTRINSICS)
-
-#if RM_ARCH == RM_ARCH_X86
-/* fallthroughs for windows since it only checks for SSE/SSE2 and AVX/AVX2 */
-#if defined(__AVX2__)
-#if !defined(RM_AVX2)
-#define RM_AVX2 (1 << 7)
-#endif
-#endif /* AVX2 INTRINSICS */
-
-#if defined(__AVX__) || defined(RM_AVX2)
-#if !defined(RM_AVX)
-#define RM_AVX (1 << 6)
-#endif
-#endif /* AVX INTRINSICS */
-
-#if defined(__SSE4_2__) || defined(RM_AVX)
-#if !defined(RM_SSE4_2)
-#define RM_SSE4_2 (1 << 5)
-#endif
-#endif /* SSE4.2 INTRINSICS */
-
-#if defined(__SSE4_1__) || defined(RM_SSE4_2)
-#if !defined(RM_SSE4_1)
-#define RM_SSE4_1 (1 << 4)
-#endif
-#endif /* SSE4.1 INTRINSICS */
-
-#if defined(__SSSE3__) || defined(RM_SSE4_1)
-#if !defined(RM_SSSE3)
-#define RM_SSSE3 (1 << 3)
-#endif
-#endif /* SSSE3 INTRINSICS */
-
-#if defined(__SSE3__) || defined(RM_SSSE3)
-#if !defined(RM_SSE3)
-#define RM_SSE3 (1 << 2)
-#endif
-#endif /* SSE3 INTRINSICS */
-
-#if defined(__SSE2__) || (defined(_M_IX86_FP) && _M_IX86_FP == 2) ||    \\
-    defined(RM_SSE3)
-#if !defined(RM_SSE2)
-#define RM_SSE2 (1 << 1)
-#endif
-#endif /* SSE2 INTRINSICS */
-
-#if defined(__SSE__) || (defined(_M_IX86_FP) && _M_IX86_FP == 1) ||     \\
-    defined(RM_SSE2)
-#if !defined(RM_SSE)
-#define RM_SSE (1 << 0)
-#endif
-#endif /* SSE1 INTRINSICS */
-#define RM_SIMD RM_AVX2  | RM_AVX  | RM_SSE4_2 | RM_SSE4_1 |    \\
-                RM_SSSE3 | RM_SSE3 | RM_SSE2   | RM_SSE
-#endif /* X86 SIMD INTRINSICS */
-
-#if RM_ARCH == RM_ARCH_ARM
-#if (defined(__ARM_NEON__)    || defined(__ARM_NEON)) &&       \\
-    (defined(__ARM_NEON_FP__) || defined(__ARM_NEON_FP))
-#if !defined(RM_NEON)
-#define RM_NEON (1 << 0)
-#endif
-#endif /* NEON INTRINSICS */
-#define RM_SIMD RM_NEON
-#endif /* ARM SIMD INTRINSICS */
-#endif /* NO INTRINSICS */
-
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
-/* TEMPORARY, WILL STAY UNTIL EVERYTHING ELSE IS IMPLEMENTED */
-#include <math.h>
-
-#if !defined(RM_NO_INTRINSICS)
-#if RM_ARCH == RM_ARCH_X86
-#if defined(RM_AVX2) || defined(RM_AVX)
-#include <immintrin.h>
-#endif
-
-#if defined(RM_SSE4_2)
-#include <nmmintrin.h>
-#endif
-
-#if defined(RM_SSE4_1)
-#include <smmintrin.h>
-#endif
-
-#if defined(RM_SSSE3)
-#include <tmmintrin.h>
-#endif
-
-#if defined(RM_SSE3)
-#include <pmmintrin.h>
-#endif
-
-#if defined(RM_SSE2)
-#include <emmintrin.h>
-#endif
-
-#if defined(RM_SSE)
-#include <xmmintrin.h>
-#endif
-#endif /* X86 INTRINSICS */
-
-#if RM_ARCH == RM_ARCH_ARM
-#if defined(RM_NEON)
-#include <arm_neon.h>
-#endif
-#endif /* ARM INTRINSICS */
-#endif /* NO INTRINSICS */
-
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t   i8;
-typedef int16_t  i16;
-typedef int32_t  i32;
-typedef int64_t  i64;
-typedef float    f32;
-typedef double   f64;
-typedef size_t   usize;
-"""
 file.write(RANMATH_HEADER)
 file.write("\n")
 
@@ -247,22 +25,22 @@ for vector in vectors:
     for comp in comps:
         matrices.append(vector+"x"+comp)
 
-fcvt = """typedef struct f32_cvt_t  f32_cvt;
-typedef struct f64_cvt_t  f64_cvt;
-"""
-typedefs = [fcvt]
-for type in vectors + matrices:
-    if re.search("[ui]8", type):
-        type2 = " " + type
-    else:
-        type2 = type
-    if re.search("[uif]", type):
-        type2 = " " + type2
-    if re.search("x[2-4]", type) and not re.search("x[2-4]x[2-4]", type):
-        type2 = "  " + type2
-    typedefs.append("typedef struct "+type+"_t "+type2+";\n")
-
-file.writelines(typedefs)
+#fcvt = """typedef struct f32_cvt_t  f32_cvt;
+#typedef struct f64_cvt_t  f64_cvt;
+#"""
+#typedefs = [fcvt]
+#for type in vectors + matrices:
+#    if re.search("[ui]8", type):
+#        type2 = " " + type
+#    else:
+#        type2 = type
+#    if re.search("[uif]", type):
+#        type2 = " " + type2
+#    if re.search("x[2-4]", type) and not re.search("x[2-4]x[2-4]", type):
+#        type2 = "  " + type2
+#    typedefs.append("typedef struct "+type+"_t "+type2+";\n")
+#
+#file.writelines(typedefs)
 
 fcvttypes = """struct f32_cvt_t {
     union {
@@ -286,8 +64,9 @@ struct f64_cvt_t {
 #endif /* RM_BYTE_ORDER */
     };
 };
+
 """
-file.write("\n")
+
 file.write(fcvttypes)
 
 v2 = """struct {T}x2_t {{
@@ -306,10 +85,8 @@ v3 = """struct {T}x3_t {{
     union {{
         struct {{{T} x, y, z;}};
         struct {{{T} r, g, b;}};
-
         struct {{{T}x2 xy; {T}   _0;}};
         struct {{{T}   _1; {T}x2 yz;}};
-
         struct {{{T}x2 rg; {T}   _2;}};
         struct {{{T}   _3; {T}x2 gb;}};
 
@@ -322,16 +99,12 @@ v4 = """struct {T}x4_t {{
     union {{
         struct {{{T} x, y, z, w;}};
         struct {{{T} r, g, b, a;}};
-
         struct {{{T}x2 xy,  zw;}};
         struct {{{T}x2 rg,  ba;}};
-
         struct {{{T}x3 xyz; {T}   _0;}};
         struct {{{T}   _1;  {T}x3 yzw;}};
-
         struct {{{T}x3 rgb; {T}   _2;}};
         struct {{{T}   _3;  {T}x3 gba;}};
-
         struct {{{T}   _4;  {T}x2 yz; {T} _5;}};
         struct {{{T}   _6;  {T}x2 gb; {T} _7;}};
 
@@ -363,49 +136,39 @@ file.writelines(vectypes+mattypes)
 """
 ------------------------------------DEFINES-------------------------------------
 """
-cvt2u = """#define f32_as_u32(_x)                (((f32_cvt){.f = (_x)}).u)
-#define f64_as_u64(_x)                (((f64_cvt){.f = (_x)}).u)
-"""
-cvt2f = """#define u32_as_f32(_x)                (((f32_cvt){.u = (_x)}).f)
-#define u64_as_f64(_x)                (((f64_cvt){.u = (_x)}).f)
-#define u32_as_f64(_x0, _x1)          (((f64_cvt){.u0 = (_x0), .u1 = (_x1)}).f)
-"""
+cvt = """
+#define f32_as_u32(_x)            (((f32_cvt){.f = (_x)}).u)
+#define f64_as_u64(_x)            (((f64_cvt){.f = (_x)}).u)
+#define u32_as_f32(_x)            (((f32_cvt){.u = (_x)}).f)
+#define u64_as_f64(_x)            (((f64_cvt){.u = (_x)}).f)
+#define u32_as_f64(_x0, _x1)      (((f64_cvt){.u0 = (_x0), .u1 = (_x1)}).f)"""
 
-file.write("\n")
-file.write(cvt2u + cvt2f)
+file.write(cvt)
 
 vmakex2 = """
-#define rm_{T}x2(_x, _y)         {T2}x2){{.x = (_x),   .y = (_y)}})
-"""
+#define rm_{T}x2(_x, _y)         {T2}x2){{.x = (_x),   .y = (_y)}})"""
 vmakex3 = """
-#define rm_{T}x3(_x, _y, _z)     {T2}x3){{.x = (_x),   .y = (_y),   .z = (_z)}})
-"""
+#define rm_{T}x3(_x, _y, _z)     {T2}x3){{.x = (_x),   .y = (_y),   .z = (_z)}})"""
 vmakex4 = """
-#define rm_{T}x4(_x, _y, _z, _w) {T2}x4){{.x = (_x),   .y = (_y),   .z = (_z),   .w = (_w)}})
-"""
+#define rm_{T}x4(_x, _y, _z, _w) {T2}x4){{.x = (_x),   .y = (_y),   .z = (_z),   .w = (_w)}})"""
 
 vmakex2s = """
-#define rm_{T}x2s(_s)            {T2}x2){{.x = (_s),   .y = (_s)}})
-"""
+#define rm_{T}x2s(_s)            {T2}x2){{.x = (_s),   .y = (_s)}})"""
 vmakex3s = """
-#define rm_{T}x3s(_s)            {T2}x3){{.x = (_s),   .y = (_s),   .z = (_s)}})
-"""
+#define rm_{T}x3s(_s)            {T2}x3){{.x = (_s),   .y = (_s),   .z = (_s)}})"""
 vmakex4s = """
-#define rm_{T}x4s(_s)            {T2}x4){{.x = (_s),   .y = (_s),   .z = (_s),   .w = (_s)}})
-"""
+#define rm_{T}x4s(_s)            {T2}x4){{.x = (_s),   .y = (_s),   .z = (_s),   .w = (_s)}})"""
 
 vmakex3misc = """
 #define rm_{T}x3sv2(_x, _v)      {T2}x3){{.x = (_x),   .y = (_v).x, .z = (_v).y}})
-#define rm_{T}x3v2s(_v, _z)      {T2}x3){{.x = (_v).x, .y = (_v).y, .z = (_z)}})
-"""
+#define rm_{T}x3v2s(_v, _z)      {T2}x3){{.x = (_v).x, .y = (_v).y, .z = (_z)}})"""
 
 vmakex4misc = """
 #define rm_{T}x4sv2(_x, _y, _v)  {T2}x4){{.x = (_x),   .y = (_y),   .z = (_v).x, .w = (_v).y}})
 #define rm_{T}x4v2s(_v, _z, _w)  {T2}x4){{.x = (_v).x, .y = (_v).y, .z = (_z),   .w = (_w)}})
 #define rm_{T}x4sv2s(_x, _v, _w) {T2}x4){{.x = (_x),   .y = (_v).x, .z = (_v).y, .w = (_w)}})
 #define rm_{T}x4sv3(_x, _v)      {T2}x4){{.x = (_x),   .y = (_v).x, .z = (_v).y, .w = (_v).z}})
-#define rm_{T}x4v3s(_v, _w)      {T2}x4){{.x = (_v).x, .y = (_v).y, .z = (_v).z, .w = (_w)}})
-"""
+#define rm_{T}x4v3s(_v, _w)      {T2}x4){{.x = (_v).x, .y = (_v).y, .z = (_v).z, .w = (_w)}})"""
 
 vmake = vmakex2 + vmakex2s + vmakex3 + vmakex3s + vmakex3misc + vmakex4 + \
     vmakex4s + vmakex4misc
@@ -425,11 +188,11 @@ splatvec = """
 #define rm_splat2(_v)             (_v).x, (_v).y
 #define rm_splat3(_v)             (_v).x, (_v).y, (_v).z
 #define rm_splat4(_v)             (_v).x, (_v).y, (_v).z, (_v).w
+
 """
 file.write(splatvec)
 
 inline = "#define RM_INLINE static inline\n"
-file.write("\n")
 file.write(inline)
 
 """
@@ -438,7 +201,8 @@ file.write(inline)
 """
 -------------------------------------SCALARS------------------------------------
 """
-constants = """#define RM_HUGE_F32    u32_as_f32(0x7f7fffff)
+constants = """
+#define RM_HUGE_F32    u32_as_f32(0x7f7fffff)
 #define RM_HUGE_F64    u64_as_f64(0x7fefffffffffffff)
 #define RM_INF_F32     u32_as_f32(0x7f800000)
 #define RM_INF_F64     u64_as_f64(0x7ff0000000000000)
@@ -473,6 +237,7 @@ utils = """#define RM_ABS(_x) (((_x) < 0) ? -(_x) : (_x))
 #define RM_MIN(_a, _b) (((_a) < (_b)) ? (_a) : (_b))
 #define RM_MAX(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
 #define RM_CLAMP(_val, _min, _max) (RM_MIN(RM_MAX((_val), (_min)), (_max)))
+
 """
 file.write(utils)
 
@@ -540,24 +305,24 @@ sround32 = """RM_INLINE f32 rm_round_f32(const f32 x) {
     f32 t;
 
     if (x < 0) {
-        t = rm_trunc_f32(-x);
-        return (t + x <= -0.5F) ? -(t + 1) : -t;
+        t = rm_floor_f32(-x);
+        return ((t + x) <= -0.5F) ? -(t + 1) : -t;
     }
 
-    t = rm_trunc_f32(x);
-    return (t - x <= -0.5F) ? (t + 1) : t;
+    t = rm_floor_f32(x);
+    return ((t - x) <= -0.5F) ? (t + 1) : t;
 }
 """
 sround64 = """RM_INLINE f64 rm_round_f64(const f64 x) {
     f64 t;
 
     if (x < 0) {
-        t = rm_trunc_f64(-x);
-        return (t + x <= -0.5) ? -(t + 1) : -t;
+        t = rm_floor_f64(-x);
+        return ((t + x) <= -0.5) ? -(t + 1) : -t;
     }
 
-    t = rm_trunc_f64(x);
-    return (t - x <= -0.5) ? (t + 1) : t;
+    t = rm_floor_f64(x);
+    return ((t - x) <= -0.5) ? (t + 1) : t;
 }
 """
 sfract32 = """RM_INLINE f32 rm_fract_f32(const f32 x) {
