@@ -27,7 +27,7 @@
 #define RM_PLATFORM_LINUX           0x1
 #define RM_PLATFORM_WINDOWS         0x2
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__FreeBSD__)
 #define RM_PLATFORM RM_PLATFORM_LINUX
 #elif defined(_MSC_VER)
 #define RM_PLATFORM RM_PLATFORM_WINDOWS
