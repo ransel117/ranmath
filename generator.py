@@ -194,7 +194,7 @@ for type in scalars:
     if type == "f64":
         sfuncs.append(strunc64)
 
-    if type in signeds + unsigneds:
+    if type in unsigneds + signeds:
         sfuncs.append(smod.format(T=type))
     if type == "f32":
         sfuncs.append(smod32)
