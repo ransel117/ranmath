@@ -1,0 +1,163 @@
+Language: Cpp
+
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Left
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: Consecutive
+#AlignConsecutiveShortCaseStatements: Consecutive #clang-17
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+#AllowBreakBeforeNoexceptSpecifier: Never #clang-18
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+#AllowShortCompoundRequirementOnASingleLine: true #clang-18
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLambdasOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: All
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: No
+#AttributeMacros:
+BinPackArguments: true
+BinPackParameters: false
+BitFieldColonSpacing: Both
+BraceWrapping:
+    AfterCaseLabel: false
+    AfterClass: false
+    AfterControlStatement: Never
+    AfterEnum: false
+    AfterFunction: false
+    AfterNamespace: false
+    AfterObjCDeclaration: false
+    AfterStruct: false
+    AfterUnion: false
+    AfterExternBlock: false
+    BeforeCatch: false
+    BeforeElse: false
+    BeforeLambdaBody: false
+    BeforeWhile: false
+    IndentBraces: false
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+    SplitEmptyNamespace: false
+#BracedInitializerIndentWidth: 4 #clang-17
+#BreakAdjacentStringLiterals: false #clang-18
+#BreakAfterAttributes: Never #clang-16
+#BreakArrays: false #clang-16
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BreakBeforeConceptDeclarations: false
+#BreakBeforeInlineASMColon: Never #clang-16
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+BreakStringLiterals: false
+ColumnLimit: 80
+#CommentPragmas:
+CompactNamespaces: false
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DeriveLineEnding: false
+DerivePointerAlignment: false
+DisableFormat: false
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: LogicalBlock
+ExperimentalAutoDetectBinPacking: false
+FixNamespaceComments: true
+#ForEachMacros:
+#IfMacros:
+IncludeBlocks: Regroup
+#IncludeCategories:
+#IncludeIsMainRegex:
+#IncludeIsMainSourceRegex:
+IndentAccessModifiers: false
+IndentCaseBlocks: false
+IndentCaseLabels: true
+IndentExternBlock: NoIndent
+IndentGotoLabels: false
+IndentPPDirectives: None
+IndentRequires: false #clang-12+ until clang-15
+#IndentRequiresClause: false #clang-15
+IndentWidth: 4
+IndentWrappedFunctionNames: false
+#InsertNewlineAtEOF: true #clang-16
+#InsertTrailingCommas: Wrapped #not compatible with bin packing
+#IntegerLiteralSeparator: #clang-16
+#    Binary: 0
+#    Decimal: 3
+#    Hex: -1
+#KeepEmptyLinesAtEOF: true #clang-17
+LambdaBodyIndentation: Signature
+#LineEnding: LF #clang-17
+#MacroBlockBegin:
+#MacroBlockEnd:
+#Macros:
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: All
+#NamespaceMacros:
+PPIndentWidth: -1
+PackConstructorInitializers: BinPack
+#PenaltyBreakAssignment:
+#PenaltyBreakBeforeFirstCallParameter:
+#PenaltyBreakComment:
+#PenaltyBreakFirstLessLess:
+#PenaltyBreakOpenParenthesis:
+#PenaltyBreakString:
+#PenaltyBreakTemplateDeclaration:
+#PenaltyExcessCharacter:
+#PenaltyIndentedWhitespace:
+#PenaltyReturnTypeOnItsOwnLine:
+PointerAlignment: Right
+QualifierAlignment: Custom
+QualifierOrder:
+    ["volatile", "constexpr", "static", "inline", "const", "restrict", "type"]
+#RawStringFormats:
+ReflowComments: true
+#RequiresClausePosition: WithPreceding #clang-15
+#RequiresExpressionIndentation: OuterScope #clang-16
+SeparateDefinitionBlocks: Leave
+ShortNamespaceLines: 1
+SortIncludes: Never
+SortUsingDeclarations: false
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatementsExceptControlMacros
+#SpaceBeforeRangeBasedForLoopColon:
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: Never
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: false
+SpacesInLineCommentPrefix:
+    Minimum: 1
+    Maximum: -1
+#SpacesInParens: Never #clang-17
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+#StatementAttributeLikeMacros:
+#StatementMacros:
+TabWidth: 4
+#TypeNames: #clang-17
+#TypenameMacros:
+UseCRLF: false
+UseTab: Never
+#WhitespaceSensitiveMacros:
