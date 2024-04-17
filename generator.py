@@ -20,6 +20,12 @@ for vector in vectors:
     for comp in comps:
         matrices.append(vector+"x"+comp)
 
+<<<<<<< HEAD
+=======
+inline = "#define RM_INLINE static inline\n"
+file.write(inline)
+
+>>>>>>> 45db7e32c7f35abfa413764092ec1f1d8e87f7a9
 """
 ------------------------------------FUNCTIONS-----------------------------------
 """
@@ -186,7 +192,7 @@ for type in scalars:
     if type == "f64":
         sfuncs.append(strunc64)
 
-    if type in signeds + unsigneds:
+    if type in unsigneds + signeds:
         sfuncs.append(smod.format(T=type))
     if type == "f32":
         sfuncs.append(smod32)
