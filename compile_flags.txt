@@ -1,0 +1,6 @@
+-Wall
+-Wpedantic
+-ggdb
+-std=c11
+-mavx2
+-march=native

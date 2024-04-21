@@ -22,19 +22,8 @@
  * SOFTWARE.
  */
 
-/*
- * FUNCTIONS:
- * min
- * max
- * clamp
- * mod
- *
- */
-
-#define RM_AVX2 1
-
 #ifndef _RANMATH_H_
-#define _RANMATH_H_
+#define _RANMATH_H_ 1
 
 #define RM_PLATFORM_LINUX   0x1
 #define RM_PLATFORM_WINDOWS 0x2
@@ -42,10 +31,10 @@
 #if defined(__linux__)
 #define RM_PLATFORM RM_PLATFORM_LINUX
 #elif defined(_MSC_VER)
-#define RM_PLATFORM RM_PLATFORM_WINDOWS
-#define WIN32_LEAN_AND_MEAN
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
+#define RM_PLATFORM             RM_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN     1
+#define _CRT_SECURE_NO_WARNINGS 1
+#define NOMINMAX                1
 #else
 #error unsupported platform
 #endif /* CHECK PLATFORM */
@@ -176,7 +165,6 @@
 
 /* TEMPORARY, WILL STAY UNTIL EVERYTHING ELSE IS IMPLEMENTED */
 #include <math.h>
-
 /* include the highest available version */
 #if !defined(RM_NO_INTRINSICS)
 #if RM_ARCH == RM_ARCH_X86
@@ -195,6 +183,7 @@
 #elif defined(RM_SSE)
 #include <xmmintrin.h>
 #endif
+// #include <x86intrin.h>
 #endif /* X86 INTRINSICS */
 
 #if RM_ARCH == RM_ARCH_ARM
@@ -2013,7 +2002,7 @@ struct f64x4x4_t {
 #define rm_boolx4(_x, _y, _z, _w)                                              \
     ((boolx4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_boolx4v2(_v1, _v2) ((boolx4) {.xy = (_v1), .zw = (_v2)})
-#define rm_boolx4s(_s) ((boolx4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_boolx4s(_s)        ((boolx4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_boolx4sv2(_x, _y, _v)                                               \
     ((boolx4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_boolx4v2s(_v, _z, _w)                                               \
@@ -2033,7 +2022,7 @@ struct f64x4x4_t {
 #define rm_u8x4(_x, _y, _z, _w)                                                \
     ((u8x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_u8x4v2(_v1, _v2) ((u8x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_u8x4s(_s) ((u8x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_u8x4s(_s)        ((u8x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_u8x4sv2(_x, _y, _v)                                                 \
     ((u8x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_u8x4v2s(_v, _z, _w)                                                 \
@@ -2053,7 +2042,7 @@ struct f64x4x4_t {
 #define rm_u16x4(_x, _y, _z, _w)                                               \
     ((u16x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_u16x4v2(_v1, _v2) ((u16x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_u16x4s(_s) ((u16x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_u16x4s(_s)        ((u16x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_u16x4sv2(_x, _y, _v)                                                \
     ((u16x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_u16x4v2s(_v, _z, _w)                                                \
@@ -2073,7 +2062,7 @@ struct f64x4x4_t {
 #define rm_u32x4(_x, _y, _z, _w)                                               \
     ((u32x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_u32x4v2(_v1, _v2) ((u32x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_u32x4s(_s) ((u32x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_u32x4s(_s)        ((u32x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_u32x4sv2(_x, _y, _v)                                                \
     ((u32x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_u32x4v2s(_v, _z, _w)                                                \
@@ -2093,7 +2082,7 @@ struct f64x4x4_t {
 #define rm_u64x4(_x, _y, _z, _w)                                               \
     ((u64x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_u64x4v2(_v1, _v2) ((u64x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_u64x4s(_s) ((u64x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_u64x4s(_s)        ((u64x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_u64x4sv2(_x, _y, _v)                                                \
     ((u64x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_u64x4v2s(_v, _z, _w)                                                \
@@ -2113,7 +2102,7 @@ struct f64x4x4_t {
 #define rm_i8x4(_x, _y, _z, _w)                                                \
     ((i8x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_i8x4v2(_v1, _v2) ((i8x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_i8x4s(_s) ((i8x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_i8x4s(_s)        ((i8x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_i8x4sv2(_x, _y, _v)                                                 \
     ((i8x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_i8x4v2s(_v, _z, _w)                                                 \
@@ -2133,7 +2122,7 @@ struct f64x4x4_t {
 #define rm_i16x4(_x, _y, _z, _w)                                               \
     ((i16x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_i16x4v2(_v1, _v2) ((i16x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_i16x4s(_s) ((i16x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_i16x4s(_s)        ((i16x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_i16x4sv2(_x, _y, _v)                                                \
     ((i16x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_i16x4v2s(_v, _z, _w)                                                \
@@ -2153,7 +2142,7 @@ struct f64x4x4_t {
 #define rm_i32x4(_x, _y, _z, _w)                                               \
     ((i32x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_i32x4v2(_v1, _v2) ((i32x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_i32x4s(_s) ((i32x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_i32x4s(_s)        ((i32x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_i32x4sv2(_x, _y, _v)                                                \
     ((i32x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_i32x4v2s(_v, _z, _w)                                                \
@@ -2173,7 +2162,7 @@ struct f64x4x4_t {
 #define rm_i64x4(_x, _y, _z, _w)                                               \
     ((i64x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_i64x4v2(_v1, _v2) ((i64x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_i64x4s(_s) ((i64x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_i64x4s(_s)        ((i64x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_i64x4sv2(_x, _y, _v)                                                \
     ((i64x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_i64x4v2s(_v, _z, _w)                                                \
@@ -2193,7 +2182,7 @@ struct f64x4x4_t {
 #define rm_f32x4(_x, _y, _z, _w)                                               \
     ((f32x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_f32x4v2(_v1, _v2) ((f32x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_f32x4s(_s) ((f32x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_f32x4s(_s)        ((f32x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_f32x4sv2(_x, _y, _v)                                                \
     ((f32x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_f32x4v2s(_v, _z, _w)                                                \
@@ -2213,7 +2202,7 @@ struct f64x4x4_t {
 #define rm_f64x4(_x, _y, _z, _w)                                               \
     ((f64x4) {.x = (_x), .y = (_y), .z = (_z), .w = (_w)})
 #define rm_f64x4v2(_v1, _v2) ((f64x4) {.xy = (_v1), .zw = (_v2)})
-#define rm_f64x4s(_s) ((f64x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
+#define rm_f64x4s(_s)        ((f64x4) {.x = (_s), .y = (_s), .z = (_s), .w = (_s)})
 #define rm_f64x4sv2(_x, _y, _v)                                                \
     ((f64x4) {.x = (_x), .y = (_y), .z = (_v).x, .w = (_v).y})
 #define rm_f64x4v2s(_v, _z, _w)                                                \
@@ -2267,28 +2256,36 @@ struct f64x4x4_t {
 #if !defined(RM_NO_INTRINSICS)
 #if defined(RM_ARCH_X86)
 
-#define rmm_shuff1(xmm, z, y, x, w)                                        \
-     _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(xmm),                \
-                                        _MM_SHUFFLE(z, y, x, w)))
-#define rmm_splat(v, lane) rmm_shuff1(v, lane, lane, lane, lane)
+#if defined(RM_ALIGNED)
+#define rmm_load(_v) _mm_load_ps((_v))
+#define rmm_store(_a, _b) _mm_store_ps((_a), _b);
+#else
+#define rmm_load(_v) _mm_loadu_ps((_v))
+#define rmm_store(_a, _b) _mm_storeu_ps((_a), _b);
+#endif
 
+#define rmm_shuff1(xmm, z, y, x, w)                                            \
+    _mm_shuffle_ps((xmm), (xmm), _MM_SHUFFLE((z), (y), (x), (w)))
+#define rmm_splat(v, lane) rmm_shuff1((v), (lane), (lane), (lane), (lane))
+
+#if defined(RM_SSE2)
+#define RMM_SIGNMASK_NEG_F32X4 _mm_castsi128_ps(_mm_set1_epi32(0x80000000))
+#else
+#define RMM_SIGNMASK_NEG_F32X4 _mm_set1_ps(-0.0f)
+#endif
 
 RM_INLINE __m128
 rmm_abs(__m128 v) {
-#if defined(RM_SSE2)
-    return _mm_andnot_ps(_mm_castsi128_ps(_mm_set1_epi32(0x80000000)), v);
-#else
-    return _mm_andnot_ps(_mm_set1_ps(-0.0f), v);
-#endif
+    return _mm_andnot_ps(RMM_SIGNMASK_NEG_F32X4, v);
 }
 
 RM_INLINE __m128
 rmm_vhmax(__m128 v) {
-  __m128 x0, x1, x2;
-  x0 = _mm_movehl_ps(v, v);     /* [2, 3, 2, 3] */
-  x1 = _mm_max_ps(x0, v);       /* [0|2, 1|3, 2|2, 3|3] */
-  x2 = rmm_splat(x1, 1);       /* [1|3, 1|3, 1|3, 1|3] */
-  return _mm_max_ss(x1, x2);
+    __m128 x0, x1, x2;
+    x0 = _mm_movehl_ps(v, v); /* [2, 3, 2, 3] */
+    x1 = _mm_max_ps(x0, v);   /* [0|2, 1|3, 2|2, 3|3] */
+    x2 = rmm_splat(x1, 1);    /* [1|3, 1|3, 1|3, 1|3] */
+    return _mm_max_ss(x1, x2);
 }
 RM_INLINE __m128
 rmm_vhadds(__m128 v) {
@@ -2304,10 +2301,14 @@ rmm_vhadds(__m128 v) {
 #endif
     return _mm_add_ss(sums, shuf);
 }
+RM_INLINE f32
+rmm_hadd(__m128 v) {
+    return _mm_cvtss_f32(rmm_vhadds(v));
+}
 
 RM_INLINE __m128
 rmm_vdots(__m128 a, __m128 b) {
-    #if defined(RM_SSE4_1)
+#if defined(RM_SSE4_1)
     return _mm_dp_ps(a, b, 0xFF);
 #elif defined(RM_SSE3)
     __m128 x0, x1;
@@ -2323,25 +2324,34 @@ rmm_vdots(__m128 a, __m128 b) {
 }
 RM_INLINE f32
 rmm_dot(__m128 a, __m128 b) {
-    return _mm_cvtss_f32(rmm_vdots(a,b));
+    return _mm_cvtss_f32(rmm_vdots(a, b));
 }
 RM_INLINE f32
 rmm_norm2(__m128 v) {
-    return _mm_cvtss_f32(rmm_vhadds(_mm_mul_ps(v,v)));
+    return _mm_cvtss_f32(rmm_vhadds(_mm_mul_ps(v, v)));
 }
 RM_INLINE f32
 rmm_norm(__m128 v) {
-    return _mm_cvtss_f32(_mm_sqrt_ss(rmm_vhadds(_mm_mul_ps(v,v))));
+    return _mm_cvtss_f32(_mm_sqrt_ss(rmm_vhadds(_mm_mul_ps(v, v))));
 }
 RM_INLINE f32
 rmm_norm_one(__m128 a) {
-  return _mm_cvtss_f32(rmm_vhadds(rmm_abs(a)));
+    return _mm_cvtss_f32(rmm_vhadds(rmm_abs(a)));
 }
-
 RM_INLINE f32
 rmm_norm_inf(__m128 a) {
-  return _mm_cvtss_f32(rmm_vhmax(rmm_abs(a)));
+    return _mm_cvtss_f32(rmm_vhmax(rmm_abs(a)));
 }
+
+RM_INLINE __m128
+rmm_fmadd(__m128 a, __m128 b, __m128 c) {
+#if defined(RM_AVX2)
+    return _mm_fmadd_ps(a, b, c);
+#else
+    return _mm_add_ps(_mm_mul_ps(a, b), c);
+#endif
+}
+
 #endif
 #endif
 
@@ -2698,22 +2708,28 @@ RM_INLINE f64
 rm_pow2_f64(const f64 x) {
     return RM_POW2(x);
 }
-RM_INLINE f32 rm_sin_f32(const f32 x) {
+RM_INLINE f32
+rm_sin_f32(const f32 x) {
     return sinf(x);
 }
-RM_INLINE f64 rm_sin_f64(const f64 x) {
+RM_INLINE f64
+rm_sin_f64(const f64 x) {
     return sin(x);
 }
-RM_INLINE f32 rm_cos_f32(const f32 x) {
+RM_INLINE f32
+rm_cos_f32(const f32 x) {
     return cosf(x);
 }
-RM_INLINE f64 rm_cos_f64(const f64 x) {
+RM_INLINE f64
+rm_cos_f64(const f64 x) {
     return cos(x);
 }
-RM_INLINE f32 rm_tan_f32(const f32 x) {
+RM_INLINE f32
+rm_tan_f32(const f32 x) {
     return tanf(x);
 }
-RM_INLINE f64 rm_tan_f64(const f64 x) {
+RM_INLINE f64
+rm_tan_f64(const f64 x) {
     return tan(x);
 }
 
@@ -4158,8 +4174,6 @@ RM_INLINE boolx4
 rm_gt_f64x4(const f64x4 a, const f64x4 b) {
     return rm_boolx4(a.x > b.x, a.y > b.y, a.z > b.z, a.w > b.w);
 }
-
-
 RM_INLINE boolx2
 rm_gts_u8x2(const u8x2 v, const u8 s) {
     return rm_gt_u8x2(v, rm_u8x2s(s));
@@ -4578,7 +4592,14 @@ rm_neg_f32x3(const f32x3 v) {
 }
 RM_INLINE f32x4
 rm_neg_f32x4(const f32x4 v) {
-    return rm_f32x4(-v.x, -v.y, -v.z, -v.w);
+    f32x4 dest;
+#if defined(RM_SSE)
+    rmm_store(dest.raw,
+                 _mm_xor_ps(rmm_load(v.raw), RMM_SIGNMASK_NEG_F32X4));
+#else
+    dest = rm_f32x4(-v.x, -v.y, -v.z, -v.w);
+#endif
+    return dest;
 }
 RM_INLINE f64x2
 rm_neg_f64x2(const f64x2 v) {
@@ -4793,8 +4814,14 @@ rm_min_f32x3(const f32x3 a, const f32x3 b) {
 }
 RM_INLINE f32x4
 rm_min_f32x4(const f32x4 a, const f32x4 b) {
-    return rm_f32x4(rm_min_f32(a.x, b.x), rm_min_f32(a.y, b.y),
+    f32x4 dest;
+#if defined(RM_SSE)
+    rmm_store(dest.raw, _mm_min_ps(rmm_load(a.raw), rmm_load(b.raw)));
+#else
+    dest = rm_f32x4(rm_min_f32(a.x, b.x), rm_min_f32(a.y, b.y),
                     rm_min_f32(a.z, b.z), rm_min_f32(a.w, b.w));
+#endif
+    return dest;
 }
 RM_INLINE f64x2
 rm_min_f64x2(const f64x2 a, const f64x2 b) {
@@ -4930,6 +4957,126 @@ RM_INLINE f64x4
 rm_mins_f64x4(const f64x4 v, const f64 s) {
     return rm_min_f64x4(v, rm_f64x4s(s));
 }
+RM_INLINE u8
+rm_minv_u8x2(const u8x2 v) {
+    return rm_min_u8(v.x, v.y);
+}
+RM_INLINE u8
+rm_minv_u8x3(const u8x3 v) {
+    return rm_min_u8(rm_min_u8(v.x, v.y), v.z);
+}
+RM_INLINE u8
+rm_minv_u8x4(const u8x4 v) {
+    return rm_min_u8(rm_min_u8(v.x, v.y), rm_min_u8(v.z, v.w));
+}
+RM_INLINE u16
+rm_minv_u16x2(const u16x2 v) {
+    return rm_min_u16(v.x, v.y);
+}
+RM_INLINE u16
+rm_minv_u16x3(const u16x3 v) {
+    return rm_min_u16(rm_min_u16(v.x, v.y), v.z);
+}
+RM_INLINE u16
+rm_minv_u16x4(const u16x4 v) {
+    return rm_min_u16(rm_min_u16(v.x, v.y), rm_min_u16(v.z, v.w));
+}
+RM_INLINE u32
+rm_minv_u32x2(const u32x2 v) {
+    return rm_min_u32(v.x, v.y);
+}
+RM_INLINE u32
+rm_minv_u32x3(const u32x3 v) {
+    return rm_min_u32(rm_min_u32(v.x, v.y), v.z);
+}
+RM_INLINE u32
+rm_minv_u32x4(const u32x4 v) {
+    return rm_min_u32(rm_min_u32(v.x, v.y), rm_min_u32(v.z, v.w));
+}
+RM_INLINE u64
+rm_minv_u64x2(const u64x2 v) {
+    return rm_min_u64(v.x, v.y);
+}
+RM_INLINE u64
+rm_minv_u64x3(const u64x3 v) {
+    return rm_min_u64(rm_min_u64(v.x, v.y), v.z);
+}
+RM_INLINE u64
+rm_minv_u64x4(const u64x4 v) {
+    return rm_min_u64(rm_min_u64(v.x, v.y), rm_min_u64(v.z, v.w));
+}
+RM_INLINE i8
+rm_minv_i8x2(const i8x2 v) {
+    return rm_min_i8(v.x, v.y);
+}
+RM_INLINE i8
+rm_minv_i8x3(const i8x3 v) {
+    return rm_min_i8(rm_min_i8(v.x, v.y), v.z);
+}
+RM_INLINE i8
+rm_minv_i8x4(const i8x4 v) {
+    return rm_min_i8(rm_min_i8(v.x, v.y), rm_min_i8(v.z, v.w));
+}
+RM_INLINE i16
+rm_minv_i16x2(const i16x2 v) {
+    return rm_min_i16(v.x, v.y);
+}
+RM_INLINE i16
+rm_minv_i16x3(const i16x3 v) {
+    return rm_min_i16(rm_min_i16(v.x, v.y), v.z);
+}
+RM_INLINE i16
+rm_minv_i16x4(const i16x4 v) {
+    return rm_min_i16(rm_min_i16(v.x, v.y), rm_min_i16(v.z, v.w));
+}
+RM_INLINE i32
+rm_minv_i32x2(const i32x2 v) {
+    return rm_min_i32(v.x, v.y);
+}
+RM_INLINE i32
+rm_minv_i32x3(const i32x3 v) {
+    return rm_min_i32(rm_min_i32(v.x, v.y), v.z);
+}
+RM_INLINE i32
+rm_minv_i32x4(const i32x4 v) {
+    return rm_min_i32(rm_min_i32(v.x, v.y), rm_min_i32(v.z, v.w));
+}
+RM_INLINE i64
+rm_minv_i64x2(const i64x2 v) {
+    return rm_min_i64(v.x, v.y);
+}
+RM_INLINE i64
+rm_minv_i64x3(const i64x3 v) {
+    return rm_min_i64(rm_min_i64(v.x, v.y), v.z);
+}
+RM_INLINE i64
+rm_minv_i64x4(const i64x4 v) {
+    return rm_min_i64(rm_min_i64(v.x, v.y), rm_min_i64(v.z, v.w));
+}
+RM_INLINE f32
+rm_minv_f32x2(const f32x2 v) {
+    return rm_min_f32(v.x, v.y);
+}
+RM_INLINE f32
+rm_minv_f32x3(const f32x3 v) {
+    return rm_min_f32(rm_min_f32(v.x, v.y), v.z);
+}
+RM_INLINE f32
+rm_minv_f32x4(const f32x4 v) {
+    return rm_min_f32(rm_min_f32(v.x, v.y), rm_min_f32(v.z, v.w));
+}
+RM_INLINE f64
+rm_minv_f64x2(const f64x2 v) {
+    return rm_min_f64(v.x, v.y);
+}
+RM_INLINE f64
+rm_minv_f64x3(const f64x3 v) {
+    return rm_min_f64(rm_min_f64(v.x, v.y), v.z);
+}
+RM_INLINE f64
+rm_minv_f64x4(const f64x4 v) {
+    return rm_min_f64(rm_min_f64(v.x, v.y), rm_min_f64(v.z, v.w));
+}
 RM_INLINE u8x2
 rm_max_u8x2(const u8x2 a, const u8x2 b) {
     return rm_u8x2(rm_max_u8(a.x, b.x), rm_max_u8(a.y, b.y));
@@ -5053,8 +5200,14 @@ rm_max_f32x3(const f32x3 a, const f32x3 b) {
 }
 RM_INLINE f32x4
 rm_max_f32x4(const f32x4 a, const f32x4 b) {
-    return rm_f32x4(rm_max_f32(a.x, b.x), rm_max_f32(a.y, b.y),
+    f32x4 dest;
+#if defined(RM_SSE)
+    rmm_store(dest.raw, _mm_max_ps(rmm_load(a.raw), rmm_load(b.raw)));
+#else
+    dest = rm_f32x4(rm_max_f32(a.x, b.x), rm_max_f32(a.y, b.y),
                     rm_max_f32(a.z, b.z), rm_max_f32(a.w, b.w));
+#endif
+    return dest;
 }
 RM_INLINE f64x2
 rm_max_f64x2(const f64x2 a, const f64x2 b) {
@@ -5190,6 +5343,250 @@ RM_INLINE f64x4
 rm_maxs_f64x4(const f64x4 v, const f64 s) {
     return rm_max_f64x4(v, rm_f64x4s(s));
 }
+RM_INLINE u8
+rm_maxv_u8x2(const u8x2 v) {
+    return rm_max_u8(v.x, v.y);
+}
+RM_INLINE u8
+rm_maxv_u8x3(const u8x3 v) {
+    return rm_max_u8(rm_max_u8(v.x, v.y), v.z);
+}
+RM_INLINE u8
+rm_maxv_u8x4(const u8x4 v) {
+    return rm_max_u8(rm_max_u8(v.x, v.y), rm_max_u8(v.z, v.w));
+}
+RM_INLINE u16
+rm_maxv_u16x2(const u16x2 v) {
+    return rm_max_u16(v.x, v.y);
+}
+RM_INLINE u16
+rm_maxv_u16x3(const u16x3 v) {
+    return rm_max_u16(rm_max_u16(v.x, v.y), v.z);
+}
+RM_INLINE u16
+rm_maxv_u16x4(const u16x4 v) {
+    return rm_max_u16(rm_max_u16(v.x, v.y), rm_max_u16(v.z, v.w));
+}
+RM_INLINE u32
+rm_maxv_u32x2(const u32x2 v) {
+    return rm_max_u32(v.x, v.y);
+}
+RM_INLINE u32
+rm_maxv_u32x3(const u32x3 v) {
+    return rm_max_u32(rm_max_u32(v.x, v.y), v.z);
+}
+RM_INLINE u32
+rm_maxv_u32x4(const u32x4 v) {
+    return rm_max_u32(rm_max_u32(v.x, v.y), rm_max_u32(v.z, v.w));
+}
+RM_INLINE u64
+rm_maxv_u64x2(const u64x2 v) {
+    return rm_max_u64(v.x, v.y);
+}
+RM_INLINE u64
+rm_maxv_u64x3(const u64x3 v) {
+    return rm_max_u64(rm_max_u64(v.x, v.y), v.z);
+}
+RM_INLINE u64
+rm_maxv_u64x4(const u64x4 v) {
+    return rm_max_u64(rm_max_u64(v.x, v.y), rm_max_u64(v.z, v.w));
+}
+RM_INLINE i8
+rm_maxv_i8x2(const i8x2 v) {
+    return rm_max_i8(v.x, v.y);
+}
+RM_INLINE i8
+rm_maxv_i8x3(const i8x3 v) {
+    return rm_max_i8(rm_max_i8(v.x, v.y), v.z);
+}
+RM_INLINE i8
+rm_maxv_i8x4(const i8x4 v) {
+    return rm_max_i8(rm_max_i8(v.x, v.y), rm_max_i8(v.z, v.w));
+}
+RM_INLINE i16
+rm_maxv_i16x2(const i16x2 v) {
+    return rm_max_i16(v.x, v.y);
+}
+RM_INLINE i16
+rm_maxv_i16x3(const i16x3 v) {
+    return rm_max_i16(rm_max_i16(v.x, v.y), v.z);
+}
+RM_INLINE i16
+rm_maxv_i16x4(const i16x4 v) {
+    return rm_max_i16(rm_max_i16(v.x, v.y), rm_max_i16(v.z, v.w));
+}
+RM_INLINE i32
+rm_maxv_i32x2(const i32x2 v) {
+    return rm_max_i32(v.x, v.y);
+}
+RM_INLINE i32
+rm_maxv_i32x3(const i32x3 v) {
+    return rm_max_i32(rm_max_i32(v.x, v.y), v.z);
+}
+RM_INLINE i32
+rm_maxv_i32x4(const i32x4 v) {
+    return rm_max_i32(rm_max_i32(v.x, v.y), rm_max_i32(v.z, v.w));
+}
+RM_INLINE i64
+rm_maxv_i64x2(const i64x2 v) {
+    return rm_max_i64(v.x, v.y);
+}
+RM_INLINE i64
+rm_maxv_i64x3(const i64x3 v) {
+    return rm_max_i64(rm_max_i64(v.x, v.y), v.z);
+}
+RM_INLINE i64
+rm_maxv_i64x4(const i64x4 v) {
+    return rm_max_i64(rm_max_i64(v.x, v.y), rm_max_i64(v.z, v.w));
+}
+RM_INLINE f32
+rm_maxv_f32x2(const f32x2 v) {
+    return rm_max_f32(v.x, v.y);
+}
+RM_INLINE f32
+rm_maxv_f32x3(const f32x3 v) {
+    return rm_max_f32(rm_max_f32(v.x, v.y), v.z);
+}
+RM_INLINE f32
+rm_maxv_f32x4(const f32x4 v) {
+    return rm_max_f32(rm_max_f32(v.x, v.y), rm_max_f32(v.z, v.w));
+}
+RM_INLINE f64
+rm_maxv_f64x2(const f64x2 v) {
+    return rm_max_f64(v.x, v.y);
+}
+RM_INLINE f64
+rm_maxv_f64x3(const f64x3 v) {
+    return rm_max_f64(rm_max_f64(v.x, v.y), v.z);
+}
+RM_INLINE f64
+rm_maxv_f64x4(const f64x4 v) {
+    return rm_max_f64(rm_max_f64(v.x, v.y), rm_max_f64(v.z, v.w));
+}
+RM_INLINE u8
+rm_hadd_u8x2(const u8x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE u8
+rm_hadd_u8x3(const u8x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE u8
+rm_hadd_u8x4(const u8x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE u16
+rm_hadd_u16x2(const u16x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE u16
+rm_hadd_u16x3(const u16x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE u16
+rm_hadd_u16x4(const u16x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE u32
+rm_hadd_u32x2(const u32x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE u32
+rm_hadd_u32x3(const u32x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE u32
+rm_hadd_u32x4(const u32x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE u64
+rm_hadd_u64x2(const u64x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE u64
+rm_hadd_u64x3(const u64x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE u64
+rm_hadd_u64x4(const u64x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE i8
+rm_hadd_i8x2(const i8x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE i8
+rm_hadd_i8x3(const i8x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE i8
+rm_hadd_i8x4(const i8x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE i16
+rm_hadd_i16x2(const i16x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE i16
+rm_hadd_i16x3(const i16x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE i16
+rm_hadd_i16x4(const i16x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE i32
+rm_hadd_i32x2(const i32x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE i32
+rm_hadd_i32x3(const i32x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE i32
+rm_hadd_i32x4(const i32x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE i64
+rm_hadd_i64x2(const i64x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE i64
+rm_hadd_i64x3(const i64x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE i64
+rm_hadd_i64x4(const i64x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
+RM_INLINE f32
+rm_hadd_f32x2(const f32x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE f32
+rm_hadd_f32x3(const f32x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE f32
+rm_hadd_f32x4(const f32x4 v) {
+#if defined(RM_SSE)
+    return rmm_hadd(rmm_load(v.raw));
+#else
+    return v.x + v.y + v.z + v.w;
+#endif
+}
+RM_INLINE f64
+rm_hadd_f64x2(const f64x2 v) {
+    return v.x + v.y;
+}
+RM_INLINE f64
+rm_hadd_f64x3(const f64x3 v) {
+    return v.x + v.y + v.z;
+}
+RM_INLINE f64
+rm_hadd_f64x4(const f64x4 v) {
+    return v.x + v.y + v.z + v.w;
+}
 RM_INLINE u8x2
 rm_add_u8x2(const u8x2 a, const u8x2 b) {
     return rm_u8x2(a.x + b.x, a.y + b.y);
@@ -5298,7 +5695,7 @@ RM_INLINE f32x4
 rm_add_f32x4(const f32x4 a, const f32x4 b) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_add_ps(_mm_load_ps(a.raw), _mm_load_ps(b.raw)));
+    rmm_store(dest.raw, _mm_add_ps(rmm_load(a.raw), rmm_load(b.raw)));
 #else
     dest = rm_f32x4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 #endif
@@ -5544,7 +5941,7 @@ RM_INLINE f32x4
 rm_sub_f32x4(const f32x4 a, const f32x4 b) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_sub_ps(_mm_load_ps(a.raw), _mm_load_ps(b.raw)));
+    rmm_store(dest.raw, _mm_sub_ps(rmm_load(a.raw), rmm_load(b.raw)));
 #else
     dest = rm_f32x4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 #endif
@@ -5910,7 +6307,7 @@ RM_INLINE f32x4
 rm_mul_f32x4(const f32x4 a, const f32x4 b) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_mul_ps(_mm_load_ps(a.raw), _mm_load_ps(b.raw)));
+    rmm_store(dest.raw, _mm_mul_ps(rmm_load(a.raw), rmm_load(b.raw)));
 #else
     dest = rm_f32x4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
 #endif
@@ -6156,9 +6553,9 @@ RM_INLINE f32x4
 rm_div_f32x4(const f32x4 a, const f32x4 b) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_div_ps(_mm_load_ps(a.raw), _mm_load_ps(b.raw)));
+    rmm_store(dest.raw, _mm_div_ps(rmm_load(a.raw), rmm_load(b.raw)));
 #else
-    dest =rm_f32x4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
+    dest = rm_f32x4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
 #endif
     return dest;
 }
@@ -6176,123 +6573,123 @@ rm_div_f64x4(const f64x4 a, const f64x4 b) {
 }
 RM_INLINE u8x2
 rm_divs_u8x2(const u8x2 v, const u8 s) {
-    return rm_div_u8x2(v, rm_u8x2s(s));
+    return rm_muls_u8x2(v, 1.0f / s);
 }
 RM_INLINE u8x3
 rm_divs_u8x3(const u8x3 v, const u8 s) {
-    return rm_div_u8x3(v, rm_u8x3s(s));
+    return rm_muls_u8x3(v, 1.0f / s);
 }
 RM_INLINE u8x4
 rm_divs_u8x4(const u8x4 v, const u8 s) {
-    return rm_div_u8x4(v, rm_u8x4s(s));
+    return rm_muls_u8x4(v, 1.0f / s);
 }
 RM_INLINE u16x2
 rm_divs_u16x2(const u16x2 v, const u16 s) {
-    return rm_div_u16x2(v, rm_u16x2s(s));
+    return rm_muls_u16x2(v, 1.0f / s);
 }
 RM_INLINE u16x3
 rm_divs_u16x3(const u16x3 v, const u16 s) {
-    return rm_div_u16x3(v, rm_u16x3s(s));
+    return rm_muls_u16x3(v, 1.0f / s);
 }
 RM_INLINE u16x4
 rm_divs_u16x4(const u16x4 v, const u16 s) {
-    return rm_div_u16x4(v, rm_u16x4s(s));
+    return rm_muls_u16x4(v, 1.0f / s);
 }
 RM_INLINE u32x2
 rm_divs_u32x2(const u32x2 v, const u32 s) {
-    return rm_div_u32x2(v, rm_u32x2s(s));
+    return rm_muls_u32x2(v, 1.0f / s);
 }
 RM_INLINE u32x3
 rm_divs_u32x3(const u32x3 v, const u32 s) {
-    return rm_div_u32x3(v, rm_u32x3s(s));
+    return rm_muls_u32x3(v, 1.0f / s);
 }
 RM_INLINE u32x4
 rm_divs_u32x4(const u32x4 v, const u32 s) {
-    return rm_div_u32x4(v, rm_u32x4s(s));
+    return rm_muls_u32x4(v, 1.0f / s);
 }
 RM_INLINE u64x2
 rm_divs_u64x2(const u64x2 v, const u64 s) {
-    return rm_div_u64x2(v, rm_u64x2s(s));
+    return rm_muls_u64x2(v, 1.0f / s);
 }
 RM_INLINE u64x3
 rm_divs_u64x3(const u64x3 v, const u64 s) {
-    return rm_div_u64x3(v, rm_u64x3s(s));
+    return rm_muls_u64x3(v, 1.0f / s);
 }
 RM_INLINE u64x4
 rm_divs_u64x4(const u64x4 v, const u64 s) {
-    return rm_div_u64x4(v, rm_u64x4s(s));
+    return rm_muls_u64x4(v, 1.0f / s);
 }
 RM_INLINE i8x2
 rm_divs_i8x2(const i8x2 v, const i8 s) {
-    return rm_div_i8x2(v, rm_i8x2s(s));
+    return rm_muls_i8x2(v, 1.0f / s);
 }
 RM_INLINE i8x3
 rm_divs_i8x3(const i8x3 v, const i8 s) {
-    return rm_div_i8x3(v, rm_i8x3s(s));
+    return rm_muls_i8x3(v, 1.0f / s);
 }
 RM_INLINE i8x4
 rm_divs_i8x4(const i8x4 v, const i8 s) {
-    return rm_div_i8x4(v, rm_i8x4s(s));
+    return rm_muls_i8x4(v, 1.0f / s);
 }
 RM_INLINE i16x2
 rm_divs_i16x2(const i16x2 v, const i16 s) {
-    return rm_div_i16x2(v, rm_i16x2s(s));
+    return rm_muls_i16x2(v, 1.0f / s);
 }
 RM_INLINE i16x3
 rm_divs_i16x3(const i16x3 v, const i16 s) {
-    return rm_div_i16x3(v, rm_i16x3s(s));
+    return rm_muls_i16x3(v, 1.0f / s);
 }
 RM_INLINE i16x4
 rm_divs_i16x4(const i16x4 v, const i16 s) {
-    return rm_div_i16x4(v, rm_i16x4s(s));
+    return rm_muls_i16x4(v, 1.0f / s);
 }
 RM_INLINE i32x2
 rm_divs_i32x2(const i32x2 v, const i32 s) {
-    return rm_div_i32x2(v, rm_i32x2s(s));
+    return rm_muls_i32x2(v, 1.0f / s);
 }
 RM_INLINE i32x3
 rm_divs_i32x3(const i32x3 v, const i32 s) {
-    return rm_div_i32x3(v, rm_i32x3s(s));
+    return rm_muls_i32x3(v, 1.0f / s);
 }
 RM_INLINE i32x4
 rm_divs_i32x4(const i32x4 v, const i32 s) {
-    return rm_div_i32x4(v, rm_i32x4s(s));
+    return rm_muls_i32x4(v, 1.0f / s);
 }
 RM_INLINE i64x2
 rm_divs_i64x2(const i64x2 v, const i64 s) {
-    return rm_div_i64x2(v, rm_i64x2s(s));
+    return rm_muls_i64x2(v, 1.0f / s);
 }
 RM_INLINE i64x3
 rm_divs_i64x3(const i64x3 v, const i64 s) {
-    return rm_div_i64x3(v, rm_i64x3s(s));
+    return rm_muls_i64x3(v, 1.0f / s);
 }
 RM_INLINE i64x4
 rm_divs_i64x4(const i64x4 v, const i64 s) {
-    return rm_div_i64x4(v, rm_i64x4s(s));
+    return rm_muls_i64x4(v, 1.0f / s);
 }
 RM_INLINE f32x2
 rm_divs_f32x2(const f32x2 v, const f32 s) {
-    return rm_div_f32x2(v, rm_f32x2s(s));
+    return rm_muls_f32x2(v, 1.0f / s);
 }
 RM_INLINE f32x3
 rm_divs_f32x3(const f32x3 v, const f32 s) {
-    return rm_div_f32x3(v, rm_f32x3s(s));
+    return rm_muls_f32x3(v, 1.0f / s);
 }
 RM_INLINE f32x4
 rm_divs_f32x4(const f32x4 v, const f32 s) {
-    return rm_div_f32x4(v, rm_f32x4s(s));
+    return rm_muls_f32x4(v, 1.0f / s);
 }
 RM_INLINE f64x2
 rm_divs_f64x2(const f64x2 v, const f64 s) {
-    return rm_div_f64x2(v, rm_f64x2s(s));
+    return rm_muls_f64x2(v, 1.0f / s);
 }
 RM_INLINE f64x3
 rm_divs_f64x3(const f64x3 v, const f64 s) {
-    return rm_div_f64x3(v, rm_f64x3s(s));
+    return rm_muls_f64x3(v, 1.0f / s);
 }
 RM_INLINE f64x4
 rm_divs_f64x4(const f64x4 v, const f64 s) {
-    return rm_div_f64x4(v, rm_f64x4s(s));
+    return rm_muls_f64x4(v, 1.0f / s);
 }
 RM_INLINE u8x2
 rm_sdiv_u8x2(const u8 s, const u8x2 v) {
@@ -6537,8 +6934,22 @@ rm_mod_f32x3(const f32x3 a, const f32x3 b) {
 }
 RM_INLINE f32x4
 rm_mod_f32x4(const f32x4 a, const f32x4 b) {
-    return rm_f32x4(rm_mod_f32(a.x, b.x), rm_mod_f32(a.y, b.y),
+    f32x4 dest;
+#if defined(RM_SSE2)
+    __m128 xa, xb;
+    __m128i xdiv;
+
+    xa   = rmm_load(a.raw);
+    xb   = rmm_load(b.raw);
+    xdiv = _mm_cvttps_epi32(_mm_div_ps(xa, xb));
+
+    rmm_store(dest.raw,
+                 _mm_sub_ps(xa, _mm_mul_ps(_mm_castsi128_ps(xdiv), xb)));
+#else
+    dest = rm_f32x4(rm_mod_f32(a.x, b.x), rm_mod_f32(a.y, b.y),
                     rm_mod_f32(a.z, b.z), rm_mod_f32(a.w, b.w));
+#endif
+    return dest;
 }
 RM_INLINE f64x2
 rm_mod_f64x2(const f64x2 a, const f64x2 b) {
@@ -6943,9 +7354,17 @@ rm_clamp_f32x3(const f32x3 v, const f32x3 min, const f32x3 max) {
 }
 RM_INLINE f32x4
 rm_clamp_f32x4(const f32x4 v, const f32x4 min, const f32x4 max) {
-    return rm_f32x4(
+    f32x4 dest;
+#if defined(RM_SSE)
+    rmm_store(dest.raw, _mm_min_ps(_mm_max_ps(rmm_load(v.raw),
+                                                 rmm_load(min.raw)),
+                                      rmm_load(max.raw)));
+#else
+    dest = rm_f32x4(
         rm_clamp_f32(v.x, min.x, max.x), rm_clamp_f32(v.y, min.y, max.y),
         rm_clamp_f32(v.z, min.z, max.z), rm_clamp_f32(v.w, min.w, max.w));
+#endif
+    return dest;
 }
 RM_INLINE f64x2
 rm_clamp_f64x2(const f64x2 v, const f64x2 min, const f64x2 max) {
@@ -7424,7 +7843,14 @@ rm_fma_f32x3(const f32x3 a, const f32x3 b, const f32x3 c) {
 }
 RM_INLINE f32x4
 rm_fma_f32x4(const f32x4 a, const f32x4 b, const f32x4 c) {
-    return rm_add_f32x4(rm_mul_f32x4(a, b), c);
+    f32x4 dest;
+#if defined(RM_SSE)
+    rmm_store(dest.raw, rmm_fmadd(rmm_load(a.raw), rmm_load(b.raw),
+                                     rmm_load(c.raw)));
+#else
+    dest = rm_add_f32x4(rm_mul_f32x4(a, b), c);
+#endif
+    return dest;
 }
 RM_INLINE f64x2
 rm_fma_f64x2(const f64x2 a, const f64x2 b, const f64x2 c) {
@@ -7928,7 +8354,7 @@ RM_INLINE f32x4
 rm_copy_f32x4(const f32x4 v) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_load_ps(v.raw));
+    rmm_store(dest.raw, rmm_load(v.raw));
 #else
     dest = rm_f32x4(v.x, v.y, v.z, v.w);
 #endif
@@ -7942,7 +8368,7 @@ rm_copy_f64x2(const f64x2 v) {
 #else
     dest = rm_f64x2(v.x, v.y);
 #endif
-return dest;
+    return dest;
 }
 RM_INLINE f64x3
 rm_copy_f64x3(const f64x3 v) {
@@ -8078,7 +8504,7 @@ RM_INLINE f32x4
 rm_zero_f32x4(void) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_setzero_ps());
+    rmm_store(dest.raw, _mm_setzero_ps());
 #else
     dest = rm_f32x4s(0);
 #endif
@@ -8228,7 +8654,7 @@ RM_INLINE f32x4
 rm_one_f32x4(void) {
     f32x4 dest;
 #if defined(RM_SSE)
-    _mm_store_ps(dest.raw, _mm_set_ps(1,1,1,1));
+    rmm_store(dest.raw, _mm_set_ps(1, 1, 1, 1));
 #else
     dest = rm_f32x4s(1);
 #endif
@@ -8238,7 +8664,7 @@ RM_INLINE f64x2
 rm_one_f64x2(void) {
     f64x2 dest;
 #if defined(RM_SSE2)
-    _mm_store_pd(dest.raw, _mm_set_pd(1,1));
+    _mm_store_pd(dest.raw, _mm_set_pd(1, 1));
 #else
     dest = rm_f64x2s(1);
 #endif
@@ -8252,7 +8678,7 @@ RM_INLINE f64x4
 rm_one_f64x4(void) {
     f64x4 dest;
 #if defined(RM_AVX)
-    _mm256_store_pd(dest.raw, _mm256_set_pd(1,1,1,1));
+    _mm256_store_pd(dest.raw, _mm256_set_pd(1, 1, 1, 1));
 #else
     dest = rm_f64x4s(1);
 #endif
@@ -8365,7 +8791,7 @@ rm_dot_f32x3(const f32x3 a, const f32x3 b) {
 RM_INLINE f32
 rm_dot_f32x4(const f32x4 a, const f32x4 b) {
 #if defined(RM_SSE)
-    return rmm_dot(_mm_load_ps(a.raw), _mm_load_ps(b.raw));
+    return rmm_dot(rmm_load(a.raw), rmm_load(b.raw));
 #else
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 #endif
@@ -8609,7 +9035,7 @@ rm_norm_f32x3(const f32x3 v) {
 RM_INLINE f32
 rm_norm_f32x4(const f32x4 v) {
 #if defined(RM_SSE)
-    return rmm_norm(_mm_load_ps(v.raw));
+    return rmm_norm(rmm_load(v.raw));
 #else
     return rm_sqrt_f32(rm_norm2_f32x4(v));
 #endif
@@ -8626,6 +9052,250 @@ RM_INLINE f64
 rm_norm_f64x4(const f64x4 v) {
     return rm_sqrt_f64(rm_norm2_f64x4(v));
 }
+RM_INLINE u8
+rm_norm_one_u8x2(const u8x2 v) {
+    return rm_hadd_u8x2(v);
+}
+RM_INLINE u8
+rm_norm_one_u8x3(const u8x3 v) {
+    return rm_hadd_u8x3(v);
+}
+RM_INLINE u8
+rm_norm_one_u8x4(const u8x4 v) {
+    return rm_hadd_u8x4(v);
+}
+RM_INLINE u16
+rm_norm_one_u16x2(const u16x2 v) {
+    return rm_hadd_u16x2(v);
+}
+RM_INLINE u16
+rm_norm_one_u16x3(const u16x3 v) {
+    return rm_hadd_u16x3(v);
+}
+RM_INLINE u16
+rm_norm_one_u16x4(const u16x4 v) {
+    return rm_hadd_u16x4(v);
+}
+RM_INLINE u32
+rm_norm_one_u32x2(const u32x2 v) {
+    return rm_hadd_u32x2(v);
+}
+RM_INLINE u32
+rm_norm_one_u32x3(const u32x3 v) {
+    return rm_hadd_u32x3(v);
+}
+RM_INLINE u32
+rm_norm_one_u32x4(const u32x4 v) {
+    return rm_hadd_u32x4(v);
+}
+RM_INLINE u64
+rm_norm_one_u64x2(const u64x2 v) {
+    return rm_hadd_u64x2(v);
+}
+RM_INLINE u64
+rm_norm_one_u64x3(const u64x3 v) {
+    return rm_hadd_u64x3(v);
+}
+RM_INLINE u64
+rm_norm_one_u64x4(const u64x4 v) {
+    return rm_hadd_u64x4(v);
+}
+RM_INLINE i8
+rm_norm_one_i8x2(const i8x2 v) {
+    return rm_hadd_i8x2(rm_abs_i8x2(v));
+}
+RM_INLINE i8
+rm_norm_one_i8x3(const i8x3 v) {
+    return rm_hadd_i8x3(rm_abs_i8x3(v));
+}
+RM_INLINE i8
+rm_norm_one_i8x4(const i8x4 v) {
+    return rm_hadd_i8x4(rm_abs_i8x4(v));
+}
+RM_INLINE i16
+rm_norm_one_i16x2(const i16x2 v) {
+    return rm_hadd_i16x2(rm_abs_i16x2(v));
+}
+RM_INLINE i16
+rm_norm_one_i16x3(const i16x3 v) {
+    return rm_hadd_i16x3(rm_abs_i16x3(v));
+}
+RM_INLINE i16
+rm_norm_one_i16x4(const i16x4 v) {
+    return rm_hadd_i16x4(rm_abs_i16x4(v));
+}
+RM_INLINE i32
+rm_norm_one_i32x2(const i32x2 v) {
+    return rm_hadd_i32x2(rm_abs_i32x2(v));
+}
+RM_INLINE i32
+rm_norm_one_i32x3(const i32x3 v) {
+    return rm_hadd_i32x3(rm_abs_i32x3(v));
+}
+RM_INLINE i32
+rm_norm_one_i32x4(const i32x4 v) {
+    return rm_hadd_i32x4(rm_abs_i32x4(v));
+}
+RM_INLINE i64
+rm_norm_one_i64x2(const i64x2 v) {
+    return rm_hadd_i64x2(rm_abs_i64x2(v));
+}
+RM_INLINE i64
+rm_norm_one_i64x3(const i64x3 v) {
+    return rm_hadd_i64x3(rm_abs_i64x3(v));
+}
+RM_INLINE i64
+rm_norm_one_i64x4(const i64x4 v) {
+    return rm_hadd_i64x4(rm_abs_i64x4(v));
+}
+RM_INLINE f32
+rm_norm_one_f32x2(const f32x2 v) {
+    return rm_hadd_f32x2(rm_abs_f32x2(v));
+}
+RM_INLINE f32
+rm_norm_one_f32x3(const f32x3 v) {
+    return rm_hadd_f32x3(rm_abs_f32x3(v));
+}
+RM_INLINE f32
+rm_norm_one_f32x4(const f32x4 v) {
+#if defined(RM_SSE)
+    return rmm_norm_inf(rmm_load(v.raw));
+#else
+    return rm_hadd_f32x4(rm_abs_f32x4(v));
+#endif
+}
+RM_INLINE f64
+rm_norm_one_f64x2(const f64x2 v) {
+    return rm_hadd_f64x2(rm_abs_f64x2(v));
+}
+RM_INLINE f64
+rm_norm_one_f64x3(const f64x3 v) {
+    return rm_hadd_f64x3(rm_abs_f64x3(v));
+}
+RM_INLINE f64
+rm_norm_one_f64x4(const f64x4 v) {
+    return rm_hadd_f64x4(rm_abs_f64x4(v));
+}
+RM_INLINE u8
+rm_norm_inf_u8x2(const u8x2 v) {
+    return rm_maxv_u8x2(v);
+}
+RM_INLINE u8
+rm_norm_inf_u8x3(const u8x3 v) {
+    return rm_maxv_u8x3(v);
+}
+RM_INLINE u8
+rm_norm_inf_u8x4(const u8x4 v) {
+    return rm_maxv_u8x4(v);
+}
+RM_INLINE u16
+rm_norm_inf_u16x2(const u16x2 v) {
+    return rm_maxv_u16x2(v);
+}
+RM_INLINE u16
+rm_norm_inf_u16x3(const u16x3 v) {
+    return rm_maxv_u16x3(v);
+}
+RM_INLINE u16
+rm_norm_inf_u16x4(const u16x4 v) {
+    return rm_maxv_u16x4(v);
+}
+RM_INLINE u32
+rm_norm_inf_u32x2(const u32x2 v) {
+    return rm_maxv_u32x2(v);
+}
+RM_INLINE u32
+rm_norm_inf_u32x3(const u32x3 v) {
+    return rm_maxv_u32x3(v);
+}
+RM_INLINE u32
+rm_norm_inf_u32x4(const u32x4 v) {
+    return rm_maxv_u32x4(v);
+}
+RM_INLINE u64
+rm_norm_inf_u64x2(const u64x2 v) {
+    return rm_maxv_u64x2(v);
+}
+RM_INLINE u64
+rm_norm_inf_u64x3(const u64x3 v) {
+    return rm_maxv_u64x3(v);
+}
+RM_INLINE u64
+rm_norm_inf_u64x4(const u64x4 v) {
+    return rm_maxv_u64x4(v);
+}
+RM_INLINE i8
+rm_norm_inf_i8x2(const i8x2 v) {
+    return rm_maxv_i8x2(rm_abs_i8x2(v));
+}
+RM_INLINE i8
+rm_norm_inf_i8x3(const i8x3 v) {
+    return rm_maxv_i8x3(rm_abs_i8x3(v));
+}
+RM_INLINE i8
+rm_norm_inf_i8x4(const i8x4 v) {
+    return rm_maxv_i8x4(rm_abs_i8x4(v));
+}
+RM_INLINE i16
+rm_norm_inf_i16x2(const i16x2 v) {
+    return rm_maxv_i16x2(rm_abs_i16x2(v));
+}
+RM_INLINE i16
+rm_norm_inf_i16x3(const i16x3 v) {
+    return rm_maxv_i16x3(rm_abs_i16x3(v));
+}
+RM_INLINE i16
+rm_norm_inf_i16x4(const i16x4 v) {
+    return rm_maxv_i16x4(rm_abs_i16x4(v));
+}
+RM_INLINE i32
+rm_norm_inf_i32x2(const i32x2 v) {
+    return rm_maxv_i32x2(rm_abs_i32x2(v));
+}
+RM_INLINE i32
+rm_norm_inf_i32x3(const i32x3 v) {
+    return rm_maxv_i32x3(rm_abs_i32x3(v));
+}
+RM_INLINE i32
+rm_norm_inf_i32x4(const i32x4 v) {
+    return rm_maxv_i32x4(rm_abs_i32x4(v));
+}
+RM_INLINE i64
+rm_norm_inf_i64x2(const i64x2 v) {
+    return rm_maxv_i64x2(rm_abs_i64x2(v));
+}
+RM_INLINE i64
+rm_norm_inf_i64x3(const i64x3 v) {
+    return rm_maxv_i64x3(rm_abs_i64x3(v));
+}
+RM_INLINE i64
+rm_norm_inf_i64x4(const i64x4 v) {
+    return rm_maxv_i64x4(rm_abs_i64x4(v));
+}
+RM_INLINE f32
+rm_norm_inf_f32x2(const f32x2 v) {
+    return rm_maxv_f32x2(rm_abs_f32x2(v));
+}
+RM_INLINE f32
+rm_norm_inf_f32x3(const f32x3 v) {
+    return rm_maxv_f32x3(rm_abs_f32x3(v));
+}
+RM_INLINE f32
+rm_norm_inf_f32x4(const f32x4 v) {
+    return rm_maxv_f32x4(rm_abs_f32x4(v));
+}
+RM_INLINE f64
+rm_norm_inf_f64x2(const f64x2 v) {
+    return rm_maxv_f64x2(rm_abs_f64x2(v));
+}
+RM_INLINE f64
+rm_norm_inf_f64x3(const f64x3 v) {
+    return rm_maxv_f64x3(rm_abs_f64x3(v));
+}
+RM_INLINE f64
+rm_norm_inf_f64x4(const f64x4 v) {
+    return rm_maxv_f64x4(rm_abs_f64x4(v));
+}
 RM_INLINE f32x2
 rm_normalize_f32x2(const f32x2 v) {
     f32 norm;
@@ -8635,16 +9305,6 @@ rm_normalize_f32x2(const f32x2 v) {
     if (norm == 0.0f) { return rm_zero_f32x2(); }
 
     return rm_muls_f32x2(v, 1.0f / norm);
-}
-RM_INLINE f64x2
-rm_normalize_f64x2(const f64x2 v) {
-    f64 norm;
-
-    norm = rm_norm_f64x2(v);
-
-    if (norm == 0.0f) { return rm_zero_f64x2(); }
-
-    return rm_muls_f64x2(v, 1.0 / norm);
 }
 RM_INLINE f32x3
 rm_normalize_f32x3(const f32x3 v) {
@@ -8656,6 +9316,26 @@ rm_normalize_f32x3(const f32x3 v) {
 
     return rm_muls_f32x3(v, 1.0f / norm);
 }
+RM_INLINE f32x4
+rm_normalize_f32x4(const f32x4 v) {
+    f32 norm;
+
+    norm = rm_norm_f32x4(v);
+
+    if (norm == 0.0f) { return rm_zero_f32x4(); }
+
+    return rm_muls_f32x4(v, 1.0f / norm);
+}
+RM_INLINE f64x2
+rm_normalize_f64x2(const f64x2 v) {
+    f64 norm;
+
+    norm = rm_norm_f64x2(v);
+
+    if (norm == 0.0f) { return rm_zero_f64x2(); }
+
+    return rm_muls_f64x2(v, 1.0 / norm);
+}
 RM_INLINE f64x3
 rm_normalize_f64x3(const f64x3 v) {
     f64 norm;
@@ -8665,6 +9345,16 @@ rm_normalize_f64x3(const f64x3 v) {
     if (norm == 0.0f) { return rm_zero_f64x3(); }
 
     return rm_muls_f64x3(v, 1.0 / norm);
+}
+RM_INLINE f64x4
+rm_normalize_f64x4(const f64x4 v) {
+    f64 norm;
+
+    norm = rm_norm_f64x4(v);
+
+    if (norm == 0.0f) { return rm_zero_f64x4(); }
+
+    return rm_muls_f64x4(v, 1.0 / norm);
 }
 RM_INLINE u8
 rm_cross_u8x2(const u8x2 a, const u8x2 b) {
@@ -8887,8 +9577,12 @@ rm_distance2_f32x3(const f32x3 a, const f32x3 b) {
 }
 RM_INLINE f32
 rm_distance2_f32x4(const f32x4 a, const f32x4 b) {
+#if defined(RM_SSE)
+    return rmm_norm2(_mm_sub_ps(rmm_load(a.raw), rmm_load(b.raw)));
+#else
     return rm_pow2_f32(a.x - b.x) + rm_pow2_f32(a.y - b.y) +
            rm_pow2_f32(a.z - b.z) + rm_pow2_f32(a.w - b.w);
+#endif
 }
 RM_INLINE f64
 rm_distance2_f64x2(const f64x2 a, const f64x2 b) {
@@ -9010,7 +9704,11 @@ rm_distance_f32x3(const f32x3 a, const f32x3 b) {
 }
 RM_INLINE f32
 rm_distance_f32x4(const f32x4 a, const f32x4 b) {
+#if defined(RM_SSE)
+    return rmm_norm(_mm_sub_ps(rmm_load(a.raw), rmm_load(b.raw)));
+#else
     return rm_sqrt_f32(rm_distance2_f32x4(a, b));
+#endif
 }
 RM_INLINE f64
 rm_distance_f64x2(const f64x2 a, const f64x2 b) {

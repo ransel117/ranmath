@@ -1,19 +1,20 @@
 [
-  {
-    "arguments": [
-      "/usr/bin/gcc",
-      "-c",
-      "-Wall",
-      "-Wpedantic",
-      "-ggdb",
-      "-std=c11",
-      "-O2",
-      "-o",
-      "test/test",
-      "test/test.c"
-    ],
-    "directory": "/home/ransel117/programming/ranmath/test",
-    "file": "/home/ransel117/programming/ranmath/test/test.c",
-    "output": "/home/ransel117/programming/ranmath/test/test"
-  }
+    {
+        "arguments": [
+            "/usr/bin/clang",
+            "-c",
+            "-Wall",
+            "-Wpedantic",
+            "-ggdb",
+            "-std=c11",
+            "-mavx2",
+            "-march=native",
+            "test/test.c",
+            "-o",
+            "test/test"
+        ],
+        "directory": "/home/ransel117/programming/ranmath/test",
+        "file": "/home/ransel117/programming/ranmath/test/test.c",
+        "output": "/home/ransel117/programming/ranmath/test/test"
+    }
 ]
