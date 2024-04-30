@@ -193,16 +193,33 @@
 #endif /* ARM INTRINSICS */
 #endif /* NO INTRINSICS */
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
-typedef float f32;
-typedef double f64;
+#define RM_INLINE static inline
+
+#if !defined(RM_UNALIGNED)
+#if defined(_MSC_VER)
+/* do not use alignment for older visual studio versions */
+#if _MSC_VER < 1913 /*  Visual Studio 2017 version 15.6  */
+#define RM_UNALIGNED 1
+#define RM_ALIGN(_X) /* no alignment */
+#else
+#define RM_ALIGN(_X) __declspec(align((_X)))
+#endif
+#else
+#define RM_ALIGN(_X) __attribute((aligned((_X))))
+#endif
+#endif
+
+/* If the small types are aligned the rest seems to be also aligned */
+typedef RM_ALIGN(1) uint8_t u8;
+typedef RM_ALIGN(2) uint16_t u16;
+typedef RM_ALIGN(4) uint32_t u32;
+typedef RM_ALIGN(8) uint64_t u64;
+typedef RM_ALIGN(1) int8_t i8;
+typedef RM_ALIGN(2) int16_t i16;
+typedef RM_ALIGN(4) int32_t i32;
+typedef RM_ALIGN(8) int64_t i64;
+typedef RM_ALIGN(4) float f32;
+typedef RM_ALIGN(8) double f64;
 
 typedef struct f32_cvt_t f32_cvt;
 typedef struct f64_cvt_t f64_cvt;
@@ -2217,8 +2234,6 @@ struct f64x4x4_t {
 #define rm_splat3(_v) (_v).x, (_v).y, (_v).z
 #define rm_splat4(_v) (_v).x, (_v).y, (_v).z, (_v).w
 
-#define RM_INLINE static inline
-
 #define RM_HUGE_F32 u32_as_f32(0x7f7fffff)
 #define RM_HUGE_F64 u64_as_f64(0x7fefffffffffffff)
 #define RM_INF_F32  u32_as_f32(0x7f800000)
@@ -2256,7 +2271,7 @@ struct f64x4x4_t {
 #if !defined(RM_NO_INTRINSICS)
 #if defined(RM_ARCH_X86)
 
-#if defined(RM_ALIGNED)
+#if !defined(RM_UNALIGNED)
 #define rmm_load(_v) _mm_load_ps((_v))
 #define rmm_store(_a, _b) _mm_store_ps((_a), _b);
 #else
@@ -3920,7 +3935,13 @@ rm_lteq_f32x3(const f32x3 a, const f32x3 b) {
 }
 RM_INLINE boolx4
 rm_lteq_f32x4(const f32x4 a, const f32x4 b) {
+#if defined(RM_SSE2)
+    i32x4 tmp;
+    _mm_store_si128((__m128i*)tmp.raw, _mm_and_si128(_mm_castps_si128(_mm_cmple_ps(rmm_load(a.raw), rmm_load(b.raw))), _mm_set1_epi32(1)));
+    return rm_boolx4(tmp.x, tmp.y, tmp.z, tmp.w);
+#else
     return rm_boolx4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= b.w);
+#endif
 }
 RM_INLINE boolx2
 rm_lteq_f64x2(const f64x2 a, const f64x2 b) {
