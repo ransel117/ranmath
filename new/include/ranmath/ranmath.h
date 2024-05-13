@@ -2242,46 +2242,26 @@ struct f64x4x4_t {
 #define RM_NAN_F32 u32_as_f32(0x7fc00000)
 #define RM_NAN_F64 u64_as_f64(0x7ff8000000000000)
 
-#define RM_E_F64        0x1.5bf0a8b145769p+1
-#define RM_LOG2E_F64    0x1.71547652b82fep+0
-#define RM_LOG10E_F64   0x1.bcb7b1526e50ep-2
-#define RM_LN2_F64      0x1.62e42fefa39efp-1
-#define RM_LN10_F64     0x1.26bb1bbb55516p+1
-#define RM_PI_F64       0x1.921fb54442d18p+1
-#define RM_2PI_F64      0x1.921fb54442d18p+2
-#define RM_PI_2_F64     0x1.921fb54442d18p+0
-#define RM_PI_4_F64     0x1.921fb54442d18p-1
-#define RM_1_PI_F64     0x1.45f306dc9c883p-2
-#define RM_2_PI_F64     0x1.45f306dc9c883p-1
-#define RM_PISQ_F64     0x1.3bd3cc9be45dep+3
-#define RM_SQRTPI_F64   0x1.c5bf891b4ef6ap+0
-#define RM_1_SQRTPI_F64 0x1.20dd750429b6dp-1
-#define RM_2_SQRTPI_F64 0x1.20dd750429b6dp+0
-#define RM_SQRT2_F64    0x1.6a09e667f3bcdp+0
-#define RM_1_SQRT2_F64  0x1.6a09e667f3bcdp-1
-#define RM_DEG2RAD_F64  0x1.1df46a2529d39p-6
-#define RM_RAD2DEG_F64  0x1.ca5dc1a63c1f8p+5
-
-#define RM_E_F32        ((f32)RM_E_F64)
-#define RM_LOG2E_F32    ((f32)RM_LOG2E_F64)
-#define RM_LOG10E_F32   ((f32)RM_LOG10E_F64)
-#define RM_LN2_F32      ((f32)RM_LN2_F64)
-#define RM_LN10_F32     ((f32)RM_LN10_F64)
-#define RM_PI_F32       ((f32)RM_PI_F64)
-#define RM_PISQ_F32     ((f32)RM_PISQ_F64)
-#define RM_SQRTPI_F32   ((f32)RM_SQRTPI_F64)
-#define RM_1_SQRTPI_F32 ((f32)RM_1_SQRTPI_F64)
-#define RM_2_SQRTPI_F32 ((f32)RM_2_SQRTPI_F64)
-#define RM_2PI_F32      ((f32)RM_2PI_F64)
-#define RM_PI_2_F32     ((f32)RM_PI_2_F64)
-#define RM_PI_4_F32     ((f32)RM_PI_4_F64)
-#define RM_1_PI_F32     ((f32)RM_1_PI_F64)
-#define RM_2_PI_F32     ((f32)RM_2_PI_F64)
-#define RM_SQRT2_F32    ((f32)RM_SQRT2_F64)
-#define RM_1_SQRT2_F32  ((f32)RM_1_SQRT2_F64)
-#define RM_DEG2RAD_F32  ((f32)RM_DEG2RAD_F64)
-#define RM_RAD2DEG_F32  ((f32)RM_RAD2DEG_F64)
-
+#define RM_PI_F32                  u32_as_f32(0x40490fdb)
+#define RM_PI_F64                  u64_as_f64(0x400921fb54442d18)
+#define RM_2PI_F32                 u32_as_f32(0x40c90fdb)
+#define RM_2PI_F64                 u64_as_f64(0x401921fb54442d18)
+#define RM_PISQ_F32                u32_as_f32(0x411de9e7)
+#define RM_PISQ_F64                u64_as_f64(0x4023bd3cc9be45de)
+#define RM_SQRTPI_F32              u32_as_f32(0x3fe2dfc5)
+#define RM_SQRTPI_F64              u64_as_f64(0x3ffc5bf891b4ef6a)
+#define RM_RSQRTPI_F32             u32_as_f32(0x3f106eba)
+#define RM_RSQRTPI_F64             u64_as_f64(0x3fe20dd750429b6d)
+#define RM_PIO2_F32                u32_as_f32(0x3fc90fdb)
+#define RM_PIO2_F64                u64_as_f64(0x3ff921fb54442d18)
+#define RM_1OPI_F32                u32_as_f32(0x3ea2f983)
+#define RM_1OPI_F64                u64_as_f64(0x3fd45f306dc9c883)
+#define RM_2OPI_F32                u32_as_f32(0x3f22f983)
+#define RM_2OPI_F64                u64_as_f64(0x3fe45f306dc9c883)
+#define RM_DEG2RAD_F32             u32_as_f32(0x3c8efa35)
+#define RM_DEG2RAD_F64             u64_as_f64(0x3f91df46a2529d39)
+#define RM_RAD2DEG_F32             u32_as_f32(0x42652ee0)
+#define RM_RAD2DEG_F64             u64_as_f64(0x404ca5dc1a63c1f8)
 #define RM_ABS(_x)                 (((_x) < 0) ? -(_x) : (_x))
 #define RM_MIN(_a, _b)             (((_a) < (_b)) ? (_a) : (_b))
 #define RM_MAX(_a, _b)             (((_a) > (_b)) ? (_a) : (_b))
