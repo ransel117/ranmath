@@ -7,7 +7,8 @@ print_vec4(f32x4 v) {
     printf("<x: %f, y: %f, z: %f, w: %f>\n", v.x, v.y, v.z, v.w);
 }
 
-void print_vec4i(boolx4 v) {
+void
+print_vec4i(boolx4 v) {
     printf("<x: %i, y: %i, z: %i, w: %i>\n", v.x, v.y, v.z, v.w);
 }
 
@@ -31,15 +32,15 @@ main(void) {
     printf("%f\n", rm_dot_f32x4(v1, v2));
 
     i32x4 test;
-    _mm_store_si128((__m128i*)test.raw, _mm_and_si128(_mm_castps_si128(_mm_cmple_ps(rmm_load(v1.raw), rmm_load(v2.raw))),_mm_set1_epi32(1)));
+    _mm_store_si128((__m128i *)test.raw,
+                    _mm_and_si128(_mm_castps_si128(_mm_cmple_ps(
+                                      rmm_load(v1.raw), rmm_load(v2.raw))),
+                                  _mm_set1_epi32(1)));
 
     boolx4 test2;
 
-    test2 = (boolx4){
-        .x = test.x,
-        .y = test.y,
-        .z = test.z,
-        .w = test.w
-    };
+    test2 = (boolx4) {.x = test.x, .y = test.y, .z = test.z, .w = test.w};
     print_vec4i(test2);
+
+    return 0;
 }
